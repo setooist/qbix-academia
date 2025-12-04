@@ -1,0 +1,25 @@
+{
+  "kind": "singleType",
+  "collectionName": "navigations",
+  "info": {
+    "singularName": "navigation",
+    "pluralName": "navigations",
+    "displayName": "Navigation"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Seo": {
+      "type": "component",
+      "component": "shared.seo",
+      "repeatable": true
+    },
+    "Menu": {
+      "type": "component",
+      "component": "shared.menu",
+      "repeatable": true
+    }
+  }
+}

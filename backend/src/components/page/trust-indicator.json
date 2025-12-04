@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_page_trust_indicators",
+  "info": {
+    "displayName": "Trust Indicator"
+  },
+  "options": {},
+  "attributes": {
+    "trustLabel": {
+      "type": "string"
+    },
+    "pillarTitle": {
+      "type": "string"
+    },
+    "pillarDescription": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

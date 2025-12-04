@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_shared_child_submenus",
+  "info": {
+    "displayName": "ChildSubmenu"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "href": {
+      "type": "string"
+    },
+    "target": {
+      "type": "string"
+    },
+    "description": {
+      "type": "blocks"
+    }
+  },
+  "config": {}
+}

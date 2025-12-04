@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_shared_submenus",
+  "info": {
+    "displayName": "Submenu"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "href": {
+      "type": "string"
+    },
+    "target": {
+      "type": "string"
+    },
+    "Description": {
+      "type": "blocks"
+    },
+    "ChildSubmenu": {
+      "type": "component",
+      "component": "shared.child-submenu",
+      "repeatable": true
+    }
+  },
+  "config": {}
+}

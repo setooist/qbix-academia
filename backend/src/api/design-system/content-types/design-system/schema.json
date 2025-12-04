@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "design_systems",
+  "info": {
+    "singularName": "design-system",
+    "pluralName": "design-systems",
+    "displayName": "DesignSystem"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "primaryColor": {
+      "type": "string"
+    },
+    "secondaryColor": {
+      "type": "string"
+    },
+    "backgroundColor": {
+      "type": "string"
+    },
+    "fontFamily": {
+      "type": "string"
+    },
+    "borderRadius": {
+      "type": "string"
+    },
+    "spacingScale": {
+      "type": "json"
+    },
+    "button": {
+      "type": "json"
+    }
+  }
+}
