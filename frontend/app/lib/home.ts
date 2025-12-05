@@ -31,28 +31,38 @@ const GET_HOME_PAGE = gql`
 `;
 
 export const fetchHeroSections = async () => {
-  const data = await client.request(GET_HOME_PAGE);
-
-  console.log("Hero data", data);
-
-  const heroConfig: Record<string, any> = {};
-
-  data.pages.forEach((page: any) => {
-    const heroSection = page.section?.find(
-      (s: any) => s.__typename === "ComponentPageHero"
+  try {
+    const data = await client.request(
+      GET_HOME_PAGE,
+      {},
+      {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+      }
     );
 
-    const trustSections = page.section?.filter(
-      (s: any) => s.__typename === "ComponentPageTrustIndicator"
-    );
+    console.log("Hero data", data);
 
-    if (heroSection) {
-      heroConfig[page.slug] = {
-        ...heroSection,
-        trustIndicators: trustSections || [], 
-      };
-    }
-  });
+    const heroConfig: Record<string, any> = {};
 
-  return heroConfig;
+    data.pages.forEach((page: any) => {
+      const heroSection = page.section?.find(
+        (s: any) => s.__typename === "ComponentPageHero"
+      );
+
+      const trustSections = page.section?.filter(
+        (s: any) => s.__typename === "ComponentPageTrustIndicator"
+      );
+
+      if (heroSection) {
+        heroConfig[page.slug] = {
+          ...heroSection,
+          trustIndicators: trustSections || [],
+        };
+      }
+    });
+
+    return heroConfig;
+  } catch (error: any) {
+    return {};
+  }
 };
