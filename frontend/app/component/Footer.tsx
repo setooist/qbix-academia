@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FooterColumn, FooterAddress, FooterBottom } from "@/types/footer";
 import { getFooter } from "../lib/footer";
+import Image from "next/image";
 
 const Footer = () => {
   const [columns, setColumns] = useState<FooterColumn[]>([]);
@@ -39,6 +40,12 @@ const Footer = () => {
 
     fetchFooter();
   }, []);
+  const bottomLogoUrl = bottom?.logo?.url
+    ? bottom.logo.url.startsWith("http")
+      ? bottom.logo.url // already absolute
+      : `${process.env.NEXT_PUBLIC_STRAPI_URL}${bottom.logo.url}` // local upload
+    : "";
+
 
   return (
     <footer className="bg-linear-to-br from-[#5D491B] to-[#927949] text-white relative overflow-hidden">
@@ -106,16 +113,19 @@ const Footer = () => {
 
         {bottom && (
           <div className="border-t border-white/20 pt-8 flex flex-col items-center md:flex-row md:justify-between">
-            {bottom?.logo && (
+            {bottomLogoUrl && (
               <a href={bottom.link || "/"}>
-                <img
-                  src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${bottom.logo.url}`}
+                <Image
+                  src={bottomLogoUrl}
                   alt={bottom.altText || "Logo"}
-                  className="h-12 w-auto mb-4 md:mb-0"
+                  width={100}
+                  height={30}
+                  objectFit="contain"
+                  unoptimized
                 />
-
               </a>
             )}
+
             <p className="text-sm text-white/75 text-center md:text-left">
               {bottom?.text}
             </p>

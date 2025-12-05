@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { MenuItem } from "@/types/menu";
 import { GlobalData } from "@/types/global";
 import CalendorModal from "./CalendorModal";
+import Image from "next/image";
 
 interface HeaderProps {
   menu: MenuItem[];
@@ -16,7 +17,9 @@ export default function Header({ menu, global }: HeaderProps) {
 
   const logoObj = global?.logo?.[0];
   const logoUrl = logoObj?.url
-    ? `${process.env.NEXT_PUBLIC_STRAPI_URL}${logoObj.url}`
+    ? logoObj.url.startsWith("http")
+      ? logoObj.url
+      : `${process.env.NEXT_PUBLIC_STRAPI_URL}${logoObj.url}`
     : "";
   const logoAlt = logoObj?.alternativeText || "Logo";
 
@@ -44,15 +47,21 @@ export default function Header({ menu, global }: HeaderProps) {
     setOpenSubmenu(prev => (prev === idx ? null : idx));
   };
 
+
+
   return (
     <header className="w-full border-b bg-white shadow-sm">
       <div className="container mx-auto flex justify-between items-center px-6 py-4">
-        {/* Logo */}
         <a href="/">
-          {logoUrl ? (
-            <img src={logoUrl} alt={logoAlt} className="h-10 w-auto object-contain" />
-          ) : (
-            <span className="text-xl font-bold">Logo</span>
+          {logoUrl && (
+            <Image
+              src={logoUrl}
+              alt={logoObj?.alternativeText || "Logo"}
+              width={120}
+              height={40}
+              objectFit="contain"
+              unoptimized 
+            />
           )}
         </a>
 
