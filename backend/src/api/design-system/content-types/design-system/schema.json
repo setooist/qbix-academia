@@ -11,26 +11,50 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "primaryColor": {
+    "background": {
       "type": "string"
     },
-    "secondaryColor": {
+    "foreground": {
       "type": "string"
     },
-    "backgroundColor": {
+    "primary": {
       "type": "string"
     },
-    "fontFamily": {
+    "secondary": {
       "type": "string"
     },
-    "borderRadius": {
+    "primaryForeground": {
       "type": "string"
     },
-    "spacingScale": {
-      "type": "json"
+    "secondaryForeground": {
+      "type": "string"
     },
-    "button": {
-      "type": "json"
+    "accent": {
+      "type": "string"
+    },
+    "destructive": {
+      "type": "string"
+    },
+    "muted": {
+      "type": "string"
+    },
+    "mutedForeground": {
+      "type": "string"
+    },
+    "card": {
+      "type": "string"
+    },
+    "cardForeground": {
+      "type": "string"
+    },
+    "border": {
+      "type": "string"
+    },
+    "input": {
+      "type": "string"
+    },
+    "ring": {
+      "type": "string"
     }
   }
 }
