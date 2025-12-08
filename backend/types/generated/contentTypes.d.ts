@@ -612,23 +612,31 @@ export interface ApiDesignSystemDesignSystem
     draftAndPublish: true;
   };
   attributes: {
-    backgroundColor: Schema.Attribute.String;
-    borderRadius: Schema.Attribute.String;
-    button: Schema.Attribute.JSON;
+    accent: Schema.Attribute.String;
+    background: Schema.Attribute.String;
+    border: Schema.Attribute.String;
+    card: Schema.Attribute.String;
+    cardForeground: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    fontFamily: Schema.Attribute.String;
+    destructive: Schema.Attribute.String;
+    foreground: Schema.Attribute.String;
+    input: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::design-system.design-system'
     > &
       Schema.Attribute.Private;
-    primaryColor: Schema.Attribute.String;
+    muted: Schema.Attribute.String;
+    mutedForeground: Schema.Attribute.String;
+    primary: Schema.Attribute.String;
+    primaryForeground: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    secondaryColor: Schema.Attribute.String;
-    spacingScale: Schema.Attribute.JSON;
+    ring: Schema.Attribute.String;
+    secondary: Schema.Attribute.String;
+    secondaryForeground: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
