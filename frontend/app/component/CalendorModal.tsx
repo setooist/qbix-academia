@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import ReactDOM from "react-dom";
+import { X } from "lucide-react";
 
 interface CTAModalProps {
   title: string;
@@ -29,26 +30,22 @@ export default function CalendorModal({ title, src, buttonStyle = "", children }
 
   const modalContent = (
     <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[999999]"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[999999] p-4"
       onClick={() => setOpen(false)}
     >
       <div
-        className="bg-white w-[95%] h-[90%] max-w-4xl rounded-2xl shadow-2xl relative flex flex-col"
+        className="bg-card text-card-foreground w-full h-[85vh] md:h-[90vh] max-w-5xl rounded-2xl shadow-2xl relative flex flex-col border border-border/50"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={() => setOpen(false)}
-          className="absolute top-4 right-4 bg-gray-200 hover:bg-gray-300 rounded-full p-2 transition z-50"
+          className="absolute top-4 right-4 bg-muted hover:bg-secondary text-foreground rounded-lg p-2 transition-colors z-50"
         >
-          ×
+          <X className="w-5 h-5" />
         </button>
 
         <div className="flex-1 overflow-y-auto rounded-xl">
-          <iframe
-            src={src}
-            className="w-full h-full rounded-xl border-0"
-            title={title}
-          />
+          <iframe src={src} className="w-full h-full border-0" title={title} />
         </div>
       </div>
     </div>
@@ -58,7 +55,10 @@ export default function CalendorModal({ title, src, buttonStyle = "", children }
     <>
       <button
         onClick={() => setOpen(true)}
-        className={`bg-linear-to-r from-[#5D491B] to-[#927949] text-white rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center ${buttonStyle}`}
+        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+          buttonStyle ||
+          "bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:shadow-lg hover:shadow-primary/20"
+        }`}
       >
         {children ? children : <span>{title}</span>}
       </button>
