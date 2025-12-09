@@ -1,10 +1,11 @@
-"use client";
+"use client"; 
 
 import { useState, useEffect } from "react";
-import { MenuItem } from "@/types/menu";
-import { GlobalData } from "@/types/global";
+import type { MenuItem } from "@/types/menu";
+import type { GlobalData } from "@/types/global";
 import CalendorModal from "./CalendorModal";
 import Image from "next/image";
+import { Menu, X } from "lucide-react";
 
 interface HeaderProps {
   menu: MenuItem[];
@@ -14,6 +15,7 @@ interface HeaderProps {
 export default function Header({ menu, global }: HeaderProps) {
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const [openSubmenu, setOpenSubmenu] = useState<number | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const logoObj = global?.logo?.[0];
   const logoUrl = logoObj?.url
@@ -21,7 +23,6 @@ export default function Header({ menu, global }: HeaderProps) {
       ? logoObj.url
       : `${process.env.NEXT_PUBLIC_STRAPI_URL}${logoObj.url}`
     : "";
-  const logoAlt = logoObj?.alternativeText || "Logo";
 
   const ctaText = global?.ctaButtonText;
   const ctaLink = global?.ctaButtonLink;
@@ -39,81 +40,78 @@ export default function Header({ menu, global }: HeaderProps) {
   }, []);
 
   const toggleMenu = (idx: number) => {
-    setOpenMenu(prev => (prev === idx ? null : idx));
+    setOpenMenu((prev) => (prev === idx ? null : idx));
     setOpenSubmenu(null);
   };
 
   const toggleSubmenu = (idx: number) => {
-    setOpenSubmenu(prev => (prev === idx ? null : idx));
+    setOpenSubmenu((prev) => (prev === idx ? null : idx));
   };
 
-
-
   return (
-    <header className="w-full border-b bg-white shadow-sm">
-      <div className="container mx-auto flex justify-between items-center px-6 py-4">
-        <a href="/">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
+      <div className="container mx-auto flex justify-between items-center px-4 md:px-6 py-4">
+        <a href="/" className="flex-shrink-0">
           {logoUrl && (
             <Image
-              src={logoUrl}
+              src={logoUrl || "/placeholder.svg"}
               alt={logoObj?.alternativeText || "Logo"}
-              width={120}
+              width={140}
               height={40}
               objectFit="contain"
-              unoptimized 
+              unoptimized
+              className="h-10 w-auto"
             />
           )}
         </a>
 
-        {/* Navigation */}
-        <nav className="flex gap-6 items-center">
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex gap-1 items-center flex-1 justify-end">
           {menu?.map((item, idx) => (
-            <div key={idx} className="relative menu-item">
+            <div key={idx} className="relative menu-item group">
               <a
                 href={item.href}
                 target={item.target || "_self"}
-                onClick={e => {
+                onClick={(e) => {
                   if (item.submenu?.length) {
-                    e.preventDefault();
-                    toggleMenu(idx);
+                    e.preventDefault()
+                    toggleMenu(idx)
                   }
                 }}
-                className="flex items-center gap-1 text-lg text-gray-700 font-medium hover:text-blue-600 transition cursor-pointer"
+                className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors rounded-md hover:bg-muted/50"
               >
                 {item.label}
-                {item.submenu?.length ? <span className="ml-1">▾</span> : null}
+                {item.submenu?.length ? <span className="text-xs">▾</span> : null}
               </a>
 
-              {/* Submenu */}
               {openMenu === idx && item.submenu?.length && (
-                <div className="absolute left-0 top-full mt-2 bg-white shadow-lg rounded-lg p-4 w-56 z-50">
-                  <ul className="space-y-1 text-gray-700">
+                <div className="absolute left-0 top-full mt-1 bg-card shadow-xl rounded-lg border border-border/50 p-2 w-56 z-50">
+                  <ul className="space-y-1 text-foreground">
                     {item.submenu.map((sub, sIdx) => (
-                      <li key={sIdx} className="relative group">
+                      <li key={sIdx} className="relative">
                         <a
                           href={sub.href}
                           target={sub.target || "_self"}
-                          onClick={e => {
+                          onClick={(e) => {
                             if (sub.childSubmenu?.length) {
-                              e.preventDefault();
-                              toggleSubmenu(sIdx);
+                              e.preventDefault()
+                              toggleSubmenu(sIdx)
                             }
                           }}
-                          className="px-3 py-2 hover:bg-gray-100 rounded-md flex justify-between items-center"
+                          className="px-3 py-2 hover:bg-muted rounded-md flex justify-between items-center text-sm"
                         >
                           {sub.label}
-                          {sub.childSubmenu?.length ? <span className="ml-1">▸</span> : null}
+                          {sub.childSubmenu?.length ? <span className="text-xs">▸</span> : null}
                         </a>
 
-                        {/* Child Submenu */}
                         {openSubmenu === sIdx && sub.childSubmenu?.length && (
-                          <ul className="absolute left-full top-0 mt-0 ml-1 bg-white shadow-lg rounded-lg p-2 w-52 z-50">
+                          <ul className="absolute left-full top-0 mt-0 ml-1 bg-card shadow-lg rounded-lg border border-border/50 p-2 w-52 z-50">
                             {sub.childSubmenu.map((child, cIdx) => (
                               <li key={cIdx}>
                                 <a
                                   href={child.href}
                                   target={child.target || "_self"}
-                                  className="block px-3 py-2 hover:bg-gray-100 rounded-md"
+                                  className="block px-3 py-2 hover:bg-muted rounded-md text-sm"
                                 >
                                   {child.label}
                                 </a>
@@ -130,15 +128,51 @@ export default function Header({ menu, global }: HeaderProps) {
           ))}
         </nav>
 
-        {/* CTA Button */}
-        {ctaText && ctaLink && (
-          <CalendorModal
-            title={ctaText}
-            src={ctaLink}
-            buttonStyle="ml-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          />
-        )}
+        {/* CTA Button and Mobile Menu */}
+        <div className="flex items-center gap-3">
+          {ctaText && ctaLink && (
+            <div className="hidden sm:block">
+              <CalendorModal
+                title={ctaText}
+                src={ctaLink}
+                buttonStyle="px-6 py-2 text-sm bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20"
+              />
+            </div>
+          )}
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 hover:bg-muted rounded-md transition-colors"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden border-t border-border/50 bg-card/50 backdrop-blur-sm">
+          <div className="px-4 py-4 space-y-3">
+            {menu?.map((item, idx) => (
+              <div key={idx}>
+                <a
+                  href={item.href}
+                  target={item.target || "_self"}
+                  className="block px-4 py-2 text-foreground hover:text-primary rounded-md hover:bg-muted/50 transition-colors"
+                >
+                  {item.label}
+                </a>
+              </div>
+            ))}
+            {ctaText && ctaLink && (
+              <div className="pt-3 border-t border-border/50">
+                <CalendorModal title={ctaText} src={ctaLink} buttonStyle="w-full px-4 py-2 text-sm justify-center" />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
