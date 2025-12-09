@@ -1,3 +1,6 @@
+import { getDesignSystem } from "@/app/lib/design";
+import { generateCssVariables } from "@/app/helper/styleGenerator";
+
 import { Geist } from "next/font/google";
 import "./globals.css";
 
@@ -25,9 +28,18 @@ export default async function RootLayout({
 }) {
   const navigation = await getNavigation();
   const globalData = await getGlobal();
-
+  const designSystem = await getDesignSystem();
   return (
     <html lang="en">
+       <head>
+        {designSystem && (
+          <style
+            dangerouslySetInnerHTML={{
+              __html: generateCssVariables(designSystem),
+            }}
+          />
+        )}
+      </head>
       <body className={`${geistSans.variable} antialiased bg-white`}>
         <Header menu={navigation} global={globalData} />
         {children}
