@@ -4,7 +4,7 @@
   "info": {
     "singularName": "design-system",
     "pluralName": "design-systems",
-    "displayName": "DesignSystem"
+    "displayName": "Design System"
   },
   "options": {
     "draftAndPublish": true

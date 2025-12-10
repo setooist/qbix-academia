@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_page_results",
+  "info": {
+    "displayName": "Results"
+  },
+  "options": {},
+  "attributes": {
+    "statName": {
+      "type": "string"
+    },
+    "statValue": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

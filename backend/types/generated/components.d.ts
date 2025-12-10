@@ -18,7 +18,7 @@ export interface FooterAddress extends Struct.ComponentSchema {
 export interface FooterFooterBottom extends Struct.ComponentSchema {
   collectionName: 'components_footer_footer_bottoms';
   info: {
-    displayName: 'FooterBottom';
+    displayName: 'Footer Bottom';
   };
   attributes: {
     altText: Schema.Attribute.String;
@@ -74,6 +74,28 @@ export interface PageHero extends Struct.ComponentSchema {
   };
 }
 
+export interface PageKeyAttribute extends Struct.ComponentSchema {
+  collectionName: 'components_page_key_attributes';
+  info: {
+    displayName: 'Key Attribute';
+  };
+  attributes: {
+    name: Schema.Attribute.String;
+    value: Schema.Attribute.String;
+  };
+}
+
+export interface PageResults extends Struct.ComponentSchema {
+  collectionName: 'components_page_results';
+  info: {
+    displayName: 'Results';
+  };
+  attributes: {
+    statName: Schema.Attribute.String;
+    statValue: Schema.Attribute.String;
+  };
+}
+
 export interface PageTrustIndicator extends Struct.ComponentSchema {
   collectionName: 'components_page_trust_indicators';
   info: {
@@ -89,7 +111,7 @@ export interface PageTrustIndicator extends Struct.ComponentSchema {
 export interface SharedChildSubmenu extends Struct.ComponentSchema {
   collectionName: 'components_shared_child_submenus';
   info: {
-    displayName: 'ChildSubmenu';
+    displayName: 'Child Submenu';
   };
   attributes: {
     description: Schema.Attribute.Blocks;
@@ -197,6 +219,8 @@ declare module '@strapi/strapi' {
       'footer.footer-column': FooterFooterColumn;
       'footer.footer-links': FooterFooterLinks;
       'page.hero': PageHero;
+      'page.key-attribute': PageKeyAttribute;
+      'page.results': PageResults;
       'page.trust-indicator': PageTrustIndicator;
       'shared.child-submenu': SharedChildSubmenu;
       'shared.media': SharedMedia;

@@ -512,7 +512,6 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
     blocks: Schema.Attribute.DynamicZone<
       ['shared.media', 'shared.quote', 'shared.rich-text', 'shared.slider']
     >;
-    category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
     cover: Schema.Attribute.Media<'images' | 'files' | 'videos'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -568,6 +567,90 @@ export interface ApiAuthorAuthor extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiBlogBlog extends Struct.CollectionTypeSchema {
+  collectionName: 'blogs';
+  info: {
+    displayName: 'Blogs';
+    pluralName: 'blogs';
+    singularName: 'blog';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    author: Schema.Attribute.String;
+    category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
+    content: Schema.Attribute.Blocks;
+    coverImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    excerpt: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::blog.blog'> &
+      Schema.Attribute.Private;
+    published: Schema.Attribute.DateTime;
+    publishedAt: Schema.Attribute.DateTime;
+    readTime: Schema.Attribute.BigInteger;
+    seo: Schema.Attribute.Component<'shared.seo', true>;
+    slug: Schema.Attribute.UID & Schema.Attribute.Required;
+    tag: Schema.Attribute.Relation<'oneToOne', 'api::tag.tag'>;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiCaseStudieCaseStudie extends Struct.CollectionTypeSchema {
+  collectionName: 'case_studies';
+  info: {
+    displayName: 'Case Studies';
+    pluralName: 'case-studies';
+    singularName: 'case-studie';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    approach: Schema.Attribute.String;
+    category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    keyAttribute: Schema.Attribute.Component<'page.key-attribute', true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::case-studie.case-studie'
+    > &
+      Schema.Attribute.Private;
+    mediaGallery: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    outcome: Schema.Attribute.String;
+    problem: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    result: Schema.Attribute.Component<'page.results', true>;
+    slug: Schema.Attribute.UID;
+    studentName: Schema.Attribute.String;
+    tag: Schema.Attribute.Relation<'oneToOne', 'api::tag.tag'>;
+    testimonial: Schema.Attribute.String;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   collectionName: 'categories';
   info: {
@@ -580,7 +663,6 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
-    articles: Schema.Attribute.Relation<'oneToMany', 'api::article.article'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -591,7 +673,9 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
       'api::category.category'
     > &
       Schema.Attribute.Private;
-    name: Schema.Attribute.String;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID;
     updatedAt: Schema.Attribute.DateTime;
@@ -604,7 +688,7 @@ export interface ApiDesignSystemDesignSystem
   extends Struct.CollectionTypeSchema {
   collectionName: 'design_systems';
   info: {
-    displayName: 'DesignSystem';
+    displayName: 'Design System';
     pluralName: 'design-systems';
     singularName: 'design-system';
   };
@@ -782,6 +866,35 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
     Seo: Schema.Attribute.Component<'shared.seo', true>;
     slug: Schema.Attribute.UID;
     title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiTagTag extends Struct.CollectionTypeSchema {
+  collectionName: 'tags';
+  info: {
+    displayName: 'Tags';
+    pluralName: 'tags';
+    singularName: 'tag';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Blocks;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::tag.tag'> &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1302,12 +1415,15 @@ declare module '@strapi/strapi' {
       'api::about.about': ApiAboutAbout;
       'api::article.article': ApiArticleArticle;
       'api::author.author': ApiAuthorAuthor;
+      'api::blog.blog': ApiBlogBlog;
+      'api::case-studie.case-studie': ApiCaseStudieCaseStudie;
       'api::category.category': ApiCategoryCategory;
       'api::design-system.design-system': ApiDesignSystemDesignSystem;
       'api::footer.footer': ApiFooterFooter;
       'api::global.global': ApiGlobalGlobal;
       'api::navigation.navigation': ApiNavigationNavigation;
       'api::page.page': ApiPagePage;
+      'api::tag.tag': ApiTagTag;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
