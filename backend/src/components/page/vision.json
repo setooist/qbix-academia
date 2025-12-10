@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_page_visions",
+  "info": {
+    "displayName": "Vision"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "blocks"
+    }
+  },
+  "config": {}
+}

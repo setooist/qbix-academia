@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_page_about_visions",
+  "info": {
+    "displayName": "Our Journey"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "blocks"
+    }
+  },
+  "config": {}
+}

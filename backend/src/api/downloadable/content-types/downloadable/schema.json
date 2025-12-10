@@ -1,0 +1,76 @@
+{
+  "kind": "collectionType",
+  "collectionName": "downloadables",
+  "info": {
+    "singularName": "downloadable",
+    "pluralName": "downloadables",
+    "displayName": "Downloadable"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "slug": {
+      "type": "uid"
+    },
+    "excerpt": {
+      "type": "text"
+    },
+    "description": {
+      "type": "blocks"
+    },
+    "category": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::category.category"
+    },
+    "tag": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::tag.tag"
+    },
+    "file": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "version": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "published": {
+      "type": "datetime"
+    },
+    "coverImage": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "readTime": {
+      "type": "string"
+    },
+    "testimonial": {
+      "type": "component",
+      "component": "page.testimonial",
+      "repeatable": true
+    }
+  }
+}
