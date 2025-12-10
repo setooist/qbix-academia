@@ -744,6 +744,55 @@ export interface ApiDesignSystemDesignSystem
   };
 }
 
+export interface ApiDownloadableDownloadable
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'downloadables';
+  info: {
+    displayName: 'Downloadable';
+    pluralName: 'downloadables';
+    singularName: 'downloadable';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    author: Schema.Attribute.String;
+    category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
+    coverImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Blocks;
+    excerpt: Schema.Attribute.Text;
+    file: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::downloadable.downloadable'
+    > &
+      Schema.Attribute.Private;
+    published: Schema.Attribute.DateTime;
+    publishedAt: Schema.Attribute.DateTime;
+    readTime: Schema.Attribute.String;
+    slug: Schema.Attribute.UID;
+    tag: Schema.Attribute.Relation<'oneToOne', 'api::tag.tag'>;
+    testimonial: Schema.Attribute.Component<'page.testimonial', true>;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    version: Schema.Attribute.String;
+  };
+}
+
 export interface ApiFooterFooter extends Struct.SingleTypeSchema {
   collectionName: 'footers';
   info: {
@@ -861,7 +910,16 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     section: Schema.Attribute.DynamicZone<
-      ['page.hero', 'page.trust-indicator']
+      [
+        'page.hero',
+        'page.trust-indicator',
+        'page.about-hero',
+        'page.who-we-are',
+        'page.timeline-item',
+        'page.vision',
+        'page.mission',
+        'page.about-vision',
+      ]
     >;
     Seo: Schema.Attribute.Component<'shared.seo', true>;
     slug: Schema.Attribute.UID;
@@ -1419,6 +1477,7 @@ declare module '@strapi/strapi' {
       'api::case-studie.case-studie': ApiCaseStudieCaseStudie;
       'api::category.category': ApiCategoryCategory;
       'api::design-system.design-system': ApiDesignSystemDesignSystem;
+      'api::downloadable.downloadable': ApiDownloadableDownloadable;
       'api::footer.footer': ApiFooterFooter;
       'api::global.global': ApiGlobalGlobal;
       'api::navigation.navigation': ApiNavigationNavigation;

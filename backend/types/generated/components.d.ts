@@ -55,6 +55,33 @@ export interface FooterFooterLinks extends Struct.ComponentSchema {
   };
 }
 
+export interface PageAboutHero extends Struct.ComponentSchema {
+  collectionName: 'components_page_about_heroes';
+  info: {
+    displayName: 'About Hero';
+  };
+  attributes: {
+    coverImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    description: Schema.Attribute.Blocks;
+    subtitle: Schema.Attribute.Text;
+    title: Schema.Attribute.String;
+  };
+}
+
+export interface PageAboutVision extends Struct.ComponentSchema {
+  collectionName: 'components_page_about_visions';
+  info: {
+    displayName: 'Our Journey';
+  };
+  attributes: {
+    description: Schema.Attribute.Blocks;
+    title: Schema.Attribute.String;
+  };
+}
+
 export interface PageHero extends Struct.ComponentSchema {
   collectionName: 'components_page_heroes';
   info: {
@@ -85,6 +112,17 @@ export interface PageKeyAttribute extends Struct.ComponentSchema {
   };
 }
 
+export interface PageMission extends Struct.ComponentSchema {
+  collectionName: 'components_page_missions';
+  info: {
+    displayName: 'Mission';
+  };
+  attributes: {
+    description: Schema.Attribute.Blocks;
+    title: Schema.Attribute.String;
+  };
+}
+
 export interface PageResults extends Struct.ComponentSchema {
   collectionName: 'components_page_results';
   info: {
@@ -93,6 +131,29 @@ export interface PageResults extends Struct.ComponentSchema {
   attributes: {
     statName: Schema.Attribute.String;
     statValue: Schema.Attribute.String;
+  };
+}
+
+export interface PageTestimonial extends Struct.ComponentSchema {
+  collectionName: 'components_page_testimonials';
+  info: {
+    displayName: 'Testimonial';
+  };
+  attributes: {
+    author: Schema.Attribute.String;
+    quote: Schema.Attribute.Text;
+  };
+}
+
+export interface PageTimelineItem extends Struct.ComponentSchema {
+  collectionName: 'components_page_timeline_items';
+  info: {
+    displayName: 'Timeline Item';
+  };
+  attributes: {
+    description: Schema.Attribute.Blocks;
+    title: Schema.Attribute.String;
+    Year: Schema.Attribute.String;
   };
 }
 
@@ -105,6 +166,30 @@ export interface PageTrustIndicator extends Struct.ComponentSchema {
     pillarDescription: Schema.Attribute.String;
     pillarTitle: Schema.Attribute.String;
     trustLabel: Schema.Attribute.String;
+  };
+}
+
+export interface PageVision extends Struct.ComponentSchema {
+  collectionName: 'components_page_visions';
+  info: {
+    displayName: 'Vision';
+  };
+  attributes: {
+    description: Schema.Attribute.Blocks;
+    title: Schema.Attribute.String;
+  };
+}
+
+export interface PageWhoWeAre extends Struct.ComponentSchema {
+  collectionName: 'components_page_who_we_ares';
+  info: {
+    displayName: 'Who We Are';
+  };
+  attributes: {
+    description: Schema.Attribute.Blocks;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
   };
 }
 
@@ -218,10 +303,17 @@ declare module '@strapi/strapi' {
       'footer.footer-bottom': FooterFooterBottom;
       'footer.footer-column': FooterFooterColumn;
       'footer.footer-links': FooterFooterLinks;
+      'page.about-hero': PageAboutHero;
+      'page.about-vision': PageAboutVision;
       'page.hero': PageHero;
       'page.key-attribute': PageKeyAttribute;
+      'page.mission': PageMission;
       'page.results': PageResults;
+      'page.testimonial': PageTestimonial;
+      'page.timeline-item': PageTimelineItem;
       'page.trust-indicator': PageTrustIndicator;
+      'page.vision': PageVision;
+      'page.who-we-are': PageWhoWeAre;
       'shared.child-submenu': SharedChildSubmenu;
       'shared.media': SharedMedia;
       'shared.menu': SharedMenu;

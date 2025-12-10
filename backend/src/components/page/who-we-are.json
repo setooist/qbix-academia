@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_page_who_we_ares",
+  "info": {
+    "displayName": "Who We Are"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "description": {
+      "type": "blocks"
+    }
+  },
+  "config": {}
+}

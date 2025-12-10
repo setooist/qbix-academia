@@ -26,7 +26,13 @@
       "type": "dynamiczone",
       "components": [
         "page.hero",
-        "page.trust-indicator"
+        "page.trust-indicator",
+        "page.about-hero",
+        "page.who-we-are",
+        "page.timeline-item",
+        "page.vision",
+        "page.mission",
+        "page.about-vision"
       ]
     }
   }
