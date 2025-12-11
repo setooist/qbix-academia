@@ -39,7 +39,6 @@ const GET_ABOUT_PAGE = gql`
             description
         }
       }
-      }
     }
   }
 `;

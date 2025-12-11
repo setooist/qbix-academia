@@ -11,7 +11,6 @@ const GET_PAGE_FAQ = gql`
           answer
         }
       }
-      }
     }
   }
 `;
