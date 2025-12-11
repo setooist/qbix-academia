@@ -26,7 +26,6 @@ const GET_HOME_PAGE = gql`
           pillarDescription
         }
       }
-      }
     }
   }
 `;
