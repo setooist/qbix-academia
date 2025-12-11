@@ -26,19 +26,19 @@ const GET_BLOGS = gql`
 `;
 
 export const fetchBlogs = async () => {
-    try {
-        const data = await client.request(
-            GET_BLOGS,
-            {},
-            {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-            }
-        );
-        return data.blogs;
-    } catch (error) {
-        console.error("Error fetching blogs:", error);
-        return [];
-    }
+  try {
+    const data = await client.request(
+      GET_BLOGS,
+      {},
+      {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+      }
+    );
+    return data.blogs;
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    return [];
+  }
 };
 
 const GET_BLOG_BY_SLUG = gql`
@@ -62,22 +62,23 @@ const GET_BLOG_BY_SLUG = gql`
       tag {
         name
       }
+      }
     }
   }
 `;
 
 export const fetchBlogBySlug = async (slug: string) => {
-    try {
-        const data = await client.request(
-            GET_BLOG_BY_SLUG,
-            { slug },
-            {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-            }
-        );
-        return data.blogs[0] || null;
-    } catch (error) {
-        console.error("Error fetching blog by slug:", error);
-        return null;
-    }
+  try {
+    const data = await client.request(
+      GET_BLOG_BY_SLUG,
+      { slug },
+      {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+      }
+    );
+    return data.blogs[0] || null;
+  } catch (error) {
+    console.error("Error fetching blog by slug:", error);
+    return null;
+  }
 };

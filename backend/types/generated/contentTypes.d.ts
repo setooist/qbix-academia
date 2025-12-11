@@ -1279,6 +1279,7 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
         'page.vision',
         'page.mission',
         'page.about-vision',
+        'page.faq',
       ]
     > &
       Schema.Attribute.SetPluginOptions<{

@@ -6,6 +6,32 @@ import { Download, Calendar, User, FileText } from "lucide-react";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
+import { fetchPageSeo } from "../lib/seo";
+import { Metadata } from 'next';
+
+export async function generateMetadata(): Promise<Metadata> {
+    const seo = await fetchPageSeo("downloadables");
+
+    if (!seo) {
+        return {
+            title: "Downloads - Setoo Jamstack",
+            description: "Download resources, brochures, and guides.",
+        };
+    }
+
+    const shareImageUrl = seo.shareImage?.url?.startsWith('http')
+        ? seo.shareImage.url
+        : `${process.env.NEXT_PUBLIC_STRAPI_URL}${seo.shareImage?.url}`;
+
+    return {
+        title: seo.metaTitle,
+        description: seo.metaDescription,
+        openGraph: {
+            images: shareImageUrl ? [shareImageUrl] : [],
+        },
+    };
+}
+
 export default async function DownloadablesPage() {
     const downloadables = await fetchDownloadables();
 

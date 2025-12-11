@@ -7,6 +7,36 @@ import { notFound } from "next/navigation";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
+import { Metadata } from 'next';
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+    const { slug } = await params;
+    const blog = await fetchBlogBySlug(slug);
+    const seo = blog?.seo?.[0];
+
+    if (!seo) {
+        return {
+            title: blog?.title || "Blog Post",
+        };
+    }
+
+    const shareImageUrl = seo.shareImage?.url?.startsWith('http')
+        ? seo.shareImage.url
+        : `${process.env.NEXT_PUBLIC_STRAPI_URL}${seo.shareImage?.url}`;
+
+    return {
+        title: seo.metaTitle,
+        description: seo.metaDescription,
+        openGraph: {
+            images: shareImageUrl ? [shareImageUrl] : [],
+        },
+    };
+}
+
 export default async function BlogDetailPage({
     params,
 }: {

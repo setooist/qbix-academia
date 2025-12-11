@@ -82,6 +82,17 @@ export interface PageAboutVision extends Struct.ComponentSchema {
   };
 }
 
+export interface PageFaq extends Struct.ComponentSchema {
+  collectionName: 'components_page_faqs';
+  info: {
+    displayName: 'Faq';
+  };
+  attributes: {
+    answer: Schema.Attribute.String;
+    question: Schema.Attribute.String;
+  };
+}
+
 export interface PageHero extends Struct.ComponentSchema {
   collectionName: 'components_page_heroes';
   info: {
@@ -305,6 +316,7 @@ declare module '@strapi/strapi' {
       'footer.footer-links': FooterFooterLinks;
       'page.about-hero': PageAboutHero;
       'page.about-vision': PageAboutVision;
+      'page.faq': PageFaq;
       'page.hero': PageHero;
       'page.key-attribute': PageKeyAttribute;
       'page.mission': PageMission;

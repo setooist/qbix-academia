@@ -39,6 +39,7 @@ const GET_ABOUT_PAGE = gql`
             description
         }
       }
+      }
     }
   }
 `;
@@ -52,12 +53,8 @@ export const fetchAboutPage = async () => {
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
       }
     );
-    console.log("All pages data:", data);
-
-    // Try to find by slug first
     let aboutPage = data.pages.find((p: any) => p.slug === "about");
 
-    // Fallback: Find page containing specific About components if slug is missing
     if (!aboutPage) {
       aboutPage = data.pages.find((p: any) =>
         p.section?.some((s: any) => s.__typename === "ComponentPageAboutHero")
