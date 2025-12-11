@@ -6,5 +6,7 @@ export const client = new GraphQLClient(
     headers: {
       Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
     },
+    fetch: (url, options) =>
+      fetch(url, { ...options, next: { revalidate: 60 } }),
   }
 );
