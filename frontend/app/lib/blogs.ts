@@ -62,7 +62,6 @@ const GET_BLOG_BY_SLUG = gql`
       tag {
         name
       }
-      }
     }
   }
 `;
