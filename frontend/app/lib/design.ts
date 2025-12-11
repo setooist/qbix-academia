@@ -4,30 +4,30 @@ export interface DesignSystem {
   foreground: string;
   primary: string;
   primaryForeground: string;
-  
+
   // Secondary colors
   secondary: string;
   secondaryForeground: string;
-  
+
   // Accent colors
   accent: string;
   accentForeground: string | null;
-  
+
   // Destructive colors
   destructive: string;
-  
+
   // Muted colors
   muted: string;
   mutedForeground: string;
-  
+
   // Card colors
   card: string;
   cardForeground: string;
-  
+
   // Border and input
   border: string;
   input: string;
-  
+
   // Ring (focus indicator)
   ring: string;
 }
@@ -70,17 +70,16 @@ interface StrapiCollectionResponse {
 export async function getDesignSystem(): Promise<DesignSystem | null> {
   try {
     const url = `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/design-systems`;
-    
+
     console.log("🔍 Fetching design system from:", url);
-    
+
     const res = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
       },
-      cache: "no-store",
-      next: { revalidate: 0 },
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) {
@@ -94,7 +93,7 @@ export async function getDesignSystem(): Promise<DesignSystem | null> {
     }
 
     const json: StrapiCollectionResponse = await res.json();
-    
+
     console.log("📦 Raw response:", JSON.stringify(json, null, 2));
 
     if (!json.data || json.data.length === 0) {
@@ -104,7 +103,7 @@ export async function getDesignSystem(): Promise<DesignSystem | null> {
 
     // Get the first published entry
     const entry = json.data[0];
-    
+
     // Map Strapi flat structure to our DesignSystem interface
     const designSystem: DesignSystem = {
       background: entry.background,

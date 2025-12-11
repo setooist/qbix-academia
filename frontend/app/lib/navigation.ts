@@ -1,12 +1,7 @@
-import { request, gql } from "graphql-request";
+import { gql } from "graphql-request";
+import { client } from "./graphql";
 
 export async function getNavigation() {
-  const endpoint = `${process.env.NEXT_PUBLIC_STRAPI_URL}/graphql`;
-
-  const headers = {
-    Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-  };
-
   const query = gql`
     query {
       navigation {
@@ -36,7 +31,7 @@ export async function getNavigation() {
   `;
 
   try {
-    const data = await request(endpoint, query, {}, headers);
+    const data: any = await client.request(query);
 
     const menuData = data?.navigation?.Menu ?? [];
 

@@ -1,9 +1,7 @@
-import { request, gql } from "graphql-request";
+import { gql } from "graphql-request";
+import { client } from "./graphql";
 
 export async function getGlobal() {
-  const endpoint = `${process.env.NEXT_PUBLIC_STRAPI_URL}/graphql`;
-  const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
-
   const query = gql`
     query {
       global {
@@ -33,14 +31,7 @@ export async function getGlobal() {
   `;
 
   try {
-    const data = await request(
-      endpoint,
-      query,
-      {},
-      {
-        Authorization: `Bearer ${token}`,
-      }
-    );
+    const data: any = await client.request(query);
 
     return data?.global ?? {};
   } catch (error: any) {
