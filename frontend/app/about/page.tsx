@@ -2,6 +2,28 @@
 import { fetchAboutPage } from "../lib/about";
 import { AboutHero, WhoWeAre, VisionQuery, Mission, AboutVision, TimelineItem } from "../component/AboutSections";
 import { notFound } from "next/navigation";
+import { fetchPageSeo } from "../lib/seo";
+import { Metadata } from 'next';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await fetchPageSeo("about");
+
+  if (!seo) return {
+    title: "About Us"
+  };
+
+  const shareImageUrl = seo.shareImage?.url?.startsWith('http')
+    ? seo.shareImage.url
+    : `${process.env.NEXT_PUBLIC_STRAPI_URL}${seo.shareImage?.url}`;
+
+  return {
+    title: seo.metaTitle,
+    description: seo.metaDescription,
+    openGraph: {
+      images: shareImageUrl ? [shareImageUrl] : [],
+    },
+  };
+}
 
 export default async function AboutPage() {
   const page = await fetchAboutPage();

@@ -6,6 +6,39 @@ import { notFound } from "next/navigation";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
+const getUrl = (url: string) => {
+    if (!url) return null;
+    return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
+}
+
+import { Metadata } from 'next';
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+    const { slug } = await params;
+    const study = await fetchCaseStudyBySlug(slug);
+
+    if (!study) {
+        return {
+            title: "Case Study"
+        };
+    }
+
+    const coverUrl = study.mediaGallery?.[0]?.url;
+    const coverImageUrl = getUrl(coverUrl);
+
+    return {
+        title: study.title,
+        description: study.problem || "Read our case study.",
+        openGraph: {
+            images: coverImageUrl ? [coverImageUrl] : [],
+        },
+    };
+}
+
 export default async function CaseStudyDetailPage({
     params,
 }: {

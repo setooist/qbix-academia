@@ -14,6 +14,34 @@ const getUrl = (url: string) => {
     return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
 }
 
+import { Metadata } from 'next';
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+    const { slug } = await params;
+    const item = await fetchDownloadableBySlug(slug);
+
+    if (!item) {
+        return {
+            title: "Downloadable Resource"
+        };
+    }
+
+    const coverUrl = item.coverImage?.[0]?.url;
+    const coverImageUrl = getUrl(coverUrl);
+
+    return {
+        title: item.title,
+        description: item.excerpt || "Download this resource from Setoo Jamstack.",
+        openGraph: {
+            images: coverImageUrl ? [coverImageUrl] : [],
+        },
+    };
+}
+
 export default async function DownloadableDetailPage({
     params,
 }: {

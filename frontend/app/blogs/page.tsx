@@ -5,6 +5,32 @@ import Image from "next/image";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
+import { fetchPageSeo } from "../lib/seo";
+import { Metadata } from 'next';
+
+export async function generateMetadata(): Promise<Metadata> {
+    const seo = await fetchPageSeo("blogs");
+
+    if (!seo) {
+        return {
+            title: "Blogs - Setoo Jamstack",
+            description: "Read our latest articles and insights.",
+        };
+    }
+
+    const shareImageUrl = seo.shareImage?.url?.startsWith('http')
+        ? seo.shareImage.url
+        : `${process.env.NEXT_PUBLIC_STRAPI_URL}${seo.shareImage?.url}`;
+
+    return {
+        title: seo.metaTitle,
+        description: seo.metaDescription,
+        openGraph: {
+            images: shareImageUrl ? [shareImageUrl] : [],
+        },
+    };
+}
+
 export default async function BlogsPage() {
     const blogs = await fetchBlogs();
 

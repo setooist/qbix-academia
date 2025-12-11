@@ -5,6 +5,32 @@ import Image from "next/image";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
+import { fetchPageSeo } from "../lib/seo";
+import { Metadata } from 'next';
+
+export async function generateMetadata(): Promise<Metadata> {
+    const seo = await fetchPageSeo("case-studies");
+
+    if (!seo) {
+        return {
+            title: "Case Studies - Setoo Jamstack",
+            description: "Success stories and student case studies.",
+        };
+    }
+
+    const shareImageUrl = seo.shareImage?.url?.startsWith('http')
+        ? seo.shareImage.url
+        : `${process.env.NEXT_PUBLIC_STRAPI_URL}${seo.shareImage?.url}`;
+
+    return {
+        title: seo.metaTitle,
+        description: seo.metaDescription,
+        openGraph: {
+            images: shareImageUrl ? [shareImageUrl] : [],
+        },
+    };
+}
+
 export default async function CaseStudiesPage() {
     const caseStudies = await fetchCaseStudies();
 
@@ -13,8 +39,6 @@ export default async function CaseStudiesPage() {
             <h1 className="text-4xl font-bold mb-8 text-[var(--color-primary-text)]">Case Studies</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {caseStudies.map((study: any) => {
-                    // Assume first media is main image
-                    // Assume first media is main image
                     const url = study.mediaGallery?.[0]?.url;
                     const imageUrl = url
                         ? (url.startsWith("http") ? url : `${STRAPI_URL}${url}`)

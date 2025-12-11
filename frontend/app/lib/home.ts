@@ -26,6 +26,7 @@ const GET_HOME_PAGE = gql`
           pillarDescription
         }
       }
+      }
     }
   }
 `;
@@ -39,9 +40,6 @@ export const fetchHeroSections = async () => {
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
       }
     );
-
-    console.log("Hero data", data);
-
     const heroConfig: Record<string, any> = {};
 
     data.pages.forEach((page: any) => {

@@ -51,7 +51,8 @@
         "page.timeline-item",
         "page.vision",
         "page.mission",
-        "page.about-vision"
+        "page.about-vision",
+        "page.faq"
       ]
     }
   }
