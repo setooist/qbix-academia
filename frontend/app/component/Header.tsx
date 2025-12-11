@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import { useState, useEffect } from "react";
 import type { MenuItem } from "@/types/menu";
@@ -6,6 +6,7 @@ import type { GlobalData } from "@/types/global";
 import CalendorModal from "./CalendorModal";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
 
 interface HeaderProps {
   menu: MenuItem[];
@@ -51,7 +52,7 @@ export default function Header({ menu, global }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex justify-between items-center px-4 md:px-6 py-4">
-        <a href="/" className="flex-shrink-0">
+        <Link href="/" className="flex-shrink-0">
           {logoUrl && (
             <Image
               src={logoUrl || "/placeholder.svg"}
@@ -63,13 +64,13 @@ export default function Header({ menu, global }: HeaderProps) {
               className="h-10 w-auto"
             />
           )}
-        </a>
+        </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex gap-1 items-center flex-1 justify-end">
           {menu?.map((item, idx) => (
             <div key={idx} className="relative menu-item group">
-              <a
+              <Link
                 href={item.href}
                 target={item.target || "_self"}
                 onClick={(e) => {
@@ -82,14 +83,14 @@ export default function Header({ menu, global }: HeaderProps) {
               >
                 {item.label}
                 {item.submenu?.length ? <span className="text-xs">▾</span> : null}
-              </a>
+              </Link>
 
               {openMenu === idx && item.submenu?.length && (
                 <div className="absolute left-0 top-full mt-1 bg-card shadow-xl rounded-lg border border-border/50 p-2 w-56 z-50">
                   <ul className="space-y-1 text-foreground">
                     {item.submenu.map((sub, sIdx) => (
                       <li key={sIdx} className="relative">
-                        <a
+                        <Link
                           href={sub.href}
                           target={sub.target || "_self"}
                           onClick={(e) => {
@@ -102,19 +103,19 @@ export default function Header({ menu, global }: HeaderProps) {
                         >
                           {sub.label}
                           {sub.childSubmenu?.length ? <span className="text-xs">▸</span> : null}
-                        </a>
+                        </Link>
 
                         {openSubmenu === sIdx && sub.childSubmenu?.length && (
                           <ul className="absolute left-full top-0 mt-0 ml-1 bg-card shadow-lg rounded-lg border border-border/50 p-2 w-52 z-50">
                             {sub.childSubmenu.map((child, cIdx) => (
                               <li key={cIdx}>
-                                <a
+                                <Link
                                   href={child.href}
                                   target={child.target || "_self"}
                                   className="block px-3 py-2 hover:bg-muted rounded-md text-sm"
                                 >
                                   {child.label}
-                                </a>
+                                </Link>
                               </li>
                             ))}
                           </ul>
@@ -156,13 +157,13 @@ export default function Header({ menu, global }: HeaderProps) {
           <div className="px-4 py-4 space-y-3">
             {menu?.map((item, idx) => (
               <div key={idx}>
-                <a
+                <Link
                   href={item.href}
                   target={item.target || "_self"}
                   className="block px-4 py-2 text-foreground hover:text-primary rounded-md hover:bg-muted/50 transition-colors"
                 >
                   {item.label}
-                </a>
+                </Link>
               </div>
             ))}
             {ctaText && ctaLink && (
