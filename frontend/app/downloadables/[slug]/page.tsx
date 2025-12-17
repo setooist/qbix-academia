@@ -5,16 +5,14 @@ import { BlocksRenderer } from "@strapi/blocks-react-renderer";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Download, Calendar, User, FileText } from "lucide-react";
+import { Metadata } from 'next';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
-// Helper to fix URLs
 const getUrl = (url: string) => {
     if (!url) return null;
     return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
 }
-
-import { Metadata } from 'next';
 
 export async function generateMetadata({
     params,

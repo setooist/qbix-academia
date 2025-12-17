@@ -1,3 +1,5 @@
+import { DEFAULT_REVALIDATE } from "../helper/constant";
+
 export interface DesignSystem {
   // Main colors
   background: string;
@@ -71,7 +73,7 @@ export async function getDesignSystem(): Promise<DesignSystem | null> {
   try {
     const url = `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/design-systems`;
 
-    console.log("🔍 Fetching design system from:", url);
+    // console.log("🔍 Fetching design system from:", url);
 
     const res = await fetch(url, {
       method: "GET",
@@ -79,7 +81,7 @@ export async function getDesignSystem(): Promise<DesignSystem | null> {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
       },
-      next: { revalidate: 60 },
+      next: { revalidate: DEFAULT_REVALIDATE },
     });
 
     if (!res.ok) {

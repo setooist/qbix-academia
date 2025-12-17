@@ -2,12 +2,10 @@
 import { fetchCaseStudies } from "../lib/case-studies";
 import Link from "next/link";
 import Image from "next/image";
-
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-
 import { fetchPageSeo } from "../lib/seo";
 import { Metadata } from 'next';
 
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 export async function generateMetadata(): Promise<Metadata> {
     const seo = await fetchPageSeo("case-studies");
 

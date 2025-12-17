@@ -4,10 +4,9 @@ import Image from "next/image";
 import { BlocksRenderer } from "@strapi/blocks-react-renderer";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Metadata } from 'next';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-
-import { Metadata } from 'next';
 
 export async function generateMetadata({
     params,

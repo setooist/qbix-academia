@@ -3,11 +3,10 @@ import { fetchDownloadables } from "../lib/downloadable";
 import Link from "next/link";
 import Image from "next/image";
 import { Download, Calendar, User, FileText } from "lucide-react";
-
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-
 import { fetchPageSeo } from "../lib/seo";
 import { Metadata } from 'next';
+
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
 export async function generateMetadata(): Promise<Metadata> {
     const seo = await fetchPageSeo("downloadables");

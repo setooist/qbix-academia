@@ -3,6 +3,7 @@ import { fetchCaseStudyBySlug } from "../../lib/case-studies";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Metadata } from 'next';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
@@ -10,9 +11,6 @@ const getUrl = (url: string) => {
     if (!url) return null;
     return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
 }
-
-import { Metadata } from 'next';
-
 export async function generateMetadata({
     params,
 }: {

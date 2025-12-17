@@ -32,7 +32,6 @@ export default async function Home() {
 
   const homepageHero = heroConfig["home"] || heroConfig["homepage"];
 
-  console.log("Homepage", homepageHero);
   return (
     <div>
       {homepageHero ? <Hero data={homepageHero} /> : <div className="text-center py-10">Hero section not found. Please check Strapi content.</div>}
