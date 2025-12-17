@@ -3,8 +3,8 @@ import { gql } from "graphql-request";
 import { client } from "./graphql";
 
 const GET_PAGE_FAQ = gql`
-  query($slug: String!) {
-    pages(filters: { slug: { eq: $slug } }) {
+  query($slug: String!, $locale: I18NLocaleCode) {
+    pages(filters: { slug: { eq: $slug } }, locale: $locale) {
       section {
         ... on ComponentPageFaq {
           question
@@ -15,11 +15,11 @@ const GET_PAGE_FAQ = gql`
   }
 `;
 
-export const fetchFaqs = async (slug: string = "home") => {
+export const fetchFaqs = async (slug: string = "home", locale: string = "en"): Promise<any[]> => {
   try {
     const data = await client.request(
       GET_PAGE_FAQ,
-      { slug },
+      { slug, locale },
       {
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
       }

@@ -7,7 +7,7 @@ import { getFooter } from "../lib/footer";
 import Image from "next/image";
 import { Mail, Phone, MapPin } from "lucide-react";
 
-const Footer = () => {
+const Footer = ({ locale = "en" }: { locale?: string }) => {
   const [columns, setColumns] = useState<FooterColumn[]>([]);
   const [address, setAddress] = useState<FooterAddress | null>(null);
   const [bottom, setBottom] = useState<FooterBottom | null>(null);
@@ -15,7 +15,7 @@ const Footer = () => {
   useEffect(() => {
     const fetchFooter = async () => {
       try {
-        const data = await getFooter();
+        const data = await getFooter(locale);
         if (data.columns) setColumns(data.columns);
         if (data.address) setAddress(data.address);
         if (data.bottom) setBottom(data.bottom);
@@ -24,7 +24,7 @@ const Footer = () => {
       }
     };
     fetchFooter();
-  }, []);
+  }, [locale]);
 
   const bottomLogoUrl = bottom?.logo?.url
     ? bottom.logo.url.startsWith("http")

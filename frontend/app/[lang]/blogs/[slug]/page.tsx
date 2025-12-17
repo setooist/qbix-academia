@@ -1,5 +1,5 @@
 
-import { fetchBlogBySlug } from "../../lib/blogs";
+import { fetchBlogBySlug } from "../../../lib/blogs";
 import Image from "next/image";
 import { BlocksRenderer } from "@strapi/blocks-react-renderer";
 import Link from "next/link";
@@ -11,10 +11,10 @@ const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337"
 export async function generateMetadata({
     params,
 }: {
-    params: Promise<{ slug: string }>
+    params: Promise<{ slug: string, lang: string }>
 }): Promise<Metadata> {
-    const { slug } = await params;
-    const blog = await fetchBlogBySlug(slug);
+    const { slug, lang } = await params;
+    const blog = await fetchBlogBySlug(slug, lang);
     const seo = blog?.seo?.[0];
 
     if (!seo) {
@@ -39,10 +39,10 @@ export async function generateMetadata({
 export default async function BlogDetailPage({
     params,
 }: {
-    params: Promise<{ slug: string }>
+    params: Promise<{ slug: string, lang: string }>
 }) {
-    const { slug } = await params;
-    const blog = await fetchBlogBySlug(slug);
+    const { slug, lang } = await params;
+    const blog = await fetchBlogBySlug(slug, lang);
 
     if (!blog) {
         notFound();
@@ -55,7 +55,7 @@ export default async function BlogDetailPage({
 
     return (
         <main className="container mx-auto px-4 py-8 max-w-4xl">
-            <Link href="/blogs" className="text-blue-600 hover:underline mb-6 inline-block">
+            <Link href={`/${lang}/blogs`} className="text-blue-600 hover:underline mb-6 inline-block">
                 &larr; Back to Blogs
             </Link>
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-[var(--color-primary-text)]">{blog.title}</h1>

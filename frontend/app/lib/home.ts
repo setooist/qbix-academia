@@ -2,8 +2,8 @@ import { gql } from "graphql-request";
 import { client } from "./graphql";
 
 const GET_HOME_PAGE = gql`
-  query {
-    pages {
+  query($locale: I18NLocaleCode) {
+    pages(locale: $locale) {
       title
       slug
       section {
@@ -30,11 +30,11 @@ const GET_HOME_PAGE = gql`
   }
 `;
 
-export const fetchHeroSections = async () => {
+export const fetchHeroSections = async (locale: string = "en"): Promise<Record<string, any>> => {
   try {
     const data = await client.request(
       GET_HOME_PAGE,
-      {},
+      { locale },
       {
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
       }

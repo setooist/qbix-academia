@@ -1,13 +1,14 @@
 
-import { fetchCaseStudies } from "../lib/case-studies";
+import { fetchCaseStudies } from "../../lib/case-studies";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchPageSeo } from "../lib/seo";
+import { fetchPageSeo } from "../../lib/seo";
 import { Metadata } from 'next';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-export async function generateMetadata(): Promise<Metadata> {
-    const seo = await fetchPageSeo("case-studies");
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+    const { lang } = await params;
+    const seo = await fetchPageSeo("case-studies", lang);
 
     if (!seo) {
         return {
@@ -29,8 +30,9 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function CaseStudiesPage() {
-    const caseStudies = await fetchCaseStudies();
+export default async function CaseStudiesPage({ params }: { params: Promise<{ lang: string }> }) {
+    const { lang } = await params;
+    const caseStudies = await fetchCaseStudies(lang);
 
     return (
         <main className="container mx-auto px-4 py-8">
@@ -43,7 +45,7 @@ export default async function CaseStudiesPage() {
                         : null;
 
                     return (
-                        <Link href={`/case-studies/${study.slug}`} key={study.documentId || study.slug} className="group">
+                        <Link href={`/${lang}/case-studies/${study.slug}`} key={study.documentId || study.slug} className="group">
                             <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white flex flex-col md:flex-row h-full">
                                 <div className="relative h-48 md:h-auto md:w-1/3 bg-gray-200 shrink-0">
                                     {imageUrl ? (

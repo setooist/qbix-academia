@@ -1,5 +1,5 @@
 
-import { fetchDownloadableBySlug } from "../../lib/downloadable";
+import { fetchDownloadableBySlug } from "../../../lib/downloadable";
 import Image from "next/image";
 import { BlocksRenderer } from "@strapi/blocks-react-renderer";
 import Link from "next/link";
@@ -17,10 +17,10 @@ const getUrl = (url: string) => {
 export async function generateMetadata({
     params,
 }: {
-    params: Promise<{ slug: string }>
+    params: Promise<{ slug: string, lang: string }>
 }): Promise<Metadata> {
-    const { slug } = await params;
-    const item = await fetchDownloadableBySlug(slug);
+    const { slug, lang } = await params;
+    const item = await fetchDownloadableBySlug(slug, lang);
 
     if (!item) {
         return {
@@ -43,10 +43,10 @@ export async function generateMetadata({
 export default async function DownloadableDetailPage({
     params,
 }: {
-    params: Promise<{ slug: string }>
+    params: Promise<{ slug: string, lang: string }>
 }) {
-    const { slug } = await params;
-    const item = await fetchDownloadableBySlug(slug);
+    const { slug, lang } = await params;
+    const item = await fetchDownloadableBySlug(slug, lang);
 
     if (!item) {
         notFound();
@@ -62,7 +62,7 @@ export default async function DownloadableDetailPage({
 
     return (
         <main className="container mx-auto px-4 py-8 max-w-4xl">
-            <Link href="/downloadables" className="text-blue-600 hover:underline mb-6 inline-flex items-center gap-1 group">
+            <Link href={`/${lang}/downloadables`} className="text-blue-600 hover:underline mb-6 inline-flex items-center gap-1 group">
                 <span className="group-hover:-translate-x-1 transition-transform">&larr;</span> Back to Downloads
             </Link>
 

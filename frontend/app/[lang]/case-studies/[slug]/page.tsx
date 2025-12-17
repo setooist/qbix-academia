@@ -1,5 +1,5 @@
 
-import { fetchCaseStudyBySlug } from "../../lib/case-studies";
+import { fetchCaseStudyBySlug } from "../../../lib/case-studies";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,10 +14,10 @@ const getUrl = (url: string) => {
 export async function generateMetadata({
     params,
 }: {
-    params: Promise<{ slug: string }>
+    params: Promise<{ slug: string, lang: string }>
 }): Promise<Metadata> {
-    const { slug } = await params;
-    const study = await fetchCaseStudyBySlug(slug);
+    const { slug, lang } = await params;
+    const study = await fetchCaseStudyBySlug(slug, lang);
 
     if (!study) {
         return {
@@ -40,10 +40,10 @@ export async function generateMetadata({
 export default async function CaseStudyDetailPage({
     params,
 }: {
-    params: Promise<{ slug: string }>
+    params: Promise<{ slug: string, lang: string }>
 }) {
-    const { slug } = await params;
-    const study = await fetchCaseStudyBySlug(slug);
+    const { slug, lang } = await params;
+    const study = await fetchCaseStudyBySlug(slug, lang);
 
     if (!study) {
         notFound();
@@ -51,7 +51,7 @@ export default async function CaseStudyDetailPage({
 
     return (
         <main className="container mx-auto px-4 py-8 max-w-4xl">
-            <Link href="/case-studies" className="text-green-600 hover:underline mb-6 inline-block">
+            <Link href={`/${lang}/case-studies`} className="text-green-600 hover:underline mb-6 inline-block">
                 &larr; Back to Case Studies
             </Link>
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-[var(--color-primary-text)]">{study.title}</h1>

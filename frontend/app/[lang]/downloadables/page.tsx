@@ -1,15 +1,16 @@
 
-import { fetchDownloadables } from "../lib/downloadable";
+import { fetchDownloadables } from "../../lib/downloadable";
 import Link from "next/link";
 import Image from "next/image";
 import { Download, Calendar, User, FileText } from "lucide-react";
-import { fetchPageSeo } from "../lib/seo";
+import { fetchPageSeo } from "../../lib/seo";
 import { Metadata } from 'next';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
-export async function generateMetadata(): Promise<Metadata> {
-    const seo = await fetchPageSeo("downloadables");
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+    const { lang } = await params;
+    const seo = await fetchPageSeo("downloadables", lang);
 
     if (!seo) {
         return {
@@ -31,8 +32,9 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function DownloadablesPage() {
-    const downloadables = await fetchDownloadables();
+export default async function DownloadablesPage({ params }: { params: Promise<{ lang: string }> }) {
+    const { lang } = await params;
+    const downloadables = await fetchDownloadables(lang);
 
     return (
         <main className="container mx-auto px-4 py-8">
@@ -45,7 +47,7 @@ export default async function DownloadablesPage() {
                         : null;
 
                     return (
-                        <Link href={`/downloadables/${item.slug}`} key={item.documentId || item.slug} className="group">
+                        <Link href={`/${lang}/downloadables/${item.slug}`} key={item.documentId || item.slug} className="group">
                             <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white h-full flex flex-col">
                                 <div className="relative h-48 w-full bg-gray-200">
                                     {imageUrl ? (
@@ -97,13 +99,7 @@ export default async function DownloadablesPage() {
                 })}
             </div>
             {downloadables.length === 0 && (
-                <div className="text-center py-20">
-                    <div className="bg-gray-100 rounded-full p-6 inline-block mb-4">
-                        <FileText size={48} className="text-gray-400" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-700 mb-2">No downloads available</h2>
-                    <p className="text-gray-500">Check back later for new resources.</p>
-                </div>
+                <p className="text-center text-gray-500">No downloads available.</p>
             )}
         </main>
     );

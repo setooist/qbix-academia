@@ -1,13 +1,13 @@
 import { request, gql } from "graphql-request";
 import { FooterColumn, FooterAddress, FooterBottom } from "@/types/footer";
 
-export async function getFooter() {
+export async function getFooter(locale: string = "en") {
   const endpoint = `${process.env.NEXT_PUBLIC_STRAPI_URL}/graphql`;
   const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
   const query = gql`
-    query {
-      footer {
+    query($locale: I18NLocaleCode) {
+      footer(locale: $locale) {
         Column {
           title
           links {
@@ -40,7 +40,7 @@ export async function getFooter() {
     const data = await request(
       endpoint,
       query,
-      {},
+      { locale },
       {
         Authorization: `Bearer ${token}`,
       }
@@ -65,28 +65,28 @@ export async function getFooter() {
 
     const address: FooterAddress | null = footer.Address
       ? {
-          title: footer.Address.title || "",
-          addressLines: footer.Address.addressLines || [],
-          phone: footer.Address.phone || "",
-          email: footer.Address.email || "",
-          workingHours: footer.Address.workingHours || "",
-          mapLink: footer.Address.mapLink || "",
-        }
+        title: footer.Address.title || "",
+        addressLines: footer.Address.addressLines || [],
+        phone: footer.Address.phone || "",
+        email: footer.Address.email || "",
+        workingHours: footer.Address.workingHours || "",
+        mapLink: footer.Address.mapLink || "",
+      }
       : null;
 
     const bottomItem = footer.Bottum?.[0];
 
     const bottom: FooterBottom | null = bottomItem
       ? {
-          logo: bottomItem.logo?.[0] || null,
-          altText: bottomItem.altText || "",
-          link: bottomItem.link || "/",
-          text: bottomItem.text || "",
-        }
+        logo: bottomItem.logo?.[0] || null,
+        altText: bottomItem.altText || "",
+        link: bottomItem.link || "/",
+        text: bottomItem.text || "",
+      }
       : null;
 
     return { columns, address, bottom };
   } catch (error: any) {
-    return { columns: [], address: null, bottom: null }; 
+    return { columns: [], address: null, bottom: null };
   }
 }

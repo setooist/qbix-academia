@@ -1,10 +1,10 @@
 import { gql } from "graphql-request";
 import { client } from "./graphql";
 
-export async function getNavigation() {
+export async function getNavigation(locale: string = "en") {
   const query = gql`
-    query {
-      navigation {
+    query($locale: I18NLocaleCode) {
+      navigation(locale: $locale) {
         Menu {
           id
           label
@@ -31,7 +31,7 @@ export async function getNavigation() {
   `;
 
   try {
-    const data: any = await client.request(query);
+    const data: any = await client.request(query, { locale });
 
     const menuData = data?.navigation?.Menu ?? [];
 

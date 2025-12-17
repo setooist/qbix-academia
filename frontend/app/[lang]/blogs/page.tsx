@@ -1,17 +1,18 @@
 
-import { fetchBlogs } from "../lib/blogs";
+import { fetchBlogs } from "../../lib/blogs";
 import Link from "next/link";
 import Image from "next/image";
 
 
-import { fetchPageSeo } from "../lib/seo";
+import { fetchPageSeo } from "../../lib/seo";
 import { Metadata } from 'next';
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
 
 
-export async function generateMetadata(): Promise<Metadata> {
-    const seo = await fetchPageSeo("blogs");
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+    const { lang } = await params;
+    const seo = await fetchPageSeo("blogs", lang);
 
     if (!seo) {
         return {
@@ -33,8 +34,9 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function BlogsPage() {
-    const blogs = await fetchBlogs();
+export default async function BlogsPage({ params }: { params: Promise<{ lang: string }> }) {
+    const { lang } = await params;
+    const blogs = await fetchBlogs(lang);
 
     return (
         <main className="container mx-auto px-4 py-8">
@@ -47,7 +49,7 @@ export default async function BlogsPage() {
                         : "/placeholder.png";
 
                     return (
-                        <Link href={`/blogs/${blog.slug}`} key={blog.documentId || blog.slug} className="group">
+                        <Link href={`/${lang}/blogs/${blog.slug}`} key={blog.documentId || blog.slug} className="group">
                             <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white h-full flex flex-col">
                                 <div className="relative h-48 w-full bg-gray-200">
                                     {blog.coverImage?.[0]?.url ? (

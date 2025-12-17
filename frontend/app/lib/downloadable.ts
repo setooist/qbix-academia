@@ -2,8 +2,8 @@ import { gql } from "graphql-request";
 import { client } from "./graphql";
 
 const GET_DOWNLOADABLES = gql`
-  query {
-    downloadables {
+  query($locale: I18NLocaleCode) {
+    downloadables(locale: $locale) {
       documentId
       title
       slug
@@ -29,25 +29,26 @@ const GET_DOWNLOADABLES = gql`
   }
 `;
 
-export const fetchDownloadables = async () => {
-    try {
-        const data = await client.request(
-            GET_DOWNLOADABLES,
-            {},
-            {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-            }
-        );
-        return data.downloadables;
-    } catch (error) {
-        console.error("Error fetching downloadables:", error);
-        return [];
-    }
+export const fetchDownloadables = async (locale: string = "en"): Promise<any[]> => {
+  try {
+    const data = await client.request(
+      GET_DOWNLOADABLES,
+      { locale },
+      {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+      }
+    );
+    const downloadables = data.downloadables;
+    return downloadables;
+  } catch (error) {
+    console.error("Error fetching downloadables:", error);
+    return [];
+  }
 };
 
 const GET_DOWNLOADABLE_BY_SLUG = gql`
-  query($slug: String!) {
-    downloadables(filters: { slug: { eq: $slug } }) {
+  query($slug: String!, $locale: I18NLocaleCode) {
+    downloadables(filters: { slug: { eq: $slug } }, locale: $locale) {
       documentId
       title
       slug
@@ -74,18 +75,19 @@ const GET_DOWNLOADABLE_BY_SLUG = gql`
   }
 `;
 
-export const fetchDownloadableBySlug = async (slug: string) => {
-    try {
-        const data = await client.request(
-            GET_DOWNLOADABLE_BY_SLUG,
-            { slug },
-            {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-            }
-        );
-        return data.downloadables[0] || null;
-    } catch (error) {
-        console.error("Error fetching downloadable by slug:", error);
-        return null;
-    }
+export const fetchDownloadableBySlug = async (slug: string, locale: string = "en"): Promise<any | null> => {
+  try {
+    const data = await client.request(
+      GET_DOWNLOADABLE_BY_SLUG,
+      { slug, locale },
+      {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+      }
+    );
+    const item = data.downloadables[0];
+    return item || null;
+  } catch (error) {
+    console.error("Error fetching downloadable by slug:", error);
+    return null;
+  }
 };
