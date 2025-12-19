@@ -1,28 +1,39 @@
 
-import { fetchDownloadableBySlug } from "../../lib/downloadable";
+import { fetchDownloadableBySlug, fetchDownloadables } from "../../../lib/downloadable";
+import { i18n } from "../../../helper/locales";
 import Image from "next/image";
 import { BlocksRenderer } from "@strapi/blocks-react-renderer";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Download, Calendar, User, FileText } from "lucide-react";
+import { Metadata } from 'next';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
-// Helper to fix URLs
+export async function generateStaticParams() {
+    const params = [];
+    for (const locale of i18n.locales) {
+        const downloadables = await fetchDownloadables(locale);
+        params.push(...downloadables.map((item: any) => ({
+            lang: locale,
+            slug: item.slug,
+        })));
+    }
+    return params;
+}
+
 const getUrl = (url: string) => {
     if (!url) return null;
     return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
 }
 
-import { Metadata } from 'next';
-
 export async function generateMetadata({
     params,
 }: {
-    params: Promise<{ slug: string }>
+    params: Promise<{ slug: string, lang: string }>
 }): Promise<Metadata> {
-    const { slug } = await params;
-    const item = await fetchDownloadableBySlug(slug);
+    const { slug, lang } = await params;
+    const item = await fetchDownloadableBySlug(slug, lang);
 
     if (!item) {
         return {
@@ -45,10 +56,10 @@ export async function generateMetadata({
 export default async function DownloadableDetailPage({
     params,
 }: {
-    params: Promise<{ slug: string }>
+    params: Promise<{ slug: string, lang: string }>
 }) {
-    const { slug } = await params;
-    const item = await fetchDownloadableBySlug(slug);
+    const { slug, lang } = await params;
+    const item = await fetchDownloadableBySlug(slug, lang);
 
     if (!item) {
         notFound();
@@ -64,7 +75,7 @@ export default async function DownloadableDetailPage({
 
     return (
         <main className="container mx-auto px-4 py-8 max-w-4xl">
-            <Link href="/downloadables" className="text-blue-600 hover:underline mb-6 inline-flex items-center gap-1 group">
+            <Link href={`/${lang}/downloadables`} className="text-blue-600 hover:underline mb-6 inline-flex items-center gap-1 group">
                 <span className="group-hover:-translate-x-1 transition-transform">&larr;</span> Back to Downloads
             </Link>
 

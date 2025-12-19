@@ -1,12 +1,14 @@
 
-import { fetchAboutPage } from "../lib/about";
-import { AboutHero, WhoWeAre, VisionQuery, Mission, AboutVision, TimelineItem } from "../component/AboutSections";
-import { notFound } from "next/navigation";
-import { fetchPageSeo } from "../lib/seo";
-import { Metadata } from 'next';
 
-export async function generateMetadata(): Promise<Metadata> {
-  const seo = await fetchPageSeo("about");
+import { notFound } from "next/navigation";
+import { Metadata } from 'next';
+import { fetchPageSeo } from "../../lib/seo";
+import { fetchAboutPage } from "../../lib/about";
+import { AboutHero, WhoWeAre, VisionQuery, Mission, AboutVision, TimelineItem } from "../../component/AboutSections";
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const seo = await fetchPageSeo("about", lang);
 
   if (!seo) return {
     title: "About Us"
@@ -14,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const shareImageUrl = seo.shareImage?.url?.startsWith('http')
     ? seo.shareImage.url
-    : `${process.env.NEXT_PUBLIC_STRAPI_URL}${seo.shareImage?.url}`;
+    : `${process.env.NEXT_PUBLIC_STRAPI_URL}${seo.shareImage?.url} `;
 
   return {
     title: seo.metaTitle,
@@ -25,14 +27,15 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function AboutPage() {
-  const page = await fetchAboutPage();
+export default async function AboutPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const page = await fetchAboutPage(lang);
 
   if (!page) {
     return (
-      <div className="container mx-auto px-4 py-20 text-center">
-        <h1 className="text-4xl font-bold mb-4">About Us</h1>
-        <p className="text-gray-600">Content coming soon...</p>
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-4xl font-bold mb-8 text-[var(--color-primary-text)]">About Us</h1>
+        <p className="text-gray-500">Content coming soon...</p>
       </div>
     )
   }

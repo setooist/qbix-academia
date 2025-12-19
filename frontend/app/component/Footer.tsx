@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getLocalizedHref } from "../helper/url";
 import type { FooterColumn, FooterAddress, FooterBottom } from "@/types/footer";
 import { getFooter } from "../lib/footer";
 import Image from "next/image";
 import { Mail, Phone, MapPin } from "lucide-react";
 
-const Footer = () => {
+const Footer = ({ locale = "en" }: { locale?: string }) => {
   const [columns, setColumns] = useState<FooterColumn[]>([]);
   const [address, setAddress] = useState<FooterAddress | null>(null);
   const [bottom, setBottom] = useState<FooterBottom | null>(null);
@@ -15,7 +16,7 @@ const Footer = () => {
   useEffect(() => {
     const fetchFooter = async () => {
       try {
-        const data = await getFooter();
+        const data = await getFooter(locale);
         if (data.columns) setColumns(data.columns);
         if (data.address) setAddress(data.address);
         if (data.bottom) setBottom(data.bottom);
@@ -24,7 +25,7 @@ const Footer = () => {
       }
     };
     fetchFooter();
-  }, []);
+  }, [locale]);
 
   const bottomLogoUrl = bottom?.logo?.url
     ? bottom.logo.url.startsWith("http")
@@ -44,7 +45,7 @@ const Footer = () => {
                   <li key={lIdx}>
                     {link.type === "internal" ? (
                       <Link
-                        href={link.url}
+                        href={getLocalizedHref(link.url, locale)}
                         className="text-muted-foreground hover:text-primary transition-colors duration-200 flex items-center text-sm"
                       >
                         {link.label}
@@ -113,7 +114,7 @@ const Footer = () => {
         {bottom && (
           <div className="border-t border-border/50 pt-8 flex flex-col items-center md:flex-row md:justify-between gap-6">
             {bottomLogoUrl && (
-              <a href={bottom.link || "/"} className="flex-shrink-0">
+              <a href={getLocalizedHref(bottom.link || "/", locale)} className="flex-shrink-0">
                 <Image
                   src={bottomLogoUrl || "/placeholder.svg"}
                   alt={bottom.altText || "Logo"}

@@ -1,10 +1,10 @@
 import { gql } from "graphql-request";
 import { client } from "./graphql";
 
-export async function getGlobal() {
+export async function getGlobal(locale: string = "en") {
   const query = gql`
-    query {
-      global {
+    query($locale: I18NLocaleCode) {
+      global(locale: $locale) {
         siteName
         siteDescription
         ctaButtonText
@@ -31,9 +31,10 @@ export async function getGlobal() {
   `;
 
   try {
-    const data: any = await client.request(query);
+    const data: any = await client.request(query, { locale });
 
-    return data?.global ?? {};
+    const result = data?.global ?? {};
+    return result;
   } catch (error: any) {
     return {};
   }

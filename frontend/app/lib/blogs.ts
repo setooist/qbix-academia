@@ -2,8 +2,8 @@ import { gql } from "graphql-request";
 import { client } from "./graphql";
 
 const GET_BLOGS = gql`
-  query {
-    blogs {
+  query($locale: I18NLocaleCode) {
+    blogs(locale: $locale) {
       documentId
       title
       slug
@@ -25,16 +25,17 @@ const GET_BLOGS = gql`
   }
 `;
 
-export const fetchBlogs = async () => {
+export const fetchBlogs = async (locale: string = "en"): Promise<any[]> => {
   try {
     const data = await client.request(
       GET_BLOGS,
-      {},
+      { locale },
       {
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
       }
     );
-    return data.blogs;
+    const blogs = data.blogs;
+    return blogs;
   } catch (error) {
     console.error("Error fetching blogs:", error);
     return [];
@@ -42,8 +43,8 @@ export const fetchBlogs = async () => {
 };
 
 const GET_BLOG_BY_SLUG = gql`
-  query($slug: String!) {
-    blogs(filters: { slug: { eq: $slug } }) {
+  query($slug: String!, $locale: I18NLocaleCode) {
+    blogs(filters: { slug: { eq: $slug } }, locale: $locale) {
       documentId
       title
       slug
@@ -66,16 +67,17 @@ const GET_BLOG_BY_SLUG = gql`
   }
 `;
 
-export const fetchBlogBySlug = async (slug: string) => {
+export const fetchBlogBySlug = async (slug: string, locale: string = "en"): Promise<any | null> => {
   try {
     const data = await client.request(
       GET_BLOG_BY_SLUG,
-      { slug },
+      { slug, locale },
       {
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
       }
     );
-    return data.blogs[0] || null;
+    const blog = data.blogs[0];
+    return blog || null;
   } catch (error) {
     console.error("Error fetching blog by slug:", error);
     return null;
