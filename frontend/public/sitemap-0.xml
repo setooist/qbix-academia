@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>http://localhost:3000/en</loc><lastmod>2025-12-17T11:56:41.939Z</lastmod><changefreq>weekly</changefreq><priority>1</priority></url>
-<url><loc>http://localhost:3000/en/about</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/en/blogs</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/en/case-studies</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/en/downloadables</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/fr-FR</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>1</priority></url>
-<url><loc>http://localhost:3000/fr-FR/about</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/fr-FR/blogs</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/fr-FR/case-studies</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/fr-FR/downloadables</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/de</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>1</priority></url>
-<url><loc>http://localhost:3000/de/about</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/de/blogs</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/de/case-studies</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>http://localhost:3000/de/downloadables</loc><lastmod>2025-12-17T11:56:41.941Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>http://localhost:3000/de/about</loc><lastmod>2025-12-19T04:46:19.660Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/en/about</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/fr-FR/about</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/en/blogs/defining-roles-in-a-marketing-oriented-organization</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/de/blogs</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/en/blogs</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/fr-FR/blogs</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/en/case-studies/brand-verticalization-sub-brand-development-and-campaign-automation</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/fr-FR/case-studies/verticalisation-de-la-marque-developpement-de-sous-marques-et-automatisation-des_campagnes</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/de/case-studies</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/en/case-studies</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/fr-FR/case-studies</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/en/downloadables/downloadable</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/de/downloadables</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/en/downloadables</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/fr-FR/downloadables</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/de</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/en</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>http://localhost:3000/fr-FR</loc><lastmod>2025-12-19T04:46:19.661Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 </urlset>

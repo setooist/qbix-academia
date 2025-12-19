@@ -1,5 +1,6 @@
 
-import { fetchBlogBySlug } from "../../../lib/blogs";
+import { fetchBlogBySlug, fetchBlogs } from "../../../lib/blogs";
+import { i18n } from "../../../helper/locales";
 import Image from "next/image";
 import { BlocksRenderer } from "@strapi/blocks-react-renderer";
 import Link from "next/link";
@@ -7,6 +8,18 @@ import { notFound } from "next/navigation";
 import { Metadata } from 'next';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
+
+export async function generateStaticParams() {
+    const params = [];
+    for (const locale of i18n.locales) {
+        const blogs = await fetchBlogs(locale);
+        params.push(...blogs.map((blog: any) => ({
+            lang: locale,
+            slug: blog.slug,
+        })));
+    }
+    return params;
+}
 
 export async function generateMetadata({
     params,

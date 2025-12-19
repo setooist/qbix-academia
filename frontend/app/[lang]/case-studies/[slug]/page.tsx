@@ -1,11 +1,24 @@
 
-import { fetchCaseStudyBySlug } from "../../../lib/case-studies";
+import { fetchCaseStudyBySlug, fetchCaseStudies } from "../../../lib/case-studies";
+import { i18n } from "../../../helper/locales";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from 'next';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
+
+export async function generateStaticParams() {
+    const params = [];
+    for (const locale of i18n.locales) {
+        const studies = await fetchCaseStudies(locale);
+        params.push(...studies.map((study: any) => ({
+            lang: locale,
+            slug: study.slug,
+        })));
+    }
+    return params;
+}
 
 const getUrl = (url: string) => {
     if (!url) return null;

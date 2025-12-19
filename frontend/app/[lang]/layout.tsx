@@ -1,5 +1,6 @@
 import { getDesignSystem } from "@/app/lib/design";
 import { generateCssVariables } from "@/app/helper/styleGenerator";
+import { i18n } from "../helper/locales";
 
 import { Geist } from "next/font/google";
 import "../globals.css";
@@ -16,6 +17,10 @@ const geistSans = Geist({
 });
 
 import { Metadata } from 'next';
+
+export async function generateStaticParams() {
+  return i18n.locales.map((locale) => ({ lang: locale }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;

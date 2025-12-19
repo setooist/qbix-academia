@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getLocalizedHref } from "../helper/url";
 import type { FooterColumn, FooterAddress, FooterBottom } from "@/types/footer";
 import { getFooter } from "../lib/footer";
 import Image from "next/image";
@@ -44,7 +45,7 @@ const Footer = ({ locale = "en" }: { locale?: string }) => {
                   <li key={lIdx}>
                     {link.type === "internal" ? (
                       <Link
-                        href={link.url}
+                        href={getLocalizedHref(link.url, locale)}
                         className="text-muted-foreground hover:text-primary transition-colors duration-200 flex items-center text-sm"
                       >
                         {link.label}
@@ -113,7 +114,7 @@ const Footer = ({ locale = "en" }: { locale?: string }) => {
         {bottom && (
           <div className="border-t border-border/50 pt-8 flex flex-col items-center md:flex-row md:justify-between gap-6">
             {bottomLogoUrl && (
-              <a href={bottom.link || "/"} className="flex-shrink-0">
+              <a href={getLocalizedHref(bottom.link || "/", locale)} className="flex-shrink-0">
                 <Image
                   src={bottomLogoUrl || "/placeholder.svg"}
                   alt={bottom.altText || "Logo"}

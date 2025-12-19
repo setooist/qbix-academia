@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Download, Calendar, User, FileText } from "lucide-react";
 import { fetchPageSeo } from "../../lib/seo";
 import { Metadata } from 'next';
+import { getLocalizedHref } from "../../helper/url";
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
@@ -47,7 +48,7 @@ export default async function DownloadablesPage({ params }: { params: Promise<{ 
                         : null;
 
                     return (
-                        <Link href={`/${lang}/downloadables/${item.slug}`} key={item.documentId || item.slug} className="group">
+                        <Link href={getLocalizedHref(`/downloadables/${item.slug}`, lang)} key={item.documentId || item.slug} className="group">
                             <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white h-full flex flex-col">
                                 <div className="relative h-48 w-full bg-gray-200">
                                     {imageUrl ? (

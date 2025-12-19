@@ -2,10 +2,9 @@
 import { fetchBlogs } from "../../lib/blogs";
 import Link from "next/link";
 import Image from "next/image";
-
-
 import { fetchPageSeo } from "../../lib/seo";
 import { Metadata } from 'next';
+import { getLocalizedHref } from "../../helper/url";
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
 
@@ -49,7 +48,7 @@ export default async function BlogsPage({ params }: { params: Promise<{ lang: st
                         : "/placeholder.png";
 
                     return (
-                        <Link href={`/${lang}/blogs/${blog.slug}`} key={blog.documentId || blog.slug} className="group">
+                        <Link href={getLocalizedHref(`/blogs/${blog.slug}`, lang)} key={blog.documentId || blog.slug} className="group">
                             <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white h-full flex flex-col">
                                 <div className="relative h-48 w-full bg-gray-200">
                                     {blog.coverImage?.[0]?.url ? (

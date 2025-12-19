@@ -7,6 +7,7 @@ import CalendorModal from "./CalendorModal";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import { getLocalizedHref } from "../helper/url";
 
 interface HeaderProps {
   menu: MenuItem[];
@@ -19,11 +20,11 @@ export default function Header({ menu, global, locale = "en" }: HeaderProps) {
   const [openSubmenu, setOpenSubmenu] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const getLocalizedHref = (href: string) => {
-    if (href.startsWith("http") || href.startsWith("#")) return href;
-    const cleanHref = href.startsWith("/") ? href : `/${href}`;
-    return `/${locale}${cleanHref === '/' ? '' : cleanHref}`;
-  };
+
+
+
+
+
 
   const logoObj = global?.logo?.[0];
   const logoUrl = logoObj?.url
@@ -59,7 +60,7 @@ export default function Header({ menu, global, locale = "en" }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex justify-between items-center px-4 md:px-6 py-4">
-        <Link href={getLocalizedHref("/")} className="flex-shrink-0">
+        <Link href={getLocalizedHref("/", locale)} className="flex-shrink-0">
           {logoUrl && (
             <Image
               src={logoUrl || "/placeholder.svg"}
@@ -78,7 +79,7 @@ export default function Header({ menu, global, locale = "en" }: HeaderProps) {
           {menu?.map((item, idx) => (
             <div key={idx} className="relative menu-item group">
               <Link
-                href={getLocalizedHref(item.href)}
+                href={getLocalizedHref(item.href, locale)}
                 target={item.target || "_self"}
                 onClick={(e) => {
                   if (item.submenu?.length) {
@@ -98,7 +99,7 @@ export default function Header({ menu, global, locale = "en" }: HeaderProps) {
                     {item.submenu.map((sub, sIdx) => (
                       <li key={sIdx} className="relative">
                         <Link
-                          href={getLocalizedHref(sub.href)}
+                          href={getLocalizedHref(sub.href, locale)}
                           target={sub.target || "_self"}
                           onClick={(e) => {
                             if (sub.childSubmenu?.length) {
@@ -117,7 +118,7 @@ export default function Header({ menu, global, locale = "en" }: HeaderProps) {
                             {sub.childSubmenu.map((child, cIdx) => (
                               <li key={cIdx}>
                                 <Link
-                                  href={getLocalizedHref(child.href)}
+                                  href={getLocalizedHref(child.href, locale)}
                                   target={child.target || "_self"}
                                   className="block px-3 py-2 hover:bg-muted rounded-md text-sm"
                                 >
@@ -165,7 +166,7 @@ export default function Header({ menu, global, locale = "en" }: HeaderProps) {
             {menu?.map((item, idx) => (
               <div key={idx}>
                 <Link
-                  href={getLocalizedHref(item.href)}
+                  href={getLocalizedHref(item.href, locale)}
                   target={item.target || "_self"}
                   className="block px-4 py-2 text-foreground hover:text-primary rounded-md hover:bg-muted/50 transition-colors"
                 >
