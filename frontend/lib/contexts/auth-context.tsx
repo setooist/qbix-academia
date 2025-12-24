@@ -3,25 +3,22 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { getCurrentUser, signOut as strapiSignOut } from '@/lib/strapi/auth';
 
-// Define a generic User type for Strapi
 export interface User {
-  id: string; // Strapi IDs are numbers usually, but keeping string for compat or casting
+  id: string;
   email: string;
   username: string;
-  full_name?: string; // Custom field dependent on Strapi
-  // Add other attributes as per your Strapi User Content Type
 }
 
 export interface Profile {
   id: string;
-  // Add other profile fields
 }
 
 interface AuthContextType {
-  user: any | null; // Using any for flexibility during migration
+  user: any | null;
   profile: any | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,35 +28,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage/Cookie on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      // Assuming you store the JWT in localStorage during sign-in
-      // The logic for handling the JWT needs to be added to the signIn function in strapi/auth.ts
+  const checkAuth = async () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('strapi_jwt') : null;
 
-      // For now, checks if we have a token (mock check)
-      // In a real Strapi app: localStorage.getItem('jwt')
-      const token = typeof window !== 'undefined' ? localStorage.getItem('strapi_jwt') : null;
-
-      if (token) {
-        try {
-          const userData = await getCurrentUser(token);
-          if (userData) {
-            setUser(userData);
-            // Fetch additional profile if needed, or if it's included in userData
-            setProfile(userData);
-          } else {
-            localStorage.removeItem('strapi_jwt'); // Invalid token
-          }
-        } catch (e) {
-          console.error(e);
+    if (token) {
+      try {
+        const userData = await getCurrentUser(token);
+        if (userData) {
+          setUser(userData);
+          setProfile(userData);
+        } else {
+          localStorage.removeItem('strapi_jwt');
         }
+      } catch (e) {
+        console.error(e);
       }
-      setLoading(false);
-    };
+    }
+    setLoading(false);
+  };
 
+  useEffect(() => {
     checkAuth();
   }, []);
+
+  const refreshUser = async () => {
+    await checkAuth();
+  };
 
   const handleSignOut = async () => {
     await strapiSignOut();
@@ -71,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut: handleSignOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signOut: handleSignOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

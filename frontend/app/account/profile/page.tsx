@@ -8,18 +8,65 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { updateProfile } from '@/lib/strapi/auth';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProfilePage() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshUser } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
+
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [bio, setBio] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user) {
       router.push('/auth/login');
+    } else {
+      setFullName(user?.fullName || '');
+      setPhone(user?.phone || '');
+      setBio(user?.bio || '');
     }
-  }, [user, router]);
+  }, [user, profile, router]);
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+
+    setLoading(true);
+
+    try {
+      await updateProfile(user.id, {
+        fullName,
+        phone,
+        bio,
+      });
+
+      toast({
+        title: 'Success',
+        description: 'Your profile has been updated successfully.',
+      });
+
+      await refreshUser();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to update profile. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFullName(user?.fullName || '');
+    setPhone(user?.phone || '');
+    setBio(user?.bio || '');
+  };
 
   if (!user) {
     return null;
@@ -46,7 +93,8 @@ export default function ProfilePage() {
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input
                     id="fullName"
-                    defaultValue={profile?.full_name || ''}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     className="mt-1"
                   />
                 </div>
@@ -55,7 +103,7 @@ export default function ProfilePage() {
                   <Input
                     id="email"
                     type="email"
-                    defaultValue={user.email || ''}
+                    value={user.email || ''}
                     disabled
                     className="mt-1"
                   />
@@ -67,7 +115,8 @@ export default function ProfilePage() {
                 <Input
                   id="phone"
                   type="tel"
-                  defaultValue={profile?.phone || ''}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="mt-1"
                 />
               </div>
@@ -77,15 +126,29 @@ export default function ProfilePage() {
                 <Textarea
                   id="bio"
                   rows={4}
-                  defaultValue={profile?.bio || ''}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
                   placeholder="Tell us about yourself..."
                   className="mt-1"
                 />
               </div>
 
               <div className="flex gap-4 pt-2">
-                <Button className="transition-all duration-300 hover:shadow-lg">Save Changes</Button>
-                <Button variant="outline" className="transition-all duration-300 hover:shadow-lg">Cancel</Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="transition-all duration-300 hover:shadow-lg"
+                >
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={loading}
+                  className="transition-all duration-300 hover:shadow-lg"
+                >
+                  Cancel
+                </Button>
               </div>
             </CardContent>
           </Card>

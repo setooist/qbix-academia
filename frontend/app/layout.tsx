@@ -6,6 +6,9 @@ import { Toaster } from '@/components/ui/toaster';
 export const metadata: Metadata = {
   title: 'QBIX Academia - Stand Overseas',
   description: 'Your gateway to international education. Expert guidance for studying abroad.',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({
