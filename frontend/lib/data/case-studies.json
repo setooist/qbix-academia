@@ -1,0 +1,80 @@
+[
+  {
+    "id": "1",
+    "title": "From India to MIT: Rajesh's Journey",
+    "slug": "rajesh-journey-india-to-mit",
+    "excerpt": "How Rajesh secured admission to MIT with a full scholarship for his Master's in Computer Science.",
+    "student_name": "Rajesh Kumar",
+    "destination_country": "United States",
+    "university": "Massachusetts Institute of Technology",
+    "program": "Master of Science in Computer Science",
+    "featured_image": "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg",
+    "content": "Rajesh came to us with a dream of studying at MIT. With our comprehensive guidance on test preparation, application strategy, and scholarship hunting, he achieved:\n\n- GRE Score: 330/340\n- TOEFL: 115/120\n- Full tuition scholarship\n- Research assistantship\n\nHis journey showcases the importance of early planning, strong academic credentials, and compelling research experience.",
+    "published_at": "2024-12-01"
+  },
+  {
+    "id": "2",
+    "title": "Priya's Path to Oxford: A Success Story",
+    "slug": "priya-path-to-oxford",
+    "excerpt": "Priya's inspiring journey from Mumbai to Oxford University for her Master's in Economics.",
+    "student_name": "Priya Sharma",
+    "destination_country": "United Kingdom",
+    "university": "University of Oxford",
+    "program": "Master of Science in Economics",
+    "featured_image": "https://images.pexels.com/photos/256490/pexels-photo-256490.jpeg",
+    "content": "Priya always dreamed of studying at Oxford. Through meticulous planning and dedicated preparation:\n\n- IELTS: 8.5/9.0\n- Strong academic record: 9.2 CGPA\n- Chevening Scholarship recipient\n- Published research paper\n\nHer success demonstrates how proper guidance can turn dreams into reality.",
+    "published_at": "2024-11-28"
+  },
+  {
+    "id": "3",
+    "title": "Ahmed's Australian Adventure: University of Melbourne",
+    "slug": "ahmed-australian-adventure",
+    "excerpt": "How Ahmed secured the Australia Awards Scholarship for his PhD at the University of Melbourne.",
+    "student_name": "Ahmed Hassan",
+    "destination_country": "Australia",
+    "university": "University of Melbourne",
+    "program": "PhD in Environmental Engineering",
+    "featured_image": "https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg",
+    "content": "Ahmed wanted to pursue his PhD in Environmental Engineering in Australia. With our support:\n\n- Australia Awards Scholarship winner\n- IELTS: 8.0/9.0\n- Strong research proposal\n- Multiple publication in peer-reviewed journals\n\nHis case study highlights the importance of research experience and a compelling statement of purpose.",
+    "published_at": "2024-11-25"
+  },
+  {
+    "id": "4",
+    "title": "Sarah's Success: Stanford MBA with Scholarship",
+    "slug": "sarah-success-stanford-mba",
+    "excerpt": "Sarah's journey from corporate professional to Stanford MBA student with a leadership scholarship.",
+    "student_name": "Sarah Williams",
+    "destination_country": "United States",
+    "university": "Stanford Graduate School of Business",
+    "program": "Master of Business Administration",
+    "featured_image": "https://images.pexels.com/photos/3184357/pexels-photo-3184357.jpeg",
+    "content": "Sarah had 5 years of work experience and aspired to pursue an MBA at a top business school:\n\n- GMAT: 750/800\n- Knight-Hennessy Scholar\n- Strong leadership experience\n- Impactful community service\n\nHer success underscores the value of work experience, leadership qualities, and a clear vision for impact.",
+    "published_at": "2024-11-20"
+  },
+  {
+    "id": "5",
+    "title": "Li Wei's Engineering Dream: ETH Zurich",
+    "slug": "li-wei-engineering-dream-eth-zurich",
+    "excerpt": "Li Wei's successful application to ETH Zurich for a Master's in Robotics with an Excellence Scholarship.",
+    "student_name": "Li Wei",
+    "destination_country": "Switzerland",
+    "university": "ETH Zurich",
+    "program": "Master of Science in Robotics, Systems and Control",
+    "featured_image": "https://images.pexels.com/photos/159844/cellular-education-classroom-159844.jpeg",
+    "content": "Li Wei aspired to study robotics at one of Europe's best technical universities:\n\n- Excellence Scholarship recipient\n- Strong academic performance: 3.9/4.0 GPA\n- Research internships at leading robotics labs\n- TOEFL: 110/120\n\nHis journey demonstrates the importance of aligning your profile with the university's strengths.",
+    "published_at": "2024-11-15"
+  },
+  {
+    "id": "6",
+    "title": "Maria's Medical Journey: University of Toronto",
+    "slug": "maria-medical-journey-toronto",
+    "excerpt": "Maria's path from Brazil to one of Canada's top medical schools with the Lester B. Pearson Scholarship.",
+    "student_name": "Maria Silva",
+    "destination_country": "Canada",
+    "university": "University of Toronto",
+    "program": "Doctor of Medicine",
+    "featured_image": "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg",
+    "content": "Maria dreamed of becoming a doctor at a world-class institution:\n\n- Lester B. Pearson International Scholarship\n- MCAT: 520/528\n- Extensive volunteer medical experience\n- IELTS: 8.5/9.0\n\nHer story highlights the importance of passion, dedication, and relevant experience in competitive programs.",
+    "published_at": "2024-11-10"
+  }
+]
