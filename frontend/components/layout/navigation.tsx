@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User, LogOut, ChevronDown, Shield, BookOpen, Calendar, FileText, Users, Home, Briefcase, Mail, Library, GraduationCap } from 'lucide-react';
+import { Menu, X, User, LogOut, ChevronDown, Shield, BookOpen, Calendar, FileText, Users, Home, Briefcase, Mail, Library, GraduationCap, Phone, MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { usePermissions } from '@/lib/hooks/use-permissions';
@@ -14,22 +14,26 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import { getNavigation, NavigationData, MenuItem } from '@/lib/api/navigation';
+import { getGlobal, GlobalData } from '@/lib/api/global';
+import { getStrapiMedia } from '@/lib/strapi/client';
 
-const aboutNavItems = [
-  { label: 'About Us', href: '/about', icon: Users, description: 'Learn about our mission' },
-  { label: 'Our Team', href: '/team', icon: GraduationCap, description: 'Meet our experts' },
-];
-
-const resourcesNavItems = [
-  { label: 'Community', href: '/community', icon: Users, description: 'Join our community' },
-  { label: 'Pre-Departure', href: '/pre-departure', icon: BookOpen, description: 'Prepare for your journey' },
-  { label: 'Events', href: '/events', icon: Calendar, description: 'Upcoming events' },
-  { label: 'Blogs', href: '/blogs', icon: FileText, description: 'Latest insights' },
-  { label: 'Case Studies', href: '/case-studies', icon: Briefcase, description: 'Success stories' },
-  { label: 'Downloadables', href: '/downloadables', icon: Library, description: 'Resources & guides' },
-];
+// Helper to map icon string names (if we had them in Strapi) or default logic
+const getIconForLabel = (label: string) => {
+  const l = label.toLowerCase();
+  if (l.includes('about')) return Users;
+  if (l.includes('community')) return Users;
+  if (l.includes('pre-departure')) return BookOpen;
+  if (l.includes('event')) return Calendar;
+  if (l.includes('blog')) return FileText;
+  if (l.includes('case')) return Briefcase;
+  if (l.includes('download')) return Library;
+  if (l.includes('team')) return GraduationCap;
+  if (l.includes('contact')) return Mail;
+  if (l.includes('service')) return Briefcase;
+  return BookOpen;
+};
 
 const accountNavItems = [
   { label: 'My Profile', href: '/account/profile', icon: User },
@@ -39,9 +43,11 @@ const accountNavItems = [
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
-  const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [navData, setNavData] = useState<NavigationData | null>(null);
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
   const [accountOpen, setAccountOpen] = useState(false);
+  const [globalData, setGlobalData] = useState<GlobalData | null>(null);
+
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const { user, profile, signOut } = useAuth();
@@ -52,6 +58,19 @@ export function Navigation() {
       setScrolled(window.scrollY > 10);
     };
     window.addEventListener('scroll', handleScroll);
+
+    getNavigation().then(data => {
+      if (data) {
+        setNavData(data);
+      }
+    });
+
+    getGlobal().then(data => {
+      if (data) {
+        setGlobalData(data);
+      }
+    });
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -71,6 +90,13 @@ export function Navigation() {
       .slice(0, 2);
   };
 
+  const toggleDropdown = (label: string, isOpen: boolean) => {
+    setOpenDropdowns(prev => ({ ...prev, [label]: isOpen }));
+  };
+
+  // Default static items if api fails or loading (optional fallback, currently empty array or skeleton could be better)
+  const menuItems = navData?.Menu || [];
+
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-500 ${scrolled
       ? 'bg-white/95 backdrop-blur-lg shadow-xl'
@@ -81,125 +107,89 @@ export function Navigation() {
           <Link href="/" className="flex items-center space-x-3 group">
             <div className="relative transition-all duration-500 group-hover:scale-105">
               <Image
-                src="/logo-transparent copy.png"
-                alt="QBIX Academia Logo"
+                src={(globalData?.logo?.[0]?.url) ? getStrapiMedia(globalData.logo[0].url) || "/Logo.png" : "/Logo.png"}
+                alt={globalData?.siteName || "QBIX Academia Logo"}
                 width={scrolled ? 140 : 170}
                 height={scrolled ? 38 : 46}
                 className="transition-all duration-500 drop-shadow-md"
                 priority
+                unoptimized
               />
             </div>
           </Link>
 
+          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
-            <Link
-              href="/"
-              prefetch={true}
-              className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${isActive('/')
-                ? 'text-primary bg-primary/10'
-                : 'text-gray-700 hover:text-primary hover:bg-gray-100'
-                } group`}
-            >
-              Home
-              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${isActive('/') ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-                }`}></span>
-            </Link>
+            {menuItems.length > 0 ? (
+              menuItems.map((item, index) => {
+                const hasSubmenu = item.submenu && item.submenu.length > 0;
 
-            <DropdownMenu open={aboutOpen} onOpenChange={setAboutOpen}>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 flex items-center gap-1.5 ${aboutNavItems.some(item => isActive(item.href))
-                    ? 'text-primary bg-primary/10'
-                    : 'text-gray-700 hover:text-primary hover:bg-gray-100'
-                    } group`}
-                >
-                  About
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${aboutOpen ? 'rotate-180' : ''}`} />
-                  <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${aboutNavItems.some(item => isActive(item.href)) ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-                    }`}></span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-72 p-2 bg-white/95 backdrop-blur-lg border-gray-200">
-                {aboutNavItems.map((item) => {
-                  const Icon = item.icon;
+                if (hasSubmenu) {
                   return (
-                    <DropdownMenuItem key={item.href} asChild className="cursor-pointer rounded-lg p-3 focus:bg-primary/10">
-                      <Link href={item.href} prefetch={true} className="flex items-start gap-3">
-                        <div className="mt-0.5 p-2 rounded-lg bg-primary/10">
-                          <Icon className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900">{item.label}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">{item.description}</div>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
+                    <DropdownMenu
+                      key={index}
+                      open={openDropdowns[item.label] || false}
+                      onOpenChange={(open) => toggleDropdown(item.label, open)}
+                    >
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 flex items-center gap-1.5 ${item.submenu.some(sub => isActive(sub.href))
+                            ? 'text-primary bg-primary/10'
+                            : 'text-gray-700 hover:text-primary hover:bg-gray-100'
+                            } group`}
+                        >
+                          {item.label}
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${openDropdowns[item.label] ? 'rotate-180' : ''}`} />
+                          <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${item.submenu.some(sub => isActive(sub.href)) ? 'w-3/4' : 'w-0 group-hover:w-3/4'
+                            }`}></span>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-72 p-2 bg-white/95 backdrop-blur-lg border-gray-200">
+                        {item.submenu.map((subItem, subIndex) => {
+                          const Icon = getIconForLabel(subItem.label);
+                          return (
+                            <DropdownMenuItem key={subIndex} asChild className="cursor-pointer rounded-lg p-3 focus:bg-primary/10">
+                              <Link href={subItem.href} prefetch={true} className="flex items-start gap-3">
+                                <div className="mt-0.5 p-2 rounded-lg bg-primary/10">
+                                  <Icon className="w-4 h-4 text-primary" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900">{subItem.label}</div>
+                                  {/* Description could be added here if available in subItem */}
+                                </div>
+                              </Link>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   );
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                }
 
-            <Link
-              href="/services"
-              prefetch={true}
-              className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${isActive('/services')
-                ? 'text-primary bg-primary/10'
-                : 'text-gray-700 hover:text-primary hover:bg-gray-100'
-                } group`}
-            >
-              Services
-              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${isActive('/services') ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-                }`}></span>
-            </Link>
-
-            <DropdownMenu open={resourcesOpen} onOpenChange={setResourcesOpen}>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 flex items-center gap-1.5 ${resourcesNavItems.some(item => isActive(item.href))
-                    ? 'text-primary bg-primary/10'
-                    : 'text-gray-700 hover:text-primary hover:bg-gray-100'
-                    } group`}
-                >
-                  Resources
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${resourcesOpen ? 'rotate-180' : ''}`} />
-                  <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${resourcesNavItems.some(item => isActive(item.href)) ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-                    }`}></span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-80 p-2 bg-white/95 backdrop-blur-lg border-gray-200">
-                <div className="grid gap-1">
-                  {resourcesNavItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <DropdownMenuItem key={item.href} asChild className="cursor-pointer rounded-lg p-3 focus:bg-primary/10">
-                        <Link href={item.href} prefetch={true} className="flex items-start gap-3">
-                          <div className="mt-0.5 p-2 rounded-lg bg-primary/10">
-                            <Icon className="w-4 h-4 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">{item.label}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">{item.description}</div>
-                          </div>
-                        </Link>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Link
-              href="/contact"
-              prefetch={true}
-              className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${isActive('/contact')
-                ? 'text-primary bg-primary/10'
-                : 'text-gray-700 hover:text-primary hover:bg-gray-100'
-                } group`}
-            >
-              Contact
-              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${isActive('/contact') ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-                }`}></span>
-            </Link>
+                return (
+                  <Link
+                    key={index}
+                    href={item.href}
+                    prefetch={true}
+                    className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${isActive(item.href)
+                      ? 'text-primary bg-primary/10'
+                      : 'text-gray-700 hover:text-primary hover:bg-gray-100'
+                      } group`}
+                  >
+                    {item.label}
+                    <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${isActive(item.href) ? 'w-3/4' : 'w-0 group-hover:w-3/4'
+                      }`}></span>
+                  </Link>
+                );
+              })
+            ) : (
+              // Fallback static or loading state could go here
+              <div className="animate-pulse flex space-x-4">
+                <div className="h-8 w-20 bg-gray-200 rounded"></div>
+                <div className="h-8 w-20 bg-gray-200 rounded"></div>
+                <div className="h-8 w-20 bg-gray-200 rounded"></div>
+              </div>
+            )}
           </div>
 
           <div className="hidden lg:flex items-center space-x-3">
@@ -287,118 +277,71 @@ export function Navigation() {
         </div>
       </div>
 
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white/95 backdrop-blur-lg border-t border-gray-200 animate-in slide-in-from-top duration-300">
           <div className="px-4 py-6 space-y-2 max-h-[calc(100vh-5rem)] overflow-y-auto">
-            <Link
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${isActive('/')
-                ? 'text-primary bg-primary/10 border-l-4 border-primary'
-                : 'text-gray-700 hover:bg-gray-100 border-l-4 border-transparent'
-                }`}
-            >
-              <Home className="w-5 h-5" />
-              <span>Home</span>
-            </Link>
+            {menuItems.map((item, index) => {
+              const hasSubmenu = item.submenu && item.submenu.length > 0;
+              const Icon = getIconForLabel(item.label);
 
-            <div className="space-y-2">
-              <button
-                onClick={() => setAboutOpen(!aboutOpen)}
-                className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-all duration-300"
-              >
-                <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5" />
-                  <span>About</span>
-                </div>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${aboutOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {aboutOpen && (
-                <div className="ml-4 space-y-1">
-                  {aboutNavItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          setAboutOpen(false);
-                        }}
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-300 ${isActive(item.href)
-                          ? 'text-primary bg-primary/10'
-                          : 'text-gray-600 hover:bg-gray-100'
-                          }`}
-                      >
-                        <Icon className="w-4 h-4" />
+              if (hasSubmenu) {
+                const isOpen = openDropdowns[`mobile-${item.label}`];
+                return (
+                  <div key={index} className="space-y-2">
+                    <button
+                      onClick={() => toggleDropdown(`mobile-${item.label}`, !isOpen)}
+                      className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-5 h-5" />
                         <span>{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isOpen && (
+                      <div className="ml-4 space-y-1">
+                        {item.submenu.map((subItem, subIndex) => {
+                          const SubIcon = getIconForLabel(subItem.label);
+                          return (
+                            <Link
+                              key={subIndex}
+                              href={subItem.href}
+                              onClick={() => {
+                                setMobileMenuOpen(false);
+                                toggleDropdown(`mobile-${item.label}`, false);
+                              }}
+                              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-300 ${isActive(subItem.href)
+                                ? 'text-primary bg-primary/10'
+                                : 'text-gray-600 hover:bg-gray-100'
+                                }`}
+                            >
+                              <SubIcon className="w-4 h-4" />
+                              <span>{subItem.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
 
-            <Link
-              href="/services"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${isActive('/services')
-                ? 'text-primary bg-primary/10 border-l-4 border-primary'
-                : 'text-gray-700 hover:bg-gray-100 border-l-4 border-transparent'
-                }`}
-            >
-              <Briefcase className="w-5 h-5" />
-              <span>Services</span>
-            </Link>
-
-            <div className="space-y-2">
-              <button
-                onClick={() => setResourcesOpen(!resourcesOpen)}
-                className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-all duration-300"
-              >
-                <div className="flex items-center gap-3">
-                  <Library className="w-5 h-5" />
-                  <span>Resources</span>
-                </div>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${resourcesOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {resourcesOpen && (
-                <div className="ml-4 space-y-1">
-                  {resourcesNavItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          setResourcesOpen(false);
-                        }}
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-300 ${isActive(item.href)
-                          ? 'text-primary bg-primary/10'
-                          : 'text-gray-600 hover:bg-gray-100'
-                          }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span>{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <Link
-              href="/contact"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${isActive('/contact')
-                ? 'text-primary bg-primary/10 border-l-4 border-primary'
-                : 'text-gray-700 hover:bg-gray-100 border-l-4 border-transparent'
-                }`}
-            >
-              <Mail className="w-5 h-5" />
-              <span>Contact</span>
-            </Link>
+              return (
+                <Link
+                  key={index}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${isActive(item.href)
+                    ? 'text-primary bg-primary/10 border-l-4 border-primary'
+                    : 'text-gray-700 hover:bg-gray-100 border-l-4 border-transparent'
+                    }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
 
             {user && (
               <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">

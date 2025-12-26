@@ -3,7 +3,7 @@ import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
 const client = new ApolloClient({
-    ssrMode: typeof window === "undefined",
+    ssrMode: false, // Ensure client-side behavior for network visibility request
     link: new HttpLink({
         uri: `${STRAPI_URL}/graphql`,
     }),
@@ -20,6 +20,7 @@ const GET_BLOGS = gql`
             publishedAt
             published
             readTime
+            author
             coverImage {
                 url
                 alternativeText
@@ -31,6 +32,10 @@ const GET_BLOGS = gql`
             tag {
                 name
                 slug
+            }
+            allowedRoles {
+                name
+                type
             }
         }
     }
@@ -60,6 +65,17 @@ const GET_BLOG_BY_SLUG = gql`
                 name
                 slug
             }
+            allowedRoles {
+                name
+                type
+            }
+            seo {
+              metaTitle
+              metaDescription
+              shareImage {
+                url
+              }
+            }
         }
     }
 `;
@@ -86,6 +102,17 @@ export interface BlogPost {
         name: string;
         slug: string;
     } | null;
+    allowedRoles?: {
+        name: string;
+        type: string;
+    }[];
+    seo?: {
+        metaTitle: string;
+        metaDescription: string;
+        shareImage?: {
+            url: string;
+        };
+    }[];
 }
 
 interface BlogsResponse {
@@ -119,6 +146,36 @@ export async function getBlogBySlug(slug: string) {
         });
         return data?.blogs[0] || null;
     } catch (error) {
+        return null;
+    }
+}
+
+const GET_BLOG_LIST_SEO = gql`
+    query GetBlogListSeo {
+        pages(filters: { slug: { eq: "blogs" } }) {
+            title
+            slug
+            Seo {
+                metaTitle
+                metaDescription
+                shareImage {
+                    url
+                }
+            }
+        }
+    }
+`;
+
+export async function getBlogListPageSeo() {
+    try {
+        const { data } = await client.query<{ pages: any[] }>({
+            query: GET_BLOG_LIST_SEO,
+            fetchPolicy: 'no-cache',
+            errorPolicy: 'all'
+        });
+        return data?.pages?.[0] || null;
+    } catch (error) {
+        console.error("Error fetching blog list SEO:", error);
         return null;
     }
 }
