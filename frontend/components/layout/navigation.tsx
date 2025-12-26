@@ -72,19 +72,20 @@ export function Navigation() {
   };
 
   return (
-    <nav className={`sticky top-0 z-50 text-white transition-all duration-300 ${
-      scrolled ? 'bg-secondary/95 backdrop-blur-lg shadow-xl' : 'bg-secondary shadow-lg'
-    }`}>
+    <nav className={`sticky top-0 z-50 transition-all duration-500 ${scrolled
+      ? 'bg-white/95 backdrop-blur-lg shadow-xl'
+      : 'bg-white/80 backdrop-blur-md shadow-md'
+      }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className={`flex items-center justify-between transition-all duration-500 ${scrolled ? 'h-16' : 'h-20'}`}>
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="relative transition-transform duration-300 group-hover:scale-105">
+            <div className="relative transition-all duration-500 group-hover:scale-105">
               <Image
-                src="/logo.png"
+                src="/logo-transparent copy.png"
                 alt="QBIX Academia Logo"
-                width={160}
-                height={60}
-                className="transition-all duration-300"
+                width={scrolled ? 140 : 170}
+                height={scrolled ? 38 : 46}
+                className="transition-all duration-500 drop-shadow-md"
                 priority
               />
             </div>
@@ -93,32 +94,29 @@ export function Navigation() {
           <div className="hidden lg:flex items-center space-x-1">
             <Link
               href="/"
-              className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${
-                isActive('/')
-                  ? 'text-primary bg-primary/10'
-                  : 'text-white hover:text-primary hover:bg-white/5'
-              } group`}
+              prefetch={true}
+              className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${isActive('/')
+                ? 'text-primary bg-primary/10'
+                : 'text-gray-700 hover:text-primary hover:bg-gray-100'
+                } group`}
             >
               Home
-              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${
-                isActive('/') ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-              }`}></span>
+              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${isActive('/') ? 'w-3/4' : 'w-0 group-hover:w-3/4'
+                }`}></span>
             </Link>
 
             <DropdownMenu open={aboutOpen} onOpenChange={setAboutOpen}>
               <DropdownMenuTrigger asChild>
                 <button
-                  className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 flex items-center gap-1.5 ${
-                    aboutNavItems.some(item => isActive(item.href))
-                      ? 'text-primary bg-primary/10'
-                      : 'text-white hover:text-primary hover:bg-white/5'
-                  } group`}
+                  className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 flex items-center gap-1.5 ${aboutNavItems.some(item => isActive(item.href))
+                    ? 'text-primary bg-primary/10'
+                    : 'text-gray-700 hover:text-primary hover:bg-gray-100'
+                    } group`}
                 >
                   About
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${aboutOpen ? 'rotate-180' : ''}`} />
-                  <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${
-                    aboutNavItems.some(item => isActive(item.href)) ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-                  }`}></span>
+                  <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${aboutNavItems.some(item => isActive(item.href)) ? 'w-3/4' : 'w-0 group-hover:w-3/4'
+                    }`}></span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-72 p-2 bg-white/95 backdrop-blur-lg border-gray-200">
@@ -126,7 +124,7 @@ export function Navigation() {
                   const Icon = item.icon;
                   return (
                     <DropdownMenuItem key={item.href} asChild className="cursor-pointer rounded-lg p-3 focus:bg-primary/10">
-                      <Link href={item.href} className="flex items-start gap-3">
+                      <Link href={item.href} prefetch={true} className="flex items-start gap-3">
                         <div className="mt-0.5 p-2 rounded-lg bg-primary/10">
                           <Icon className="w-4 h-4 text-primary" />
                         </div>
@@ -143,32 +141,29 @@ export function Navigation() {
 
             <Link
               href="/services"
-              className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${
-                isActive('/services')
-                  ? 'text-primary bg-primary/10'
-                  : 'text-white hover:text-primary hover:bg-white/5'
-              } group`}
+              prefetch={true}
+              className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${isActive('/services')
+                ? 'text-primary bg-primary/10'
+                : 'text-gray-700 hover:text-primary hover:bg-gray-100'
+                } group`}
             >
               Services
-              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${
-                isActive('/services') ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-              }`}></span>
+              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${isActive('/services') ? 'w-3/4' : 'w-0 group-hover:w-3/4'
+                }`}></span>
             </Link>
 
             <DropdownMenu open={resourcesOpen} onOpenChange={setResourcesOpen}>
               <DropdownMenuTrigger asChild>
                 <button
-                  className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 flex items-center gap-1.5 ${
-                    resourcesNavItems.some(item => isActive(item.href))
-                      ? 'text-primary bg-primary/10'
-                      : 'text-white hover:text-primary hover:bg-white/5'
-                  } group`}
+                  className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 flex items-center gap-1.5 ${resourcesNavItems.some(item => isActive(item.href))
+                    ? 'text-primary bg-primary/10'
+                    : 'text-gray-700 hover:text-primary hover:bg-gray-100'
+                    } group`}
                 >
                   Resources
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${resourcesOpen ? 'rotate-180' : ''}`} />
-                  <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${
-                    resourcesNavItems.some(item => isActive(item.href)) ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-                  }`}></span>
+                  <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${resourcesNavItems.some(item => isActive(item.href)) ? 'w-3/4' : 'w-0 group-hover:w-3/4'
+                    }`}></span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-80 p-2 bg-white/95 backdrop-blur-lg border-gray-200">
@@ -177,7 +172,7 @@ export function Navigation() {
                     const Icon = item.icon;
                     return (
                       <DropdownMenuItem key={item.href} asChild className="cursor-pointer rounded-lg p-3 focus:bg-primary/10">
-                        <Link href={item.href} className="flex items-start gap-3">
+                        <Link href={item.href} prefetch={true} className="flex items-start gap-3">
                           <div className="mt-0.5 p-2 rounded-lg bg-primary/10">
                             <Icon className="w-4 h-4 text-primary" />
                           </div>
@@ -195,16 +190,15 @@ export function Navigation() {
 
             <Link
               href="/contact"
-              className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${
-                isActive('/contact')
-                  ? 'text-primary bg-primary/10'
-                  : 'text-white hover:text-primary hover:bg-white/5'
-              } group`}
+              prefetch={true}
+              className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${isActive('/contact')
+                ? 'text-primary bg-primary/10'
+                : 'text-gray-700 hover:text-primary hover:bg-gray-100'
+                } group`}
             >
               Contact
-              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${
-                isActive('/contact') ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-              }`}></span>
+              <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-primary to-orange rounded-full transition-all duration-300 ${isActive('/contact') ? 'w-3/4' : 'w-0 group-hover:w-3/4'
+                }`}></span>
             </Link>
           </div>
 
@@ -212,22 +206,22 @@ export function Navigation() {
             {user ? (
               <DropdownMenu open={accountOpen} onOpenChange={setAccountOpen}>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-3 px-3 py-2 rounded-full hover:bg-white/10 transition-all duration-300 group">
+                  <button className="flex items-center gap-3 px-3 py-2 rounded-full hover:bg-gray-100 transition-all duration-300 group">
                     <div className="relative">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-orange flex items-center justify-center text-white font-semibold text-sm shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                         {profile?.full_name ? getInitials(profile.full_name) : <User className="w-5 h-5" />}
                       </div>
                       {isStaff && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full border-2 border-secondary flex items-center justify-center">
+                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full border-2 border-white flex items-center justify-center">
                           <Shield className="w-2.5 h-2.5 text-white" />
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-white group-hover:text-primary transition-colors">
+                      <span className="font-medium text-gray-700 group-hover:text-primary transition-colors">
                         {profile?.full_name || 'Account'}
                       </span>
-                      <ChevronDown className={`w-4 h-4 text-white/70 transition-transform duration-300 ${accountOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform duration-300 ${accountOpen ? 'rotate-180' : ''}`} />
                     </div>
                   </button>
                 </DropdownMenuTrigger>
@@ -270,7 +264,7 @@ export function Navigation() {
               </DropdownMenu>
             ) : (
               <>
-                <Button asChild variant="ghost" className="text-white hover:text-primary hover:bg-white/10 transition-all duration-300 font-medium">
+                <Button asChild variant="ghost" className="text-gray-700 hover:text-primary hover:bg-gray-100 transition-all duration-300 font-medium">
                   <Link href="/auth/login">Log In</Link>
                 </Button>
                 <Button asChild className="bg-gradient-to-r from-primary to-orange hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-105 font-medium">
@@ -282,28 +276,27 @@ export function Navigation() {
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-white/10 transition-all duration-300 group"
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-all duration-300 group"
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-white transition-transform duration-300 group-hover:rotate-90" />
+              <X className="w-6 h-6 text-gray-700 transition-transform duration-300 group-hover:rotate-90" />
             ) : (
-              <Menu className="w-6 h-6 text-white transition-transform duration-300 group-hover:scale-110" />
+              <Menu className="w-6 h-6 text-gray-700 transition-transform duration-300 group-hover:scale-110" />
             )}
           </button>
         </div>
       </div>
 
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-secondary/95 backdrop-blur-lg border-t border-white/10 animate-in slide-in-from-top duration-300">
+        <div className="lg:hidden bg-white/95 backdrop-blur-lg border-t border-gray-200 animate-in slide-in-from-top duration-300">
           <div className="px-4 py-6 space-y-2 max-h-[calc(100vh-5rem)] overflow-y-auto">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${
-                isActive('/')
-                  ? 'text-primary bg-primary/10 border-l-4 border-primary'
-                  : 'text-white hover:bg-white/10 border-l-4 border-transparent'
-              }`}
+              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${isActive('/')
+                ? 'text-primary bg-primary/10 border-l-4 border-primary'
+                : 'text-gray-700 hover:bg-gray-100 border-l-4 border-transparent'
+                }`}
             >
               <Home className="w-5 h-5" />
               <span>Home</span>
@@ -312,7 +305,7 @@ export function Navigation() {
             <div className="space-y-2">
               <button
                 onClick={() => setAboutOpen(!aboutOpen)}
-                className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl font-medium text-white hover:bg-white/10 transition-all duration-300"
+                className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-all duration-300"
               >
                 <div className="flex items-center gap-3">
                   <Users className="w-5 h-5" />
@@ -332,11 +325,10 @@ export function Navigation() {
                           setMobileMenuOpen(false);
                           setAboutOpen(false);
                         }}
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-300 ${
-                          isActive(item.href)
-                            ? 'text-primary bg-primary/10'
-                            : 'text-white/90 hover:bg-white/10'
-                        }`}
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-300 ${isActive(item.href)
+                          ? 'text-primary bg-primary/10'
+                          : 'text-gray-600 hover:bg-gray-100'
+                          }`}
                       >
                         <Icon className="w-4 h-4" />
                         <span>{item.label}</span>
@@ -350,11 +342,10 @@ export function Navigation() {
             <Link
               href="/services"
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${
-                isActive('/services')
-                  ? 'text-primary bg-primary/10 border-l-4 border-primary'
-                  : 'text-white hover:bg-white/10 border-l-4 border-transparent'
-              }`}
+              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${isActive('/services')
+                ? 'text-primary bg-primary/10 border-l-4 border-primary'
+                : 'text-gray-700 hover:bg-gray-100 border-l-4 border-transparent'
+                }`}
             >
               <Briefcase className="w-5 h-5" />
               <span>Services</span>
@@ -363,7 +354,7 @@ export function Navigation() {
             <div className="space-y-2">
               <button
                 onClick={() => setResourcesOpen(!resourcesOpen)}
-                className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl font-medium text-white hover:bg-white/10 transition-all duration-300"
+                className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-all duration-300"
               >
                 <div className="flex items-center gap-3">
                   <Library className="w-5 h-5" />
@@ -383,11 +374,10 @@ export function Navigation() {
                           setMobileMenuOpen(false);
                           setResourcesOpen(false);
                         }}
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-300 ${
-                          isActive(item.href)
-                            ? 'text-primary bg-primary/10'
-                            : 'text-white/90 hover:bg-white/10'
-                        }`}
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-300 ${isActive(item.href)
+                          ? 'text-primary bg-primary/10'
+                          : 'text-gray-600 hover:bg-gray-100'
+                          }`}
                       >
                         <Icon className="w-4 h-4" />
                         <span>{item.label}</span>
@@ -401,31 +391,30 @@ export function Navigation() {
             <Link
               href="/contact"
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${
-                isActive('/contact')
-                  ? 'text-primary bg-primary/10 border-l-4 border-primary'
-                  : 'text-white hover:bg-white/10 border-l-4 border-transparent'
-              }`}
+              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${isActive('/contact')
+                ? 'text-primary bg-primary/10 border-l-4 border-primary'
+                : 'text-gray-700 hover:bg-gray-100 border-l-4 border-transparent'
+                }`}
             >
               <Mail className="w-5 h-5" />
               <span>Contact</span>
             </Link>
 
             {user && (
-              <div className="border-t border-white/10 mt-4 pt-4 space-y-2">
-                <div className="px-4 py-3 bg-white/5 rounded-xl">
+              <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
+                <div className="px-4 py-3 bg-gray-100 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-orange flex items-center justify-center text-white font-semibold shadow-lg relative">
                       {profile?.full_name ? getInitials(profile.full_name) : <User className="w-6 h-6" />}
                       {isStaff && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full border-2 border-secondary flex items-center justify-center">
+                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full border-2 border-white flex items-center justify-center">
                           <Shield className="w-2.5 h-2.5 text-white" />
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-white truncate">{profile?.full_name || 'User'}</p>
-                      <p className="text-xs text-white/70 truncate">{user.email}</p>
+                      <p className="font-semibold text-gray-900 truncate">{profile?.full_name || 'User'}</p>
+                      <p className="text-xs text-gray-600 truncate">{user.email}</p>
                     </div>
                   </div>
                 </div>
@@ -434,7 +423,7 @@ export function Navigation() {
                   <Link
                     href="/admin"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/10 transition-all duration-300"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-300"
                   >
                     <div className="p-2 rounded-lg bg-primary/20">
                       <Shield className="w-5 h-5 text-primary" />
@@ -450,11 +439,10 @@ export function Navigation() {
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
-                        isActive(item.href)
-                          ? 'text-primary bg-primary/10 border-l-4 border-primary'
-                          : 'text-white hover:bg-white/10 border-l-4 border-transparent'
-                      }`}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isActive(item.href)
+                        ? 'text-primary bg-primary/10 border-l-4 border-primary'
+                        : 'text-gray-700 hover:bg-gray-100 border-l-4 border-transparent'
+                        }`}
                     >
                       <Icon className="w-5 h-5" />
                       <span>{item.label}</span>
@@ -476,8 +464,8 @@ export function Navigation() {
             )}
 
             {!user && (
-              <div className="border-t border-white/10 mt-4 pt-4 space-y-3">
-                <Button asChild variant="ghost" className="w-full justify-center text-white hover:text-primary hover:bg-white/10 font-medium h-12">
+              <div className="border-t border-gray-200 mt-4 pt-4 space-y-3">
+                <Button asChild variant="ghost" className="w-full justify-center text-gray-700 hover:text-primary hover:bg-gray-100 font-medium h-12">
                   <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
                     Log In
                   </Link>

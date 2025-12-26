@@ -9,9 +9,15 @@ import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import blogsData from '@/lib/data/blogs.json';
 import { notFound } from 'next/navigation';
+import { use } from 'react';
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
-  const blog = blogsData.find((b) => b.slug === params.slug);
+export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
+  const blog = blogsData.find((b) => b.slug === slug);
+
+  if (!blog) {
+    notFound();
+  }
 
   const handleShare = () => {
     if (typeof window !== 'undefined') {
@@ -27,10 +33,6 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
       }
     }
   };
-
-  if (!blog) {
-    notFound();
-  }
 
   return (
     <div className="flex flex-col min-h-screen">

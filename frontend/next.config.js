@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["smiling-family-8e3c60fc7a.media.strapiapp.com", "localhost"],
+    domains: ["smiling-family-8e3c60fc7a.media.strapiapp.com", "localhost", "images.pexels.com"],
   },
   async rewrites() {
     return [

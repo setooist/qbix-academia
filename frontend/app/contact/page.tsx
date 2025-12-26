@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -18,10 +19,53 @@ export default function ContactPage() {
     subject: '',
     message: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    setIsSubmitting(true);
+
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/send-contact-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({
+          title: 'Message sent successfully!',
+          description: 'We\'ll get back to you as soon as possible.',
+        });
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: '',
+        });
+      } else {
+        throw new Error(data.error || 'Failed to send message');
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      toast({
+        title: 'Error sending message',
+        description: 'Please try again or contact us directly.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -99,8 +143,15 @@ export default function ContactPage() {
                         className="mt-1"
                       />
                     </div>
-                    <Button type="submit" size="lg" className="w-full">
-                      Send Message
+                    <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        'Send Message'
+                      )}
                     </Button>
                   </form>
                 </CardContent>
@@ -142,8 +193,8 @@ export default function ContactPage() {
                     <div>
                       <CardTitle className="text-xl">Call Us</CardTitle>
                       <CardDescription className="mt-2 text-base">
-                        <a href="tel:+1234567890" className="text-primary hover:underline">
-                          +1 (234) 567-890
+                        <a href="tel:+919764277042" className="text-primary hover:underline">
+                          097642 77042
                         </a>
                       </CardDescription>
                     </div>
@@ -160,8 +211,9 @@ export default function ContactPage() {
                     <div>
                       <CardTitle className="text-xl">Visit Us</CardTitle>
                       <CardDescription className="mt-2 text-base">
-                        123 Education Street<br />
-                        City, Country
+                        302 59B, C Ln, Ragvilas Society<br />
+                        Koregaon Park, Pune<br />
+                        Maharashtra 411001
                       </CardDescription>
                     </div>
                   </div>

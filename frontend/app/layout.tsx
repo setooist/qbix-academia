@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { AuthProvider } from '@/lib/contexts/auth-context';
 import { Toaster } from '@/components/ui/toaster';
+import { LoadingBar } from '@/components/ui/loading-bar';
 
 export const metadata: Metadata = {
   title: 'QBIX Academia - Stand Overseas',
@@ -19,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <LoadingBar />
         <AuthProvider>
           {children}
           <Toaster />
