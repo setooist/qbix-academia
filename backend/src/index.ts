@@ -1,20 +1,23 @@
-// import type { Core } from '@strapi/strapi';
 
 export default {
-  /**
-   * An asynchronous register function that runs before
-   * your application is initialized.
-   *
-   * This gives you an opportunity to extend code.
-   */
-  register(/* { strapi }: { strapi: Core.Strapi } */) {},
+  register() { },
+  async bootstrap({ strapi }: { strapi: any }) {
+    const pluginStore = strapi.store({
+      type: 'plugin',
+      name: 'users-permissions',
+    });
 
-  /**
-   * An asynchronous bootstrap function that runs before
-   * your application gets started.
-   *
-   * This gives you an opportunity to set up your data model,
-   * run jobs, or perform some special logic.
-   */
-  bootstrap(/* { strapi }: { strapi: Core.Strapi } */) {},
+    const settings = await pluginStore.get({
+      key: 'advanced',
+    });
+
+    if (settings.email_confirmation) {
+      console.log('Force disabling email confirmation...');
+      await pluginStore.set({
+        key: 'advanced',
+        value: { ...settings, email_confirmation: false },
+      });
+      console.log('Email confirmation has been disabled via bootstrap.');
+    }
+  },
 };

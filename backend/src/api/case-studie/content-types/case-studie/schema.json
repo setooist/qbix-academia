@@ -112,6 +112,11 @@
           "localized": true
         }
       }
+    },
+    "allowedRoles": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.role"
     }
   }
 }

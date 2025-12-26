@@ -11,14 +11,13 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <Link href="/" className="inline-block mb-4 group">
-              <div className="transition-transform duration-300 group-hover:scale-105">
+              <div className="transition-transform duration-300 group-hover:scale-105 bg-white/10 backdrop-blur-sm rounded-lg p-3">
                 <Image
-                  src="/logo.png"
+                  src="/logo-transparent copy.png"
                   alt="QBIX Academia Logo"
-                  width={180}
-                  height={65}
-                  className="transition-all duration-300"
-                  priority
+                  width={200}
+                  height={55}
+                  className="drop-shadow-xl"
                 />
               </div>
             </Link>

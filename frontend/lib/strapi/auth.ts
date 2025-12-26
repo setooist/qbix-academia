@@ -1,61 +1,161 @@
-export async function signUp(email: string, password: string, fullName: string) {
-    // Strapi default registration endpoint
-    const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}/api/auth/local/register`, {
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+const GRAPHQL_ENDPOINT = `${STRAPI_URL}/graphql`;
+
+async function graphqlRequest(query: string, variables?: any, jwt?: string) {
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+
+    if (jwt) {
+        headers['Authorization'] = `Bearer ${jwt}`;
+    }
+
+    const response = await fetch(GRAPHQL_ENDPOINT, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
-            username: email, // Strapi often uses username, mapping email to username here or handle separately
-            email,
-            password,
-            fullName, // Custom field, needs to be allowed in Strapi User content type
+            query,
+            variables,
         }),
     });
 
     const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.error?.message || 'Registration failed');
+
+    if (data.errors) {
+        throw new Error(data.errors[0]?.message || 'GraphQL request failed');
     }
-    if (typeof window !== 'undefined' && data.jwt) {
-        localStorage.setItem('strapi_jwt', data.jwt);
+
+    return data.data;
+}
+
+export async function signUp(email: string, password: string, fullName: string, phone: string) {
+    const mutation = `
+    mutation Register($input: UsersPermissionsRegisterInput!) {
+      register(input: $input) {
+        jwt
+        user {
+          id
+          username
+          email
+        }
+      }
     }
-    return data;
+  `;
+
+    const variables = {
+        input: {
+            username: email,
+            email,
+            password,
+        },
+    };
+
+    try {
+        const data = await graphqlRequest(mutation, variables);
+
+        if (data.register?.jwt && typeof window !== 'undefined') {
+            localStorage.setItem('strapi_jwt', data.register.jwt);
+        }
+
+        if (data.register?.user?.id && data.register?.jwt) {
+            await updateProfile(data.register.user.id, { fullName, phone }, data.register.jwt);
+        }
+
+        return data.register;
+    } catch (error: any) {
+        throw new Error(error.message || 'Registration failed');
+    }
 }
 
 export async function signIn(email: string, password: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}/api/auth/local`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+    const mutation = `
+    mutation Login($input: UsersPermissionsLoginInput!) {
+      login(input: $input) {
+        jwt
+        user {
+          id
+          username
+          email
+        }
+      }
+    }
+  `;
+
+    const variables = {
+        input: {
             identifier: email,
             password,
-        }),
-    });
+        },
+    };
 
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.error?.message || 'Login failed');
+    try {
+        const data = await graphqlRequest(mutation, variables);
+
+        if (data.login?.jwt && typeof window !== 'undefined') {
+            localStorage.setItem('strapi_jwt', data.login.jwt);
+        }
+
+        return data.login;
+    } catch (error: any) {
+        throw new Error(error.message || 'Login failed');
     }
-    return data;
 }
 
 export async function signOut() {
-    // Client-side cleanup only for JWT
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('strapi_jwt');
+    }
     return Promise.resolve();
 }
 
 export async function getCurrentUser(jwt?: string) {
     if (!jwt) return null;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}/api/users/me?populate=*`, {
-        headers: {
-            Authorization: `Bearer ${jwt}`,
-        },
-    });
+    try {
+        const response = await fetch(`${STRAPI_URL}/api/users/me?populate=*`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwt}`,
+            },
+        });
 
-    if (!response.ok) return null;
-    return await response.json();
+        if (!response.ok) return null;
+
+        return await response.json();
+    } catch (error) {
+        throw new Error('Failed to get current user: ' + error);
+    }
+}
+
+export async function updateProfile(
+    userId: string,
+    profileData: { fullName?: string; phone?: string; bio?: string },
+    jwt?: string
+) {
+    const token = jwt || (typeof window !== 'undefined' ? localStorage.getItem('strapi_jwt') : null);
+
+    if (!token) {
+        throw new Error('Not authenticated');
+    }
+
+    try {
+        const response = await fetch(`${STRAPI_URL}/api/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(profileData),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error?.message || 'Failed to update profile');
+        }
+
+        return data;
+    } catch (error: any) {
+        throw new Error(error.message || 'Failed to update profile');
+    }
 }
