@@ -3,11 +3,26 @@ import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
 const client = new ApolloClient({
-    ssrMode: false, // Ensure client-side behavior for network visibility request
+    ssrMode: typeof window === 'undefined',
     link: new HttpLink({
         uri: `${STRAPI_URL}/graphql`,
+        fetch: (uri: RequestInfo | URL, options?: RequestInit) => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+            return fetch(uri, {
+                ...options,
+                signal: controller.signal,
+            }).finally(() => clearTimeout(timeoutId));
+        },
     }),
     cache: new InMemoryCache(),
+    defaultOptions: {
+        query: {
+            fetchPolicy: 'no-cache',
+            errorPolicy: 'all',
+        },
+    },
 });
 
 const GET_BLOGS = gql`
