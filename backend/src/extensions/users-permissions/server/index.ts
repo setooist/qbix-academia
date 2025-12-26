@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = (plugin) => {
+export default (plugin) => {
     const originalRegister = plugin.controllers.auth.register;
 
     plugin.controllers.auth.register = async (ctx) => {

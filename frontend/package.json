@@ -11,6 +11,7 @@
     "postbuild": "next-sitemap"
   },
   "dependencies": {
+    "@apollo/client": "^4.0.11",
     "@hookform/resolvers": "^3.9.0",
     "@netlify/plugin-nextjs": "^5.15.1",
     "@next/swc-wasm-nodejs": "13.5.1",
@@ -52,6 +53,7 @@
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
     "eslint-config-next": "16.0.7",
+    "graphql": "^16.12.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.446.0",
     "next": "16.0.7",

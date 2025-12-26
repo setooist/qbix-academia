@@ -1,29 +1,9 @@
-# ChatGPT-User
-User-agent: ChatGPT-User
-Allow: /
-
-# GPTBot
-User-agent: GPTBot
-Allow: /
-
-# Google-Extended
-User-agent: Google-Extended
-Allow: /
-
-# CCBot
-User-agent: CCBot
-Allow: /
-
-# geminiAI
-User-agent: geminiAI
-Allow: /
-
 # *
 User-agent: *
 Allow: /
 
 # Host
-Host: http://localhost:3000
+Host: https://qbix-website.vercel.app
 
 # Sitemaps
-Sitemap: http://localhost:3000/sitemap.xml
+Sitemap: https://qbix-website.vercel.app/sitemap.xml
