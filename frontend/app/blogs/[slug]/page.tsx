@@ -1,5 +1,3 @@
-import { Navigation } from '@/components/layout/navigation';
-import { Footer } from '@/components/layout/footer';
 import { notFound } from 'next/navigation';
 import { getBlogBySlug } from '@/lib/api/blogs';
 import { BlogPostView } from '@/components/blogs/blog-post-view';
@@ -45,9 +43,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
       <BlogPostView blog={blog} />
-      <Footer />
     </div>
   );
 }

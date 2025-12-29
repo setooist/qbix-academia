@@ -8,7 +8,6 @@ import Link from 'next/link';
 export default function DownloadablesPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
 
       <section className="relative bg-gradient-to-br from-cobalt-blue to-secondary text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -175,7 +174,6 @@ export default function DownloadablesPage() {
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 }

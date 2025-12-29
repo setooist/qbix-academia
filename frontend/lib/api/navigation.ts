@@ -3,11 +3,11 @@ import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
 const client = new ApolloClient({
-    ssrMode: typeof window === "undefined",
-    link: new HttpLink({
-        uri: `${STRAPI_URL}/graphql`,
-    }),
-    cache: new InMemoryCache(),
+  ssrMode: typeof window === "undefined",
+  link: new HttpLink({
+    uri: `${STRAPI_URL}/graphql`,
+  }),
+  cache: new InMemoryCache(),
 });
 
 export const GET_NAVIGATION = gql`
@@ -34,39 +34,44 @@ export const GET_NAVIGATION = gql`
 `;
 
 export interface ChildSubmenu {
-    label: string;
-    href: string;
-    target?: string | null;
+  label: string;
+  href: string;
+  target?: string | null;
 }
 
 export interface Submenu {
-    label: string;
-    href: string;
-    target?: string | null;
-    ChildSubmenu: ChildSubmenu[];
+  label: string;
+  href: string;
+  target?: string | null;
+  ChildSubmenu: ChildSubmenu[];
 }
 
 export interface MenuItem {
-    label: string;
-    href: string;
-    target?: string | null;
-    submenu: Submenu[];
+  label: string;
+  href: string;
+  target?: string | null;
+  submenu: Submenu[];
 }
 
 export interface NavigationData {
-    Menu: MenuItem[];
+  Menu: MenuItem[];
 }
 
 export async function getNavigation() {
-    try {
-        const { data } = await client.query<{ navigation: NavigationData }>({
-            query: GET_NAVIGATION,
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        return data?.navigation || null;
-    } catch (error) {
-        console.error("Error fetching navigation:", error);
-        return null;
-    }
+  try {
+    const { data } = await client.query<{ navigation: NavigationData }>({
+      query: GET_NAVIGATION,
+      fetchPolicy: 'no-cache',
+      errorPolicy: 'all',
+      context: {
+        fetchOptions: {
+          next: { revalidate: 3600 }
+        }
+      }
+    });
+    return data?.navigation || null;
+  } catch (error) {
+    console.error("Error fetching navigation:", error);
+    return null;
+  }
 }

@@ -77,7 +77,6 @@ const services = [
 export default function ServicesPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
 
       <section className="relative bg-gradient-to-br from-cobalt-blue to-secondary text-white py-20 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -175,7 +174,6 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 }

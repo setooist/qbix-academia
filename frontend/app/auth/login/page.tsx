@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function LoginPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
       <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-blue-50 relative overflow-hidden">
         <div className="absolute top-10 right-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-10 left-10 w-96 h-96 bg-orange/10 rounded-full blur-3xl"></div>
@@ -17,8 +16,8 @@ export default function LoginPage() {
               <svg className="w-20 h-20 mx-auto" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                   <linearGradient id="loginGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor: '#3b82f6', stopOpacity: 1}} />
-                    <stop offset="100%" style={{stopColor: '#f97316', stopOpacity: 1}} />
+                    <stop offset="0%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
+                    <stop offset="100%" style={{ stopColor: '#f97316', stopOpacity: 1 }} />
                   </linearGradient>
                 </defs>
                 <circle cx="50" cy="50" r="45" fill="url(#loginGrad)" opacity="0.1" />
@@ -42,7 +41,6 @@ export default function LoginPage() {
           </CardContent>
         </Card>
       </main>
-      <Footer />
     </div>
   );
 }

@@ -5,8 +5,6 @@ import { CheckSquare } from 'lucide-react';
 export default function ActivitiesPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
-
       <section className="relative bg-gradient-to-br from-cobalt-blue to-secondary text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
@@ -29,8 +27,6 @@ export default function ActivitiesPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

@@ -1,7 +1,5 @@
 'use client';
 
-import { Navigation } from '@/components/layout/navigation';
-import { Footer } from '@/components/layout/footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,8 +68,6 @@ export default function ContactPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
-
       <section className="relative bg-gradient-to-br from-cobalt-blue to-secondary text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
@@ -241,8 +237,6 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }
