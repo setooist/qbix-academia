@@ -1,5 +1,3 @@
-import { env } from '@strapi/utils';
-
 export default [
   'strapi::logger',
   'strapi::errors',
@@ -7,7 +5,12 @@ export default [
     name: 'strapi::cors',
     config: {
       enabled: true,
-      origin: [env('NEXT_PUBLIC_FRONTEND_URL', 'http://localhost:3000')], 
+      origin: [
+        'http://localhost:3000',
+        'https://qbix-website.vercel.app',
+        'https://setoo-jamstack.vercel.app',
+      ],
+      credentials: true,
       headers: '*',
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
     },
