@@ -4,43 +4,82 @@ export default {
   async bootstrap({ strapi }: { strapi: any }) {
     strapi.entityService.decorate((service) => ({
       async findMany(uid, params) {
+        const protectedTypes = ['api::blog.blog', 'api::case-studie.case-studie', 'api::downloadable.downloadable', 'api::recommendation.recommendation', 'api::event.event'];
+
         const result = await service.findMany(uid, params);
-        if (uid !== 'api::blog.blog') return result;
-        return this.sanitizeResult(strapi, result);
+        if (!protectedTypes.includes(uid)) return result;
+        return this.sanitizeResult(strapi, result, uid);
       },
 
       async findOne(uid, id, params) {
+        const protectedTypes = ['api::blog.blog', 'api::case-studie.case-studie', 'api::downloadable.downloadable', 'api::recommendation.recommendation', 'api::event.event'];
+
         const result = await service.findOne(uid, id, params);
-        if (uid !== 'api::blog.blog') return result;
-        return this.sanitizeResult(strapi, result, true);
+        if (!protectedTypes.includes(uid)) return result;
+        return this.sanitizeResult(strapi, result, uid, true);
       },
 
-      sanitizeResult(strapi, data, isSingle = false) {
+      sanitizeResult(strapi, data, uid, isSingle = false) {
         const ctx = strapi.requestContext.get();
         const user = ctx?.state?.user;
 
-        const scrub = (blog) => {
-          if (!blog) return blog;
+        const scrub = (item) => {
+          if (!item) return item;
 
-          if (blog.allowedRoles && blog.allowedRoles.length > 0) {
+          // If allowedRoles is defined and not empty, we check restrictions.
+          if (item.allowedRoles && Array.isArray(item.allowedRoles) && item.allowedRoles.length > 0) {
             let hasAccess = false;
 
-            if (user && user.role) {
-              hasAccess = blog.allowedRoles.some(r =>
+            // 1. Check for Public access
+            const isPubliclyAllowed = item.allowedRoles.some(r =>
+              (r.type && r.type === 'public') ||
+              (r.name && r.name.toLowerCase() === 'public')
+            );
+
+            if (isPubliclyAllowed) {
+              hasAccess = true;
+            } else if (user && user.role) {
+              // 2. Check for Authenticated User access
+              hasAccess = item.allowedRoles.some(r =>
                 (r.type && r.type === user.role.type) ||
                 (r.id === user.role.id)
               );
             }
 
             if (!hasAccess) {
-              blog.content = null;
+              // Hide sensitive content
+              if (uid === 'api::blog.blog') {
+                item.content = null;
+              }
+              if (uid === 'api::case-studie.case-studie') {
+                item.problem = null;
+                item.approach = null;
+                item.outcome = null;
+                item.testimonial = null;
+              }
+              if (uid === 'api::downloadable.downloadable') {
+                item.file = null;
+                item.description = null;
+              }
+              if (uid === 'api::recommendation.recommendation') {
+                item.recommendationNotes = null;
+                item.keyTakeaways = null;
+              }
+              if (uid === 'api::event.event') {
+                item.meetingLink = null;
+                item.resources = null;
+                item.registrationLink = null;
+                // Maybe keep description? Events usually show public description.
+                // Keeping description visible but hiding sensitive links.
+              }
             }
           }
-          return blog;
+          return item;
         };
 
         if (isSingle) return scrub(data);
         if (Array.isArray(data)) return data.map(scrub);
+        // Handle { results: [...] } structure
         if (data && data.results) {
           data.results = data.results.map(scrub);
         }

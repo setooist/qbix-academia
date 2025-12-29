@@ -1,0 +1,26 @@
+{
+    "collectionName": "components_event_agenda_items",
+    "info": {
+        "displayName": "Agenda Item",
+        "description": ""
+    },
+    "options": {},
+    "attributes": {
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "startTime": {
+            "type": "time"
+        },
+        "endTime": {
+            "type": "time"
+        },
+        "description": {
+            "type": "text"
+        },
+        "speaker": {
+            "type": "string"
+        }
+    }
+}

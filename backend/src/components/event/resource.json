@@ -1,0 +1,27 @@
+{
+    "collectionName": "components_event_resources",
+    "info": {
+        "displayName": "Resource",
+        "description": ""
+    },
+    "options": {},
+    "attributes": {
+        "label": {
+            "type": "string",
+            "required": true
+        },
+        "link": {
+            "type": "string"
+        },
+        "file": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images",
+                "videos",
+                "audios"
+            ]
+        }
+    }
+}

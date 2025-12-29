@@ -954,6 +954,70 @@ export interface ApiDownloadableDownloadable
   };
 }
 
+export interface ApiEventEvent extends Struct.CollectionTypeSchema {
+  collectionName: 'events';
+  info: {
+    description: 'Events schema';
+    displayName: 'Event';
+    pluralName: 'events';
+    singularName: 'event';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    i18n: {
+      localized: true;
+    };
+  };
+  attributes: {
+    agenda: Schema.Attribute.Component<'event.agenda-item', true>;
+    allowedRoles: Schema.Attribute.Relation<
+      'manyToMany',
+      'plugin::users-permissions.role'
+    >;
+    capacity: Schema.Attribute.Integer;
+    category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
+    coverImage: Schema.Attribute.Media<'images'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.RichText;
+    endDateTime: Schema.Attribute.DateTime;
+    eventType: Schema.Attribute.Enumeration<
+      ['Webinar', 'Workshop', 'Masterclass', 'Panel', 'Meetup', 'Other']
+    > &
+      Schema.Attribute.DefaultTo<'Webinar'>;
+    excerpt: Schema.Attribute.Text;
+    hasWaitlist: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    isRegistrationOpen: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::event.event'>;
+    locationAddress: Schema.Attribute.Text;
+    locationType: Schema.Attribute.Enumeration<['Onsite', 'Online', 'Hybrid']> &
+      Schema.Attribute.DefaultTo<'Online'>;
+    meetingLink: Schema.Attribute.String;
+    organizer: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'QBIX Academia'>;
+    partners: Schema.Attribute.Component<'event.partner', true>;
+    publishedAt: Schema.Attribute.DateTime;
+    registrationLink: Schema.Attribute.String;
+    resources: Schema.Attribute.Component<'event.resource', true>;
+    seo: Schema.Attribute.Component<'shared.seo', true>;
+    slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
+    speakers: Schema.Attribute.Component<'event.speaker', true>;
+    startDateTime: Schema.Attribute.DateTime;
+    tags: Schema.Attribute.Relation<'oneToMany', 'api::tag.tag'>;
+    timezone: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Asia/Kolkata'>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiFooterFooter extends Struct.SingleTypeSchema {
   collectionName: 'footers';
   info: {
@@ -1830,6 +1894,7 @@ declare module '@strapi/strapi' {
       'api::category.category': ApiCategoryCategory;
       'api::design-system.design-system': ApiDesignSystemDesignSystem;
       'api::downloadable.downloadable': ApiDownloadableDownloadable;
+      'api::event.event': ApiEventEvent;
       'api::footer.footer': ApiFooterFooter;
       'api::global.global': ApiGlobalGlobal;
       'api::navigation.navigation': ApiNavigationNavigation;
