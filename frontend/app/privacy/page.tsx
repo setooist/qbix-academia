@@ -4,7 +4,6 @@ import { Footer } from '@/components/layout/footer';
 export default function PrivacyPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
 
       <section className="py-12 flex-grow">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -72,7 +71,6 @@ export default function PrivacyPage() {
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 }

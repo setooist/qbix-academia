@@ -1,5 +1,3 @@
-import { Navigation } from '@/components/layout/navigation';
-import { Footer } from '@/components/layout/footer';
 import { Metadata } from 'next';
 import { getBlogListPageSeo, getBlogs } from '@/lib/api/blogs';
 import { getStrapiMedia } from '@/lib/strapi/client';
@@ -34,8 +32,6 @@ export default async function BlogsPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
-
       <section className="relative bg-gradient-to-br from-cobalt-blue to-secondary text-white py-20 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <img
@@ -59,8 +55,6 @@ export default async function BlogsPage() {
           <BlogList blogs={blogs} />
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

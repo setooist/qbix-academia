@@ -2,8 +2,6 @@
 
 import Link from 'next/link';
 import { ArrowRight, BookOpen, GraduationCap, Globe, Users, Target, Award, CheckCircle2, FileText, CreditCard, Home, Plane, FileCheck, DollarSign, Building2, Map, Calendar, Instagram } from 'lucide-react';
-import { Navigation } from '@/components/layout/navigation';
-import { Footer } from '@/components/layout/footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AIAssistant } from '@/components/ui/ai-assistant';
@@ -50,8 +48,6 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
-
       <section className="relative bg-gradient-to-br from-cobalt-blue via-[#1e2a42] to-[#2a3652] text-white overflow-hidden min-h-[90vh] flex items-center">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjA4Ii8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-60"></div>
 
@@ -727,7 +723,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 }

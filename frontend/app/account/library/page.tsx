@@ -24,8 +24,6 @@ export default function LibraryPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
-
       <section className="py-20 flex-grow bg-gradient-to-br from-gray-50 to-blue-50 relative">
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange/5 rounded-full blur-3xl"></div>
@@ -37,8 +35,8 @@ export default function LibraryPage() {
               <svg className="w-48 h-48 mx-auto mb-6" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                   <linearGradient id="libraryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor: '#3b82f6', stopOpacity: 0.8}} />
-                    <stop offset="100%" style={{stopColor: '#f97316', stopOpacity: 0.8}} />
+                    <stop offset="0%" style={{ stopColor: '#3b82f6', stopOpacity: 0.8 }} />
+                    <stop offset="100%" style={{ stopColor: '#f97316', stopOpacity: 0.8 }} />
                   </linearGradient>
                 </defs>
                 <rect x="50" y="60" width="100" height="120" rx="4" fill="url(#libraryGrad)" opacity="0.1" />
@@ -56,8 +54,6 @@ export default function LibraryPage() {
           </Card>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

@@ -1,13 +1,9 @@
-import { Navigation } from '@/components/layout/navigation';
-import { Footer } from '@/components/layout/footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Target, Eye, Award, Users, TrendingUp, BookOpen, Globe, HeartHandshake } from 'lucide-react';
 
 export default function AboutPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navigation />
-
       <section className="relative bg-gradient-to-br from-cobalt-blue to-secondary text-white py-20 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <img
@@ -206,8 +202,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }
