@@ -3,6 +3,8 @@ import { getBlogListPageSeo, getBlogs } from '@/lib/api/blogs';
 import { getStrapiMedia } from '@/lib/strapi/client';
 import { BlogList } from '@/components/blogs/blog-list';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getBlogListPageSeo();
 
