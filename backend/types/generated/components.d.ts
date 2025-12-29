@@ -1,5 +1,61 @@
 import type { Schema, Struct } from '@strapi/strapi';
 
+export interface EventAgendaItem extends Struct.ComponentSchema {
+  collectionName: 'components_event_agenda_items';
+  info: {
+    description: '';
+    displayName: 'Agenda Item';
+  };
+  attributes: {
+    description: Schema.Attribute.Text;
+    endTime: Schema.Attribute.Time;
+    speaker: Schema.Attribute.String;
+    startTime: Schema.Attribute.Time;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface EventPartner extends Struct.ComponentSchema {
+  collectionName: 'components_event_partners';
+  info: {
+    description: '';
+    displayName: 'Partner';
+  };
+  attributes: {
+    logo: Schema.Attribute.Media<'images'>;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    website: Schema.Attribute.String;
+  };
+}
+
+export interface EventResource extends Struct.ComponentSchema {
+  collectionName: 'components_event_resources';
+  info: {
+    description: '';
+    displayName: 'Resource';
+  };
+  attributes: {
+    file: Schema.Attribute.Media<'files' | 'images' | 'videos' | 'audios'>;
+    label: Schema.Attribute.String & Schema.Attribute.Required;
+    link: Schema.Attribute.String;
+  };
+}
+
+export interface EventSpeaker extends Struct.ComponentSchema {
+  collectionName: 'components_event_speakers';
+  info: {
+    description: '';
+    displayName: 'Speaker';
+  };
+  attributes: {
+    avatar: Schema.Attribute.Media<'images'>;
+    bio: Schema.Attribute.Text;
+    linkedinUrl: Schema.Attribute.String;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    role: Schema.Attribute.String;
+  };
+}
+
 export interface FooterAddress extends Struct.ComponentSchema {
   collectionName: 'components_footer_addresses';
   info: {
@@ -204,6 +260,28 @@ export interface PageWhoWeAre extends Struct.ComponentSchema {
   };
 }
 
+export interface RecommendationAuthor extends Struct.ComponentSchema {
+  collectionName: 'components_recommendation_authors';
+  info: {
+    displayName: 'Author';
+    icon: 'user';
+  };
+  attributes: {
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface RecommendationKeyTakeaway extends Struct.ComponentSchema {
+  collectionName: 'components_recommendation_key_takeaways';
+  info: {
+    displayName: 'KeyTakeaway';
+    icon: 'check';
+  };
+  attributes: {
+    text: Schema.Attribute.Text & Schema.Attribute.Required;
+  };
+}
+
 export interface SharedChildSubmenu extends Struct.ComponentSchema {
   collectionName: 'components_shared_child_submenus';
   info: {
@@ -310,6 +388,10 @@ export interface SharedSubmenu extends Struct.ComponentSchema {
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
+      'event.agenda-item': EventAgendaItem;
+      'event.partner': EventPartner;
+      'event.resource': EventResource;
+      'event.speaker': EventSpeaker;
       'footer.address': FooterAddress;
       'footer.footer-bottom': FooterFooterBottom;
       'footer.footer-column': FooterFooterColumn;
@@ -326,6 +408,8 @@ declare module '@strapi/strapi' {
       'page.trust-indicator': PageTrustIndicator;
       'page.vision': PageVision;
       'page.who-we-are': PageWhoWeAre;
+      'recommendation.author': RecommendationAuthor;
+      'recommendation.key-takeaway': RecommendationKeyTakeaway;
       'shared.child-submenu': SharedChildSubmenu;
       'shared.media': SharedMedia;
       'shared.menu': SharedMenu;

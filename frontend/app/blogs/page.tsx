@@ -1,32 +1,19 @@
 import { Metadata } from 'next';
 import { getBlogListPageSeo, getBlogs } from '@/lib/api/blogs';
-import { getStrapiMedia } from '@/lib/strapi/client';
 import { BlogList } from '@/components/blogs/blog-list';
+
+import { generateStrapiMetadata } from '@/lib/utils/metadata';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getBlogListPageSeo();
+  const seo = page?.Seo?.[0];
 
-  if (page && page.Seo && page.Seo.length > 0) {
-    const seo = page.Seo[0];
-    const imageUrl = seo.shareImage ? getStrapiMedia(seo.shareImage.url) : null;
-
-    return {
-      title: seo.metaTitle,
-      description: seo.metaDescription,
-      openGraph: {
-        title: seo.metaTitle,
-        description: seo.metaDescription,
-        images: imageUrl ? [imageUrl] : [],
-      }
-    };
-  }
-
-  return {
+  return generateStrapiMetadata(seo, {
     title: 'All Blogs | QBix Academia',
-    description: 'Explore expert insights, tutorials, and updates from the QBix Academia team.',
-  };
+    description: 'Explore expert insights, tutorials, and updates from the QBix Academia team.'
+  });
 }
 
 export default async function BlogsPage() {

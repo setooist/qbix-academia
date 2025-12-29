@@ -1,0 +1,14 @@
+{
+    "collectionName": "components_recommendation_authors",
+    "info": {
+        "displayName": "Author",
+        "icon": "user"
+    },
+    "options": {},
+    "attributes": {
+        "name": {
+            "type": "string",
+            "required": true
+        }
+    }
+}

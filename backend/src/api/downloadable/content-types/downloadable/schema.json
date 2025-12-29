@@ -116,6 +116,21 @@
         }
       }
     },
+    "allowedRoles": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.role"
+    },
+    "seo": {
+      "type": "component",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "component": "shared.seo",
+      "repeatable": true
+    },
     "testimonial": {
       "type": "component",
       "pluginOptions": {

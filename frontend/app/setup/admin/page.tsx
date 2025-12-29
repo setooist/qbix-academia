@@ -41,7 +41,6 @@ export default function AdminSetupPage() {
         window.location.href = '/admin';
       }, 2000);
     } catch (error: any) {
-      console.error('Error promoting to admin:', error);
       setMessage({
         type: 'error',
         text: error.message || 'Failed to promote to admin. You may not have permission, or an admin already exists.'
@@ -95,11 +94,10 @@ export default function AdminSetupPage() {
           </div>
 
           {message && (
-            <div className={`rounded-lg p-4 flex items-start gap-3 ${
-              message.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : 'bg-red-50 border border-red-200 text-red-800'
-            }`}>
+            <div className={`rounded-lg p-4 flex items-start gap-3 ${message.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-800'
+              : 'bg-red-50 border border-red-200 text-red-800'
+              }`}>
               {message.type === 'success' ? (
                 <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
               ) : (

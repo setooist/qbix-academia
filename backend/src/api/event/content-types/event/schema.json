@@ -1,0 +1,137 @@
+{
+    "kind": "collectionType",
+    "collectionName": "events",
+    "info": {
+        "singularName": "event",
+        "pluralName": "events",
+        "displayName": "Event",
+        "description": "Events schema"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {
+        "i18n": {
+            "localized": true
+        }
+    },
+    "attributes": {
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "slug": {
+            "type": "uid",
+            "targetField": "title",
+            "required": true
+        },
+        "excerpt": {
+            "type": "text"
+        },
+        "description": {
+            "type": "richtext"
+        },
+        "eventType": {
+            "type": "enumeration",
+            "enum": [
+                "Webinar",
+                "Workshop",
+                "Masterclass",
+                "Panel",
+                "Meetup",
+                "Other"
+            ],
+            "default": "Webinar"
+        },
+        "category": {
+            "type": "relation",
+            "relation": "oneToOne",
+            "target": "api::category.category"
+        },
+        "tags": {
+            "type": "relation",
+            "relation": "oneToMany",
+            "target": "api::tag.tag"
+        },
+        "organizer": {
+            "type": "string",
+            "default": "QBIX Academia"
+        },
+        "partners": {
+            "type": "component",
+            "repeatable": true,
+            "component": "event.partner"
+        },
+        "startDateTime": {
+            "type": "datetime"
+        },
+        "endDateTime": {
+            "type": "datetime"
+        },
+        "timezone": {
+            "type": "string",
+            "default": "Asia/Kolkata"
+        },
+        "locationType": {
+            "type": "enumeration",
+            "enum": [
+                "Onsite",
+                "Online",
+                "Hybrid"
+            ],
+            "default": "Online"
+        },
+        "locationAddress": {
+            "type": "text"
+        },
+        "meetingLink": {
+            "type": "string"
+        },
+        "capacity": {
+            "type": "integer"
+        },
+        "registrationLink": {
+            "type": "string"
+        },
+        "isRegistrationOpen": {
+            "type": "boolean",
+            "default": true
+        },
+        "hasWaitlist": {
+            "type": "boolean",
+            "default": false
+        },
+        "speakers": {
+            "type": "component",
+            "repeatable": true,
+            "component": "event.speaker"
+        },
+        "agenda": {
+            "type": "component",
+            "repeatable": true,
+            "component": "event.agenda-item"
+        },
+        "resources": {
+            "type": "component",
+            "repeatable": true,
+            "component": "event.resource"
+        },
+        "coverImage": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "images"
+            ]
+        },
+        "allowedRoles": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "plugin::users-permissions.role"
+        },
+        "seo": {
+            "type": "component",
+            "repeatable": true,
+            "component": "shared.seo"
+        }
+    }
+}

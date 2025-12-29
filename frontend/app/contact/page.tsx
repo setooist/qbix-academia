@@ -55,7 +55,6 @@ export default function ContactPage() {
         throw new Error(data.error || 'Failed to send message');
       }
     } catch (error) {
-      console.error('Contact form error:', error);
       toast({
         title: 'Error sending message',
         description: 'Please try again or contact us directly.',

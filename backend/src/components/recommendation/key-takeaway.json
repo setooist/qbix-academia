@@ -1,0 +1,14 @@
+{
+    "collectionName": "components_recommendation_key_takeaways",
+    "info": {
+        "displayName": "KeyTakeaway",
+        "icon": "check"
+    },
+    "options": {},
+    "attributes": {
+        "text": {
+            "type": "text",
+            "required": true
+        }
+    }
+}

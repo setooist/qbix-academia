@@ -92,7 +92,6 @@ export async function getFooter() {
     });
     return data?.footer || null;
   } catch (error) {
-    console.error("Error fetching footer:", error);
     return null;
   }
 }
