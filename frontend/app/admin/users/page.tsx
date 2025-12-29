@@ -102,7 +102,6 @@ export default function UserManagement() {
       setRoles(rolesRes.data);
       setTiers(tiersRes.data);
     } catch (error) {
-      console.error('Error loading data:', error);
       toast({
         title: 'Error',
         description: 'Failed to load users',
@@ -137,7 +136,6 @@ export default function UserManagement() {
 
       loadData();
     } catch (error) {
-      console.error('Error updating role:', error);
       toast({
         title: 'Error',
         description: 'Failed to update user role',
@@ -162,7 +160,6 @@ export default function UserManagement() {
 
       loadData();
     } catch (error) {
-      console.error('Error updating tier:', error);
       toast({
         title: 'Error',
         description: 'Failed to update user tier',

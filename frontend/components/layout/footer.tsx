@@ -13,7 +13,6 @@ export function Footer() {
 
   useEffect(() => {
     getFooter().then(data => {
-      console.log('Footer Data:', data);
       if (data) {
         setFooterData(data);
       }
@@ -22,15 +21,7 @@ export function Footer() {
 
   const address = footerData?.Address;
   const columns = (footerData?.Column || []).filter(col => col.links && col.links.length > 0).slice(0, 2);
-  const bottom = footerData?.Bottum[0]; // Assuming one bottom component for now
-
-  // Logos processing if needed, reusing logic or just rendering direct if structure allows
-  // For now keeping manual social links as they might not be part of current footer schema fully defined in detail
-  // But if bottom has social links, we can use that. 
-  // Schema for Bottum has 'logo', 'text', 'link'. Maybe logos are partner logos or social icons?
-  // Let's assume social links are static for now or part of a different block not fully detailed in the prompt schema snippet for 'links' enumeration.
-  // We will map dynamic Columns.
-
+  const bottom = footerData?.Bottum[0];
   return (
     <footer className="bg-secondary text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

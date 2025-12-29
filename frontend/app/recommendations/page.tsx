@@ -1,8 +1,25 @@
-import { Navigation } from '@/components/layout/navigation';
-import { Footer } from '@/components/layout/footer';
-import { BookOpen } from 'lucide-react';
+import { Metadata } from 'next';
+import { getRecommendationListPageSeo, getRecommendations } from '@/lib/api/recommendations';
+import { getStrapiMedia } from '@/lib/strapi/client';
+import { RecommendationList } from '@/components/recommendations/recommendation-list';
 
-export default function RecommendationsPage() {
+import { generateStrapiMetadata } from '@/lib/utils/metadata';
+
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getRecommendationListPageSeo();
+  const seo = page?.Seo?.[0];
+
+  return generateStrapiMetadata(seo, {
+    title: 'Recommendations | QBix Academia',
+    description: 'Curated books, tools, and resources for your academic journey.',
+  });
+}
+
+export default async function RecommendationsPage() {
+  const recommendations = await getRecommendations();
+
   return (
     <div className="flex flex-col min-h-screen">
 
@@ -17,18 +34,11 @@ export default function RecommendationsPage() {
         </div>
       </section>
 
-      <section className="py-20">
+      <section className="py-20 bg-slate-50 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center py-12">
-            <BookOpen className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-2xl font-bold mb-2">Recommendations Coming Soon</h3>
-            <p className="text-gray-600">
-              We're curating a list of the best resources for your success.
-            </p>
-          </div>
+          <RecommendationList recommendations={recommendations} />
         </div>
       </section>
-
     </div>
   );
 }

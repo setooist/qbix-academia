@@ -4,6 +4,8 @@ import { BlogPostView } from '@/components/blogs/blog-post-view';
 import { Metadata } from 'next';
 import { getStrapiMedia } from '@/lib/strapi/client';
 
+import { generateStrapiMetadata } from '@/lib/utils/metadata';
+
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -17,20 +19,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const seoItem = blog.seo && blog.seo.length > 0 ? blog.seo[0] : null;
-  const title = seoItem?.metaTitle || blog.title;
-  const description = seoItem?.metaDescription || blog.excerpt || blog.title;
-  const shareImage = seoItem?.shareImage?.url || blog.coverImage?.[0]?.url;
-  const imageUrl = shareImage ? getStrapiMedia(shareImage) : null;
 
-  return {
-    title: title,
-    description: description,
-    openGraph: {
-      title: title,
-      description: description,
-      images: imageUrl ? [imageUrl] : [],
-    },
-  };
+  return generateStrapiMetadata(seoItem as any, {
+    title: blog.title,
+    description: blog.excerpt || '',
+    image: (blog.coverImage && blog.coverImage.length > 0 ? getStrapiMedia(blog.coverImage[0].url) : undefined) || undefined
+  });
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {

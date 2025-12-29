@@ -75,7 +75,6 @@ export default function RoleManagement() {
         setSelectedRole(rolesRes.data[0].id);
       }
     } catch (error) {
-      console.error('Error loading data:', error);
       toast({
         title: 'Error',
         description: 'Failed to load roles and permissions',
@@ -123,7 +122,6 @@ export default function RoleManagement() {
         description: 'Permission updated successfully',
       });
     } catch (error) {
-      console.error('Error toggling permission:', error);
       toast({
         title: 'Error',
         description: 'Failed to update permission',
@@ -176,11 +174,10 @@ export default function RoleManagement() {
                   <button
                     key={role.id}
                     onClick={() => setSelectedRole(role.id)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
-                      selectedRole === role.id
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 hover:bg-gray-200'
-                    }`}
+                    className={`w-full text-left p-3 rounded-lg transition-colors ${selectedRole === role.id
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
                   >
                     <div className="flex items-center space-x-2">
                       <Shield className="w-4 h-4" />

@@ -204,6 +204,28 @@ export interface PageWhoWeAre extends Struct.ComponentSchema {
   };
 }
 
+export interface RecommendationAuthor extends Struct.ComponentSchema {
+  collectionName: 'components_recommendation_authors';
+  info: {
+    displayName: 'Author';
+    icon: 'user';
+  };
+  attributes: {
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface RecommendationKeyTakeaway extends Struct.ComponentSchema {
+  collectionName: 'components_recommendation_key_takeaways';
+  info: {
+    displayName: 'KeyTakeaway';
+    icon: 'check';
+  };
+  attributes: {
+    text: Schema.Attribute.Text & Schema.Attribute.Required;
+  };
+}
+
 export interface SharedChildSubmenu extends Struct.ComponentSchema {
   collectionName: 'components_shared_child_submenus';
   info: {
@@ -326,6 +348,8 @@ declare module '@strapi/strapi' {
       'page.trust-indicator': PageTrustIndicator;
       'page.vision': PageVision;
       'page.who-we-are': PageWhoWeAre;
+      'recommendation.author': RecommendationAuthor;
+      'recommendation.key-takeaway': RecommendationKeyTakeaway;
       'shared.child-submenu': SharedChildSubmenu;
       'shared.media': SharedMedia;
       'shared.menu': SharedMenu;
