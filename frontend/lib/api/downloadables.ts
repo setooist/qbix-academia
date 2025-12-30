@@ -1,4 +1,5 @@
 import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
+import { localeConfig } from '@/config/locale-config';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
@@ -25,9 +26,10 @@ const client = new ApolloClient({
     },
 });
 
+
 const GET_DOWNLOADABLES = gql`
-    query GetDownloadables {
-        downloadables {
+    query GetDownloadables($locale: I18NLocaleCode) {
+        downloadables(locale: $locale) {
             documentId
             title
             slug
@@ -63,8 +65,8 @@ const GET_DOWNLOADABLES = gql`
 `;
 
 const GET_DOWNLOADABLE_BY_SLUG = gql`
-    query GetDownloadableBySlug($slug: String!) {
-        downloadables(filters: { slug: { eq: $slug } }) {
+    query GetDownloadableBySlug($slug: String!, $locale: I18NLocaleCode) {
+        downloadables(filters: { slug: { eq: $slug } }, locale: $locale) {
             documentId
             title
             slug
@@ -166,10 +168,12 @@ interface DownloadableQueryResponse {
     downloadables: Downloadable[];
 }
 
-export async function getDownloadables() {
+export async function getDownloadables(locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     try {
         const { data, error } = await client.query<DownloadablesResponse>({
             query: GET_DOWNLOADABLES,
+            variables: { locale: activeLocale },
             fetchPolicy: 'no-cache',
             errorPolicy: 'all'
         });
@@ -179,11 +183,12 @@ export async function getDownloadables() {
     }
 }
 
-export async function getDownloadableBySlug(slug: string) {
+export async function getDownloadableBySlug(slug: string, locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     try {
         const { data, error } = await client.query<DownloadableQueryResponse>({
             query: GET_DOWNLOADABLE_BY_SLUG,
-            variables: { slug },
+            variables: { slug, locale: activeLocale },
             fetchPolicy: 'no-cache',
             errorPolicy: 'all'
         });

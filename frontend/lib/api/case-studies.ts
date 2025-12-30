@@ -1,4 +1,5 @@
 import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
+import { localeConfig } from '@/config/locale-config';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
@@ -25,9 +26,10 @@ const client = new ApolloClient({
     },
 });
 
+
 const GET_CASE_STUDIES = gql`
-    query GetCaseStudies {
-        caseStudies {
+    query GetCaseStudies($locale: I18NLocaleCode) {
+        caseStudies(locale: $locale) {
             documentId
             title
             slug
@@ -58,8 +60,8 @@ const GET_CASE_STUDIES = gql`
 `;
 
 const GET_CASE_STUDY_BY_SLUG = gql`
-    query GetCaseStudyBySlug($slug: String!) {
-        caseStudies(filters: { slug: { eq: $slug } }) {
+    query GetCaseStudyBySlug($slug: String!, $locale: I18NLocaleCode) {
+        caseStudies(filters: { slug: { eq: $slug } }, locale: $locale) {
             documentId
             title
             slug
@@ -143,10 +145,12 @@ const mapCaseStudy = (cs: any): CaseStudy => ({
     readTime: 5,
 });
 
-export async function getCaseStudies() {
+export async function getCaseStudies(locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     try {
         const { data } = await client.query<CaseStudiesResponse>({
             query: GET_CASE_STUDIES,
+            variables: { locale: activeLocale },
             fetchPolicy: 'no-cache',
             errorPolicy: 'all'
         });
@@ -157,11 +161,12 @@ export async function getCaseStudies() {
     }
 }
 
-export async function getCaseStudyBySlug(slug: string) {
+export async function getCaseStudyBySlug(slug: string, locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     try {
         const { data } = await client.query<CaseStudyQueryResponse>({
             query: GET_CASE_STUDY_BY_SLUG,
-            variables: { slug },
+            variables: { slug, locale: activeLocale },
             fetchPolicy: 'no-cache',
             errorPolicy: 'all'
         });

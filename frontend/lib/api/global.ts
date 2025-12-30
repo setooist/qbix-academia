@@ -10,9 +10,11 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
+import { localeConfig } from '@/config/locale-config';
+
 export const GET_GLOBAL = gql`
-  query GetGlobal {
-    global {
+  query GetGlobal($locale: I18NLocaleCode) {
+    global(locale: $locale) {
       siteName
       logo {
         url
@@ -42,10 +44,12 @@ export interface GlobalData {
   ctaButtonLink?: string | null;
 }
 
-export async function getGlobal() {
+export async function getGlobal(locale: string = 'en') {
   try {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     const { data } = await client.query<{ global: GlobalData }>({
       query: GET_GLOBAL,
+      variables: { locale: activeLocale },
       fetchPolicy: 'no-cache',
       errorPolicy: 'all'
     });

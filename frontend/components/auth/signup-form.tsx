@@ -27,12 +27,11 @@ export function SignupForm() {
 
     try {
       await signUp(email, password, fullName, phone);
-      await refreshUser();
       toast({
         title: 'Success',
-        description: 'Your account has been created successfully.',
+        description: 'Your account has been created successfully. Please log in.',
       });
-      router.push('/');
+      router.push('/auth/login');
       router.refresh();
     } catch (error: any) {
       console.error('Signup Error:', error);

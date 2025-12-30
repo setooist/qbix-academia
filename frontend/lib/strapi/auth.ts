@@ -28,7 +28,7 @@ async function graphqlRequest(query: string, variables?: any, jwt?: string) {
     return data.data;
 }
 
-export async function signUp(email: string, password: string, fullName: string, phone: string) {
+export async function signUp(email: string, password: string, fullName: string, phone: string, bio?: string) {
     const mutation = `
     mutation Register($input: UsersPermissionsRegisterInput!) {
       register(input: $input) {
@@ -37,6 +37,9 @@ export async function signUp(email: string, password: string, fullName: string, 
           id
           username
           email
+          fullName
+          phone
+          bio
         }
       }
     }
@@ -47,19 +50,14 @@ export async function signUp(email: string, password: string, fullName: string, 
             username: email,
             email,
             password,
+            fullName,
+            phone,
+            ...(bio ? { bio } : {}),
         },
     };
 
     try {
         const data = await graphqlRequest(mutation, variables);
-
-        if (data.register?.jwt && typeof window !== 'undefined') {
-            localStorage.setItem('strapi_jwt', data.register.jwt);
-        }
-
-        if (data.register?.user?.id && data.register?.jwt) {
-            await updateProfile(data.register.user.id, { fullName, phone }, data.register.jwt);
-        }
 
         return data.register;
     } catch (error: any) {
@@ -76,6 +74,9 @@ export async function signIn(email: string, password: string) {
           id
           username
           email
+          fullName
+          phone
+          bio
         }
       }
     }

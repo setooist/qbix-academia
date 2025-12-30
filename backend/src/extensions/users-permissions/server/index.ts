@@ -2,7 +2,7 @@ export default (plugin) => {
     const originalRegister = plugin.controllers.auth.register;
 
     plugin.controllers.auth.register = async (ctx) => {
-        const { fullName, phone } = ctx.request.body;
+        const { fullName, phone, bio } = ctx.request.body;
 
         ctx.request.body = {
             username: ctx.request.body.username,
@@ -17,7 +17,7 @@ export default (plugin) => {
                 'plugin::users-permissions.user',
                 response.user.id,
                 {
-                    data: { fullName, phone },
+                    data: { fullName, phone, bio },
                 }
             );
         }

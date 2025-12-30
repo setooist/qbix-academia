@@ -25,9 +25,11 @@ const client = new ApolloClient({
     },
 });
 
+import { localeConfig } from '@/config/locale-config';
+
 const GET_BLOGS = gql`
-    query GetBlogs {
-        blogs {
+    query GetBlogs($locale: I18NLocaleCode) {
+        blogs(locale: $locale) {
             documentId
             title
             slug
@@ -57,8 +59,8 @@ const GET_BLOGS = gql`
 `;
 
 const GET_BLOG_BY_SLUG = gql`
-    query GetBlogBySlug($slug: String!) {
-        blogs(filters: { slug: { eq: $slug } }) {
+    query GetBlogBySlug($slug: String!, $locale: I18NLocaleCode) {
+        blogs(filters: { slug: { eq: $slug } }, locale: $locale) {
             documentId
             title
             slug
@@ -138,10 +140,12 @@ interface BlogQueryResponse {
     blogs: BlogPost[];
 }
 
-export async function getBlogs() {
+export async function getBlogs(locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     try {
         const { data, error } = await client.query<BlogsResponse>({
             query: GET_BLOGS,
+            variables: { locale: activeLocale },
             fetchPolicy: 'no-cache',
             errorPolicy: 'all'
         });
@@ -151,11 +155,12 @@ export async function getBlogs() {
     }
 }
 
-export async function getBlogBySlug(slug: string) {
+export async function getBlogBySlug(slug: string, locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     try {
         const { data, error } = await client.query<BlogQueryResponse>({
             query: GET_BLOG_BY_SLUG,
-            variables: { slug },
+            variables: { slug, locale: activeLocale },
             fetchPolicy: 'no-cache',
             errorPolicy: 'all'
         });
