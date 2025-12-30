@@ -1,4 +1,5 @@
 import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
+import { localeConfig } from '@/config/locale-config';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
@@ -25,9 +26,10 @@ const client = new ApolloClient({
     },
 });
 
+
 const GET_RECOMMENDATIONS = gql`
-    query GetRecommendations {
-        recommendations {
+    query GetRecommendations($locale: I18NLocaleCode) {
+        recommendations(locale: $locale) {
             documentId
             title
             slug
@@ -64,8 +66,8 @@ const GET_RECOMMENDATIONS = gql`
 `;
 
 const GET_RECOMMENDATION_BY_SLUG = gql`
-    query GetRecommendationBySlug($slug: String!) {
-        recommendations(filters: { slug: { eq: $slug } }) {
+    query GetRecommendationBySlug($slug: String!, $locale: I18NLocaleCode) {
+        recommendations(filters: { slug: { eq: $slug } }, locale: $locale) {
             documentId
             title
             slug
@@ -167,10 +169,12 @@ interface RecommendationQueryResponse {
     recommendations: Recommendation[];
 }
 
-export async function getRecommendations() {
+export async function getRecommendations(locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     try {
         const { data, error } = await client.query<RecommendationsResponse>({
             query: GET_RECOMMENDATIONS,
+            variables: { locale: activeLocale },
             fetchPolicy: 'no-cache',
             errorPolicy: 'all'
         });
@@ -181,11 +185,12 @@ export async function getRecommendations() {
     }
 }
 
-export async function getRecommendationBySlug(slug: string) {
+export async function getRecommendationBySlug(slug: string, locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     try {
         const { data, error } = await client.query<RecommendationQueryResponse>({
             query: GET_RECOMMENDATION_BY_SLUG,
-            variables: { slug },
+            variables: { slug, locale: activeLocale },
             fetchPolicy: 'no-cache',
             errorPolicy: 'all'
         });

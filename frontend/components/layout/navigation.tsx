@@ -18,6 +18,7 @@ import {
 import { getNavigation, NavigationData, MenuItem } from '@/lib/api/navigation';
 import { getGlobal, GlobalData } from '@/lib/api/global';
 import { getStrapiMedia } from '@/lib/strapi/client';
+import { useParams } from 'next/navigation';
 
 // Helper to map icon string names (if we had them in Strapi) or default logic
 const getIconForLabel = (label: string) => {
@@ -50,6 +51,8 @@ export function Navigation() {
 
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const params = useParams();
+  const locale = (params?.lang as string) || 'en';
   const { user, profile, signOut } = useAuth();
   const { isStaff } = usePermissions();
 
@@ -59,13 +62,13 @@ export function Navigation() {
     };
     window.addEventListener('scroll', handleScroll);
 
-    getNavigation().then(data => {
+    getNavigation(locale).then(data => {
       if (data) {
         setNavData(data);
       }
     });
 
-    getGlobal().then(data => {
+    getGlobal(locale).then(data => {
       if (data) {
         setGlobalData(data);
       }
@@ -104,7 +107,7 @@ export function Navigation() {
       }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex items-center justify-between transition-all duration-500 ${scrolled ? 'h-16' : 'h-20'}`}>
-          <Link href="/" className="flex items-center space-x-3 group">
+          <Link href={`/${locale}`} className="flex items-center space-x-3 group">
             <div className="relative transition-all duration-500 group-hover:scale-105">
               <Image
                 src={(globalData?.logo?.[0]?.url) ? getStrapiMedia(globalData.logo[0].url) || "/Logo.png" : "/Logo.png"}
@@ -149,7 +152,7 @@ export function Navigation() {
                           const Icon = getIconForLabel(subItem.label);
                           return (
                             <DropdownMenuItem key={subIndex} asChild className="cursor-pointer rounded-lg p-3 focus:bg-primary/10">
-                              <Link href={subItem.href} prefetch={true} className="flex items-start gap-3">
+                              <Link href={`/${locale}${subItem.href}`} prefetch={true} className="flex items-start gap-3">
                                 <div className="mt-0.5 p-2 rounded-lg bg-primary/10">
                                   <Icon className="w-4 h-4 text-primary" />
                                 </div>
@@ -169,7 +172,7 @@ export function Navigation() {
                 return (
                   <Link
                     key={index}
-                    href={item.href}
+                    href={`/${locale}${item.href}`}
                     prefetch={true}
                     className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${isActive(item.href)
                       ? 'text-primary bg-primary/10'
@@ -224,7 +227,7 @@ export function Navigation() {
                   {isStaff && (
                     <>
                       <DropdownMenuItem asChild className="cursor-pointer rounded-lg p-2.5 focus:bg-primary/10">
-                        <Link href="/admin" className="flex items-center gap-3">
+                        <Link href={`/${locale}/admin`} className="flex items-center gap-3">
                           <div className="p-1.5 rounded-lg bg-primary/10">
                             <Shield className="w-4 h-4 text-primary" />
                           </div>
@@ -238,7 +241,7 @@ export function Navigation() {
                     const Icon = item.icon;
                     return (
                       <DropdownMenuItem key={item.href} asChild className="cursor-pointer rounded-lg p-2.5 focus:bg-primary/10">
-                        <Link href={item.href} className="flex items-center gap-3">
+                        <Link href={`/${locale}${item.href}`} className="flex items-center gap-3">
                           <Icon className="w-4 h-4 text-gray-600" />
                           <span>{item.label}</span>
                         </Link>
@@ -255,10 +258,10 @@ export function Navigation() {
             ) : (
               <>
                 <Button asChild variant="ghost" className="text-gray-700 hover:text-primary hover:bg-gray-100 transition-all duration-300 font-medium">
-                  <Link href="/auth/login">Log In</Link>
+                  <Link href={`/${locale}/auth/login`}>Log In</Link>
                 </Button>
                 <Button asChild className="bg-gradient-to-r from-primary to-orange hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-105 font-medium">
-                  <Link href="/auth/signup">Sign Up</Link>
+                  <Link href={`/${locale}/auth/signup`}>Sign Up</Link>
                 </Button>
               </>
             )}
@@ -306,7 +309,7 @@ export function Navigation() {
                           return (
                             <Link
                               key={subIndex}
-                              href={subItem.href}
+                              href={`/${locale}${subItem.href}`}
                               onClick={() => {
                                 setMobileMenuOpen(false);
                                 toggleDropdown(`mobile-${item.label}`, false);
@@ -330,7 +333,7 @@ export function Navigation() {
               return (
                 <Link
                   key={index}
-                  href={item.href}
+                  href={`/${locale}${item.href}`}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${isActive(item.href)
                     ? 'text-primary bg-primary/10 border-l-4 border-primary'
@@ -364,7 +367,7 @@ export function Navigation() {
 
                 {isStaff && (
                   <Link
-                    href="/admin"
+                    href={`/${locale}/admin`}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-300"
                   >
@@ -380,7 +383,7 @@ export function Navigation() {
                   return (
                     <Link
                       key={item.href}
-                      href={item.href}
+                      href={`/${locale}${item.href}`}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isActive(item.href)
                         ? 'text-primary bg-primary/10 border-l-4 border-primary'
@@ -409,12 +412,12 @@ export function Navigation() {
             {!user && (
               <div className="border-t border-gray-200 mt-4 pt-4 space-y-3">
                 <Button asChild variant="ghost" className="w-full justify-center text-gray-700 hover:text-primary hover:bg-gray-100 font-medium h-12">
-                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href={`/${locale}/auth/login`} onClick={() => setMobileMenuOpen(false)}>
                     Log In
                   </Link>
                 </Button>
                 <Button asChild className="w-full bg-gradient-to-r from-primary to-orange hover:shadow-lg hover:shadow-primary/30 font-medium h-12">
-                  <Link href="/auth/signup" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href={`/${locale}/auth/signup`} onClick={() => setMobileMenuOpen(false)}>
                     Sign Up
                   </Link>
                 </Button>

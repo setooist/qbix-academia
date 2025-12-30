@@ -25,9 +25,11 @@ const client = new ApolloClient({
     },
 });
 
+import { localeConfig } from '@/config/locale-config';
+
 const GET_EVENTS = gql`
-    query GetEvents($sort: [String]) {
-        events(sort: $sort) {
+    query GetEvents($sort: [String], $locale: I18NLocaleCode) {
+        events(sort: $sort, locale: $locale) {
             documentId
             title
             slug
@@ -59,8 +61,8 @@ const GET_EVENTS = gql`
 `;
 
 const GET_EVENT_BY_SLUG = gql`
-    query GetEventBySlug($slug: String!) {
-        events(filters: { slug: { eq: $slug } }) {
+    query GetEventBySlug($slug: String!, $locale: I18NLocaleCode) {
+        events(filters: { slug: { eq: $slug } }, locale: $locale) {
             documentId
             title
             slug
@@ -235,11 +237,12 @@ const mapEvent = (e: any): Event => ({
     }))
 });
 
-export async function getEvents() {
+export async function getEvents(locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     try {
         const { data } = await client.query<EventsResponse>({
             query: GET_EVENTS,
-            variables: { sort: ['startDateTime:desc'] },
+            variables: { sort: ['startDateTime:desc'], locale: activeLocale },
             fetchPolicy: 'no-cache',
             errorPolicy: 'all'
         });
@@ -251,11 +254,12 @@ export async function getEvents() {
     }
 }
 
-export async function getEventBySlug(slug: string) {
+export async function getEventBySlug(slug: string, locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     try {
         const { data } = await client.query<EventQueryResponse>({
             query: GET_EVENT_BY_SLUG,
-            variables: { slug },
+            variables: { slug, locale: activeLocale },
             fetchPolicy: 'no-cache',
             errorPolicy: 'all'
         });

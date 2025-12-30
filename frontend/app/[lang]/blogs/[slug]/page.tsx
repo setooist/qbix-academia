@@ -8,9 +8,13 @@ import { generateStrapiMetadata } from '@/lib/utils/metadata';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
-  const blog = await getBlogBySlug(slug);
+type Props = {
+  params: Promise<{ slug: string; lang: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug, lang } = await params;
+  const blog = await getBlogBySlug(slug, lang);
 
   if (!blog) {
     return {
@@ -27,9 +31,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   });
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const blog = await getBlogBySlug(slug);
+export default async function BlogPostPage({ params }: Props) {
+  const { slug, lang } = await params;
+  const blog = await getBlogBySlug(slug, lang);
 
   if (!blog) {
     notFound();

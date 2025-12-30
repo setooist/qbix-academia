@@ -6,7 +6,12 @@ import { generateStrapiMetadata } from '@/lib/utils/metadata';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata(): Promise<Metadata> {
+type Props = {
+  params: Promise<{ lang: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang } = await params;
   const page = await getBlogListPageSeo();
   const seo = page?.Seo?.[0];
 
@@ -16,8 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function BlogsPage() {
-  const blogs = await getBlogs();
+export default async function BlogsPage({ params }: Props) {
+  const { lang } = await params;
+  const blogs = await getBlogs(lang);
 
   return (
     <div className="flex flex-col min-h-screen">

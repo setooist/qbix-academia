@@ -1,4 +1,5 @@
 import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
+import { localeConfig } from '@/config/locale-config';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
@@ -10,9 +11,10 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
+
 export const GET_FOOTER = gql`
-  query GetFooter {
-    footer {
+  query GetFooter($locale: I18NLocaleCode) {
+    footer(locale: $locale) {
       Column {
         title
         links {
@@ -78,10 +80,12 @@ export interface FooterData {
   Bottum: FooterBottom[];
 }
 
-export async function getFooter() {
+export async function getFooter(locale: string = 'en') {
   try {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     const { data } = await client.query<{ footer: FooterData }>({
       query: GET_FOOTER,
+      variables: { locale: activeLocale },
       fetchPolicy: 'no-cache',
       errorPolicy: 'all',
       context: {
