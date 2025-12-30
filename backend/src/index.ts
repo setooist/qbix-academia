@@ -1,6 +1,37 @@
 
 export default {
-  register() { },
+  register({ strapi }) {
+    const extensionService = strapi.plugin('graphql').service('extension');
+
+    extensionService.use(({ nexus }) => ({
+      types: [
+        nexus.extendType({
+          type: 'UsersPermissionsMe',
+          definition(t) {
+            t.string('fullName');
+            t.string('phone');
+            t.string('bio');
+          },
+        }),
+        nexus.extendType({
+          type: 'UsersPermissionsUser',
+          definition(t) {
+            t.string('fullName');
+            t.string('phone');
+            t.string('bio');
+          },
+        }),
+        nexus.extendInputType({
+          type: 'UsersPermissionsRegisterInput',
+          definition(t) {
+            t.string('fullName');
+            t.string('phone');
+            t.string('bio');
+          },
+        }),
+      ],
+    }));
+  },
   async bootstrap({ strapi }: { strapi: any }) {
     strapi.entityService.decorate((service) => ({
       async findMany(uid, params) {
@@ -26,11 +57,9 @@ export default {
         const scrub = (item) => {
           if (!item) return item;
 
-          // If allowedRoles is defined and not empty, we check restrictions.
           if (item.allowedRoles && Array.isArray(item.allowedRoles) && item.allowedRoles.length > 0) {
             let hasAccess = false;
 
-            // 1. Check for Public access
             const isPubliclyAllowed = item.allowedRoles.some(r =>
               (r.type && r.type === 'public') ||
               (r.name && r.name.toLowerCase() === 'public')
@@ -39,7 +68,6 @@ export default {
             if (isPubliclyAllowed) {
               hasAccess = true;
             } else if (user && user.role) {
-              // 2. Check for Authenticated User access
               hasAccess = item.allowedRoles.some(r =>
                 (r.type && r.type === user.role.type) ||
                 (r.id === user.role.id)
@@ -47,7 +75,6 @@ export default {
             }
 
             if (!hasAccess) {
-              // Hide sensitive content
               if (uid === 'api::blog.blog') {
                 item.content = null;
               }
@@ -69,8 +96,6 @@ export default {
                 item.meetingLink = null;
                 item.resources = null;
                 item.registrationLink = null;
-                // Maybe keep description? Events usually show public description.
-                // Keeping description visible but hiding sensitive links.
               }
             }
           }
@@ -79,7 +104,6 @@ export default {
 
         if (isSingle) return scrub(data);
         if (Array.isArray(data)) return data.map(scrub);
-        // Handle { results: [...] } structure
         if (data && data.results) {
           data.results = data.results.map(scrub);
         }
@@ -87,7 +111,6 @@ export default {
       }
     }));
 
-    // --- Existing Logic: Disable Email Confirmation ---
     const pluginStore = strapi.store({
       type: 'plugin',
       name: 'users-permissions',
@@ -102,6 +125,45 @@ export default {
         key: 'advanced',
         value: { ...settings, email_confirmation: false },
       });
+    }
+
+    const roles = await strapi.query('plugin::users-permissions.role').findMany();
+
+    let defaultRoleType = settings.default_role;
+    let needsUpdate = false;
+
+    if (!defaultRoleType || /^\d+$/.test(defaultRoleType)) {
+      let targetRole;
+      if (defaultRoleType && /^\d+$/.test(defaultRoleType)) {
+        targetRole = roles.find(r => r.id === parseInt(defaultRoleType));
+      }
+
+      if (!targetRole) {
+        targetRole = roles.find(r => r.type === 'authenticated');
+      }
+
+      if (targetRole) {
+        defaultRoleType = targetRole.type;
+        needsUpdate = true;
+      }
+    } else {
+      const exists = roles.some(r => r.type === defaultRoleType);
+      if (!exists) {
+        const authRole = roles.find(r => r.type === 'authenticated');
+        if (authRole) {
+          defaultRoleType = authRole.type;
+          needsUpdate = true;
+        }
+      }
+    }
+
+    if (needsUpdate) {
+      console.log(`Setting default_role to: "${defaultRoleType}"`);
+      await pluginStore.set({
+        key: 'advanced',
+        value: { ...settings, default_role: defaultRoleType }
+      });
+      console.log('Successfully updated default_role setting');
     }
   },
 };
