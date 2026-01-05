@@ -25,6 +25,17 @@
             "targetField": "title",
             "required": true
         },
+        "eventStatus": {
+            "type": "enumeration",
+            "enum": [
+                "Draft",
+                "Published",
+                "Registration Open",
+                "Closed",
+                "Past"
+            ],
+            "default": "Draft"
+        },
         "excerpt": {
             "type": "text"
         },

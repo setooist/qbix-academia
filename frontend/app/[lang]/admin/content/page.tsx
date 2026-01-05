@@ -1,19 +1,35 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePermissions } from '@/lib/hooks/use-permissions';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getBlogs, BlogPost } from '@/lib/api/blogs';
 
 export default function ContentManagement() {
   const router = useRouter();
   const { hasPermission, loading } = usePermissions();
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [loadingBlogs, setLoadingBlogs] = useState(true);
 
   useEffect(() => {
     if (!loading && !hasPermission('content.read')) {
       router.push('/');
     }
   }, [hasPermission, loading, router]);
+
+  useEffect(() => {
+    async function fetchBlogs() {
+      const data = await getBlogs();
+      setBlogs(data);
+      setLoadingBlogs(false);
+    }
+    if (hasPermission('content.read')) {
+      fetchBlogs();
+    }
+  }, [hasPermission]);
 
   if (loading) {
     return (
@@ -29,54 +45,93 @@ export default function ContentManagement() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12">
       <div className="container mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Content Management</h1>
-          <p className="text-gray-600 mt-2">Manage blogs, case studies, and downloadable resources</p>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Content Management</h1>
+            <p className="text-gray-600 mt-2">Manage blogs and editorial workflows</p>
+          </div>
+          {hasPermission('content.create') && (
+            <Button onClick={() => window.open(process.env.NEXT_PUBLIC_STRAPI_URL + '/admin', '_blank')}>
+              Create Content (Strapi)
+            </Button>
+          )}
         </div>
 
         <Card className="border-2">
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto mb-4">
-              <svg className="w-48 h-48 mx-auto" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="contentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor: '#3b82f6', stopOpacity: 0.8}} />
-                    <stop offset="100%" style={{stopColor: '#f97316', stopOpacity: 0.8}} />
-                  </linearGradient>
-                </defs>
-                <rect x="40" y="60" width="120" height="100" rx="8" fill="url(#contentGrad)" opacity="0.2" />
-                <rect x="50" y="70" width="100" height="6" rx="3" fill="url(#contentGrad)" />
-                <rect x="50" y="85" width="80" height="4" rx="2" fill="url(#contentGrad)" opacity="0.6" />
-                <rect x="50" y="95" width="90" height="4" rx="2" fill="url(#contentGrad)" opacity="0.6" />
-                <rect x="50" y="105" width="70" height="4" rx="2" fill="url(#contentGrad)" opacity="0.6" />
-                <circle cx="160" cy="50" r="25" fill="url(#contentGrad)" opacity="0.3" />
-                <path d="M 155 45 L 158 50 L 165 43" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <CardTitle className="text-2xl">Coming Soon</CardTitle>
-            <CardDescription className="text-base mt-2">Content management features will be available here</CardDescription>
+          <CardHeader>
+            <CardTitle>Blogs</CardTitle>
+            <CardDescription>
+              View and manage blog posts and their editorial status.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-600 mb-4">
-              This section will allow you to create, edit, and manage all content on the platform.
-            </p>
-            <div className="grid md:grid-cols-3 gap-4 mt-6">
-              <div className="p-4 bg-gradient-to-br from-primary/5 to-orange/5 rounded-lg">
-                <p className="font-medium text-gray-900">Blogs</p>
-                <p className="text-sm text-gray-600 mt-1">Create and publish articles</p>
+          <CardContent>
+            {loadingBlogs ? (
+              <div className="text-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-500">Loading blogs...</p>
               </div>
-              <div className="p-4 bg-gradient-to-br from-primary/5 to-orange/5 rounded-lg">
-                <p className="font-medium text-gray-900">Case Studies</p>
-                <p className="text-sm text-gray-600 mt-1">Share success stories</p>
-              </div>
-              <div className="p-4 bg-gradient-to-br from-primary/5 to-orange/5 rounded-lg">
-                <p className="font-medium text-gray-900">Resources</p>
-                <p className="text-sm text-gray-600 mt-1">Manage downloadables</p>
-              </div>
-            </div>
+            ) : (
+              blogs.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  No blogs found.
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Author</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Published</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {blogs.map(blog => (
+                        <TableRow key={blog.documentId} className="hover:bg-gray-50">
+                          <TableCell className="font-medium max-w-[300px] truncate" title={blog.title}>
+                            {blog.title}
+                          </TableCell>
+                          <TableCell>{blog.author || '-'}</TableCell>
+                          <TableCell>{blog.category?.name || '-'}</TableCell>
+                          <TableCell>
+                            <EditorialStatusBadge status={blog.editorialStatus || 'Draft'} />
+                          </TableCell>
+                          <TableCell>{blog.published ? new Date(blog.published).toLocaleDateString() : '-'}</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" onClick={() => router.push(`/blogs/${blog.slug}`)}>
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )
+            )}
           </CardContent>
         </Card>
       </div>
     </div>
+  );
+}
+
+function EditorialStatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    'Draft': 'bg-gray-100 text-gray-800',
+    'In Review': 'bg-yellow-100 text-yellow-800',
+    'Scheduled': 'bg-blue-100 text-blue-800',
+    'Published': 'bg-green-100 text-green-800',
+    'Updated': 'bg-indigo-100 text-indigo-800',
+    'Archived': 'bg-red-100 text-red-800',
+  };
+
+  return (
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] || styles['Draft']}`}>
+      {status}
+    </span>
   );
 }

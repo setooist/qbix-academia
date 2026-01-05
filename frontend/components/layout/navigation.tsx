@@ -214,7 +214,7 @@ export function Navigation() {
                   <button className="flex items-center gap-3 px-3 py-2 rounded-full hover:bg-gray-100 transition-all duration-300 group">
                     <div className="relative">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-orange flex items-center justify-center text-white font-semibold text-sm shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                        {profile?.full_name ? getInitials(profile.full_name) : <User className="w-5 h-5" />}
+                        {(profile?.fullName || profile?.username) ? getInitials(profile?.fullName || profile?.username) : <User className="w-5 h-5" />}
                       </div>
                       {isStaff && (
                         <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full border-2 border-white flex items-center justify-center">
@@ -224,7 +224,7 @@ export function Navigation() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-700 group-hover:text-primary transition-colors">
-                        {profile?.full_name || 'Account'}
+                        {profile?.fullName || profile?.username || 'Account'}
                       </span>
                       <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform duration-300 ${accountOpen ? 'rotate-180' : ''}`} />
                     </div>
@@ -232,7 +232,7 @@ export function Navigation() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64 p-2 bg-white/95 backdrop-blur-lg border-gray-200">
                   <div className="px-3 py-2 mb-2">
-                    <p className="font-semibold text-gray-900">{profile?.full_name || 'User'}</p>
+                    <p className="font-semibold text-gray-900">{profile?.fullName || profile?.username || 'User'}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
                   </div>
                   <DropdownMenuSeparator />
@@ -363,7 +363,7 @@ export function Navigation() {
                 <div className="px-4 py-3 bg-gray-100 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-orange flex items-center justify-center text-white font-semibold shadow-lg relative">
-                      {profile?.full_name ? getInitials(profile.full_name) : <User className="w-6 h-6" />}
+                      {(profile?.fullName || profile?.username) ? getInitials(profile?.fullName || profile?.username) : <User className="w-6 h-6" />}
                       {isStaff && (
                         <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full border-2 border-white flex items-center justify-center">
                           <Shield className="w-2.5 h-2.5 text-white" />
@@ -371,7 +371,7 @@ export function Navigation() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">{profile?.full_name || 'User'}</p>
+                      <p className="font-semibold text-gray-900 truncate">{profile?.fullName || profile?.username || 'User'}</p>
                       <p className="text-xs text-gray-600 truncate">{user.email}</p>
                     </div>
                   </div>

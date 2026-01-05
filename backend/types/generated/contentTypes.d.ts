@@ -430,6 +430,141 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiActivityActivity extends Struct.CollectionTypeSchema {
+  collectionName: 'activities';
+  info: {
+    description: 'Student activities and assignments';
+    displayName: 'Activity';
+    pluralName: 'activities';
+    singularName: 'activity';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    activityStatus: Schema.Attribute.Enumeration<
+      [
+        'assigned',
+        'in_progress',
+        'submitted',
+        'reviewed',
+        'under_review',
+        'approved',
+        'changes_requested',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'assigned'>;
+    allowedRoles: Schema.Attribute.Relation<
+      'manyToMany',
+      'plugin::users-permissions.role'
+    >;
+    assignee: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    assignments: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::assignment.assignment'
+    >;
+    auditTrail: Schema.Attribute.JSON;
+    category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Blocks;
+    downloadables: Schema.Attribute.Media<
+      'files' | 'images' | 'videos' | 'audios',
+      true
+    >;
+    dueDate: Schema.Attribute.DateTime;
+    excerpt: Schema.Attribute.Text;
+    feedbackThread: Schema.Attribute.JSON;
+    goFromLink: Schema.Attribute.String;
+    grade: Schema.Attribute.Float;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::activity.activity'
+    > &
+      Schema.Attribute.Private;
+    mentor: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    reminders: Schema.Attribute.JSON;
+    slug: Schema.Attribute.UID<'title'>;
+    startDate: Schema.Attribute.DateTime;
+    submissionUploads: Schema.Attribute.Media<
+      'files' | 'images' | 'videos' | 'audios',
+      true
+    >;
+    tags: Schema.Attribute.Relation<'manyToMany', 'api::tag.tag'>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiAssignmentAssignment extends Struct.CollectionTypeSchema {
+  collectionName: 'assignments';
+  info: {
+    description: 'Student assignments tracking progress on activities';
+    displayName: 'Assignment';
+    pluralName: 'assignments';
+    singularName: 'assignment';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    activity: Schema.Attribute.Relation<'manyToOne', 'api::activity.activity'>;
+    completedAt: Schema.Attribute.DateTime;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    dueDate: Schema.Attribute.DateTime;
+    feedback: Schema.Attribute.JSON;
+    grade: Schema.Attribute.Float;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::assignment.assignment'
+    > &
+      Schema.Attribute.Private;
+    mentor: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    status: Schema.Attribute.Enumeration<
+      [
+        'assigned',
+        'in_progress',
+        'submitted',
+        'reviewed',
+        'under_review',
+        'approved',
+        'changes_requested',
+      ]
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'assigned'>;
+    submissionUploads: Schema.Attribute.Media<
+      'files' | 'images' | 'videos' | 'audios',
+      true
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiAuthorAuthor extends Struct.CollectionTypeSchema {
   collectionName: 'authors';
   info: {
@@ -506,6 +641,10 @@ export interface ApiBlogBlog extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    editorialStatus: Schema.Attribute.Enumeration<
+      ['Draft', 'In Review', 'Scheduled', 'Published', 'Updated', 'Archived']
+    > &
+      Schema.Attribute.DefaultTo<'Draft'>;
     excerpt: Schema.Attribute.Text &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -984,6 +1123,10 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     description: Schema.Attribute.RichText;
     endDateTime: Schema.Attribute.DateTime;
+    eventStatus: Schema.Attribute.Enumeration<
+      ['Draft', 'Published', 'Registration Open', 'Closed', 'Past']
+    > &
+      Schema.Attribute.DefaultTo<'Draft'>;
     eventType: Schema.Attribute.Enumeration<
       ['Webinar', 'Workshop', 'Masterclass', 'Panel', 'Meetup', 'Other']
     > &
@@ -1862,6 +2005,10 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.user'
     > &
       Schema.Attribute.Private;
+    memberStatus: Schema.Attribute.Enumeration<
+      ['Invited', 'Registered', 'Active', 'Suspended']
+    > &
+      Schema.Attribute.DefaultTo<'Registered'>;
     password: Schema.Attribute.Password;
     phone: Schema.Attribute.String;
     provider: Schema.Attribute.String & Schema.Attribute.DefaultTo<'local'>;
@@ -1888,6 +2035,8 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::activity.activity': ApiActivityActivity;
+      'api::assignment.assignment': ApiAssignmentAssignment;
       'api::author.author': ApiAuthorAuthor;
       'api::blog.blog': ApiBlogBlog;
       'api::case-studie.case-studie': ApiCaseStudieCaseStudie;
