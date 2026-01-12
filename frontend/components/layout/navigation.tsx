@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, User, LogOut, ChevronDown, Shield, BookOpen, Calendar, FileText, Users, Home, Briefcase, Mail, Library, GraduationCap, Phone, MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -62,6 +62,7 @@ export function Navigation() {
   const locale = (params?.lang as string) || 'en';
   const { user, profile, signOut } = useAuth();
   const { isStaff } = usePermissions();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -93,7 +94,7 @@ export function Navigation() {
 
   const handleSignOut = async () => {
     await signOut();
-    window.location.href = '/';
+    router.push('/');
   };
 
   const getInitials = (name: string) => {

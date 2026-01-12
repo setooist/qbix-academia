@@ -70,11 +70,6 @@ export async function getNavigation(locale: string = 'en') {
       variables: { locale: activeLocale },
       fetchPolicy: 'no-cache',
       errorPolicy: 'all',
-      context: {
-        fetchOptions: {
-          next: { revalidate: 3600 }
-        }
-      }
     });
     return data?.navigation || null;
   } catch (error) {
