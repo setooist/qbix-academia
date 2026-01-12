@@ -7,8 +7,6 @@ const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337"
 const httpLink = new HttpLink({
     uri: `${STRAPI_URL}/graphql`,
     fetch: (uri: RequestInfo | URL, options?: RequestInit) => {
-        console.log('API Request:', uri);
-        console.log('API Options:', options);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
         return fetch(uri, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeoutId));
@@ -50,8 +48,17 @@ const GET_ACTIVITIES = gql`
             assignee {
                 username
                 email
+                fullName
+            }
+            mentor {
+                username
+                email
             }
             category {
+                name
+            }
+            submissionUploads {
+                url
                 name
             }
             # allowedRoles {
@@ -69,7 +76,7 @@ const GET_ACTIVITY_BY_SLUG = gql`
             title
             slug
             excerpt
-            description
+            # description
             activityStatus
             startDate
             dueDate
@@ -78,6 +85,7 @@ const GET_ACTIVITY_BY_SLUG = gql`
             assignee {
                 username
                 email
+                fullName
             }
             mentor {
                 username
@@ -87,20 +95,20 @@ const GET_ACTIVITY_BY_SLUG = gql`
                 name
                 slug
             }
-            tags {
-                name
-                slug
-            }
-            reminders
-            auditTrail
-            feedbackThread
-            downloadables {
-               url
-               name
-            }
+            # tags {
+            #     name
+            #     slug
+            # }
+            # reminders
+            # auditTrail
+            # feedbackThread
+            # downloadables {
+            #    url
+            #    name
+            # }
             submissionUploads {
-               url
-               name
+                url
+                name
             }
             # allowedRoles {
             #     name
@@ -125,6 +133,7 @@ export interface Activity {
     assignee?: {
         username: string;
         email: string;
+        fullName?: string;
     };
     mentor?: {
         username: string;
@@ -171,6 +180,7 @@ const GET_ACTIVITY_BY_ID = gql`
             assignee {
                 username
                 email
+                fullName
             }
             mentor {
                 username
@@ -204,24 +214,17 @@ const GET_ACTIVITY_BY_ID = gql`
 `;
 
 export async function getActivities(locale: string = 'en') {
-    // const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en'; // Unused
     try {
-        console.log('getActivities: executing query');
         const result = await client.query<{ activities: Activity[] }>({
             query: GET_ACTIVITIES,
             variables: {
                 sort: ['createdAt:desc'],
-                // locale: activeLocale, // REMOVED
-                // publicationState: 'PREVIEW' // REMOVED due to backend error
             },
             errorPolicy: 'all'
         });
-        console.log('getActivities: full result:', JSON.stringify(result, null, 2));
         const data = result.data;
-        console.log('getActivities: query success. retrieved activities:', JSON.stringify(data?.activities, null, 2));
         return data?.activities || [];
     } catch (error) {
-        console.error("getActivities: Error fetching activities:", error);
         return [];
     }
 }
@@ -232,30 +235,24 @@ export async function getActivityById(documentId: string) {
             query: GET_ACTIVITY_BY_ID,
             variables: {
                 documentId,
-                // publicationState: 'PREVIEW' // REMOVED
             },
         });
         return data?.activity || null;
     } catch (error) {
-        console.error("Error fetching activity by ID:", error);
         return null;
     }
 }
 
 export async function getActivityBySlug(slug: string, locale: string = 'en') {
-    // const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en'; // Unused
     try {
         const { data } = await client.query<{ activities: Activity[] }>({
             query: GET_ACTIVITY_BY_SLUG,
             variables: {
                 slug,
-                // locale: activeLocale, // Removed
-                // publicationState: 'PREVIEW' // REMOVED
             },
         });
         return data?.activities?.[0] || null;
     } catch (error) {
-        console.error("Error fetching activity by slug:", error);
         return null;
     }
 }

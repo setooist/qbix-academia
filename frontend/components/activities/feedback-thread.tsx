@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Send, User, GraduationCap, Shield } from 'lucide-react';
-import { addFeedback } from '@/lib/api/activity-mutations';
+import { addAssignmentFeedback } from '@/lib/api/assignment-mutations';
 
 interface FeedbackMessage {
     id: string;
@@ -16,7 +16,7 @@ interface FeedbackMessage {
 }
 
 interface FeedbackThreadProps {
-    activityId: string;
+    assignmentId: string;
     feedbackThread: FeedbackMessage[] | null;
     currentUserRole: 'mentor' | 'student' | 'admin';
     currentUserName: string;
@@ -25,7 +25,7 @@ interface FeedbackThreadProps {
 }
 
 export function FeedbackThread({
-    activityId,
+    assignmentId,
     feedbackThread,
     currentUserRole,
     currentUserName,
@@ -42,7 +42,7 @@ export function FeedbackThread({
 
         setSending(true);
         try {
-            await addFeedback(activityId, {
+            await addAssignmentFeedback(assignmentId, {
                 author: currentUserName,
                 authorRole: currentUserRole,
                 message: newMessage.trim(),

@@ -27,7 +27,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <Link href="/" className="inline-block mb-4 group">
+            <Link href="/" className="inline-block mb-4 group bg-white">
               <div className="transition-transform duration-300 group-hover:scale-105 bg-white/10 backdrop-blur-sm rounded-lg p-3">
                 <Image
                   src="/logo-transparent copy.png"
@@ -128,21 +128,6 @@ export function Footer() {
                 Sitemap
               </Link>
             </div>
-            {/* Render Partner Logos if any in bottom section */}
-            {bottom?.logo && bottom.logo.length > 0 && (
-              <div className="flex gap-4 mt-4 md:mt-0">
-                {bottom.logo.map((logo, i) => (
-                  <div key={i} className="relative h-8 w-16">
-                    <Image
-                      src={getStrapiMedia(logo.url) || ''}
-                      alt={logo.alternativeText || 'Partner'}
-                      fill
-                      className="object-contain opacity-70 hover:opacity-100 transition-opacity"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>

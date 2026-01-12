@@ -1,8 +1,9 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { localeConfig } from '@/config/locale-config';
 import {
     Activity,
     GraduationCap,
@@ -13,29 +14,40 @@ import {
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const params = useParams();
+    const lang = params?.lang || 'en';
     const { user } = useAuth();
+
+    // Helper to get localized href
+    const getHref = (path: string) => {
+        if (localeConfig.multilanguage.enabled) {
+            return `/${lang}${path}`;
+        }
+        return path;
+    };
 
     const navItems = [
         {
-            href: '/account/activities',
+            href: getHref('/account/activities'),
             label: 'My Activities',
             icon: Activity,
             description: 'View your assigned tasks'
         },
-        {
-            href: '/account/mentor',
+        // Only show Mentor Dashboard if user is a mentor
+        ...((user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') ? [{
+            href: getHref('/account/mentor'),
             label: 'Mentor Dashboard',
             icon: GraduationCap,
             description: 'Review student submissions'
-        },
+        }] : []),
         {
-            href: '/account/library',
+            href: getHref('/account/library'),
             label: 'My Library',
             icon: BookOpen,
             description: 'Saved resources'
         },
         {
-            href: '/account/profile',
+            href: getHref('/account/profile'),
             label: 'Profile',
             icon: User,
             description: 'Account settings'
@@ -52,13 +64,8 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                     <div className="flex items-center justify-between py-3">
                         <div className="flex items-center gap-2">
                             <LayoutDashboard className="w-5 h-5 text-primary" />
-                            <span className="font-semibold text-gray-900">My Account</span>
+                            <span className="font-semibold text-gray-900"> {user?.fullName}</span>
                         </div>
-                        {user && (
-                            <span className="text-sm text-gray-600">
-                                {user.username || user.email}
-                            </span>
-                        )}
                     </div>
                     <nav className="flex gap-1 overflow-x-auto pb-px">
                         {navItems.map((item) => {

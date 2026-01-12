@@ -396,7 +396,7 @@ export default function ActivityDetailsAdmin({ params }: { params: Promise<{ id:
                             </CardHeader>
                             <CardContent>
                                 <FeedbackThread
-                                    activityId={activity.documentId}
+                                    assignmentId={activity.documentId}
                                     feedbackThread={activity.feedbackThread}
                                     currentUserRole="admin"
                                     currentUserName="Admin"

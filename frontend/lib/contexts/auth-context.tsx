@@ -18,7 +18,7 @@ interface AuthContextType {
   profile: any | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<any | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,10 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuth = async () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('strapi_jwt') : null;
+    let userData = null;
 
     if (token) {
       try {
-        const userData = await getCurrentUser(token);
+        userData = await getCurrentUser(token);
         if (userData) {
           setUser(userData);
           setProfile(userData);
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     setLoading(false);
+    return userData;
   };
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshUser = async () => {
-    await checkAuth();
+    return await checkAuth();
   };
 
   const handleSignOut = async () => {

@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getActivityBySlug, Activity } from '@/lib/api/activities';
-import { startActivity, updateActivityStatus } from '@/lib/api/activity-mutations';
+import { getAssignmentBySlug, Assignment } from '@/lib/api/assignments';
+import { startAssignment, updateAssignmentStatus } from '@/lib/api/assignment-mutations';
 import { FileUpload } from '@/components/activities/file-upload';
 import { FeedbackThread } from '@/components/activities/feedback-thread';
 import {
@@ -26,8 +26,10 @@ import { Separator } from '@/components/ui/separator';
 
 export default function StudentActivityDetail({ params }: { params: Promise<{ slug: string }> }) {
     const router = useRouter();
+    const urlParams = useParams();
+    const lang = urlParams?.lang || 'en';
     const { user, loading: authLoading } = useAuth();
-    const [activity, setActivity] = useState<Activity | null>(null);
+    const [assignment, setAssignment] = useState<Assignment | null>(null);
     const [loading, setLoading] = useState(true);
     const [slug, setSlug] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
@@ -47,12 +49,20 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
     }, [user, authLoading, router]);
 
     const fetchData = useCallback(async () => {
-        if (slug) {
-            const data = await getActivityBySlug(slug);
-            setActivity(data);
+        const userId = user?.documentId || user?.id;
+        if (slug && userId) {
+            try {
+                const data = await getAssignmentBySlug(slug, userId);
+                setAssignment(data);
+            } catch (error) {
+                console.error("Failed to fetch assignment:", error);
+            } finally {
+                setLoading(false);
+            }
+        } else if (!user && !authLoading) {
             setLoading(false);
         }
-    }, [slug]);
+    }, [slug, user, authLoading]);
 
     useEffect(() => {
         if (slug && user) {
@@ -61,10 +71,10 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
     }, [slug, user, fetchData]);
 
     const handleStartActivity = async () => {
-        if (!activity) return;
+        if (!assignment) return;
         setActionLoading(true);
         try {
-            await startActivity(activity.documentId);
+            await startAssignment(assignment.documentId);
             await fetchData(); // Refresh data
         } catch (error) {
             console.error('Failed to start activity:', error);
@@ -75,10 +85,10 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
     };
 
     const handleMarkAsSubmitted = async () => {
-        if (!activity) return;
+        if (!assignment) return;
         setActionLoading(true);
         try {
-            await updateActivityStatus(activity.documentId, 'submitted');
+            await updateAssignmentStatus(assignment.documentId, 'submitted');
             await fetchData();
         } catch (error) {
             console.error('Failed to submit activity:', error);
@@ -99,14 +109,14 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
         );
     }
 
-    if (!activity) {
+    if (!assignment) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h2 className="text-xl font-semibold text-gray-900 mb-2">Activity not found</h2>
-                    <p className="text-gray-600 mb-4">The activity you're looking for doesn't exist or you don't have access.</p>
-                    <Button onClick={() => router.push('/account/activities')}>
+                    <p className="text-gray-600 mb-4">The activity you're looking for doesn't exist or hasn't been assigned to you.</p>
+                    <Button onClick={() => router.push(`/${lang}/account/activities`)}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Activities
                     </Button>
@@ -115,42 +125,42 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
         );
     }
 
-    const isApproved = activity.activityStatus === 'approved';
-    const isChangesRequested = activity.activityStatus === 'changes_requested';
-    const isSubmitted = activity.activityStatus === 'submitted' || activity.activityStatus === 'under_review' || activity.activityStatus === 'reviewed';
-    const canStart = activity.activityStatus === 'assigned';
-    const canSubmit = activity.activityStatus === 'in_progress' || isChangesRequested;
+    const isApproved = assignment.status === 'approved';
+    const isChangesRequested = assignment.status === 'needs_changes';
+    const isSubmitted = assignment.status === 'submitted' || assignment.status === 'under_review';
+    const canStart = assignment.status === 'not_started';
+    const canSubmit = assignment.status === 'in_progress' || isChangesRequested;
 
     return (
         <div className="max-w-5xl mx-auto py-8 px-4 space-y-8">
             {/* Header */}
             <div>
-                <Button variant="ghost" className="mb-4 pl-0" onClick={() => router.push('/account/activities')}>
+                <Button variant="ghost" className="mb-4 pl-0" onClick={() => router.push(`/${lang}/account/activities`)}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to My Activities
                 </Button>
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">{activity.title}</h1>
+                        <h1 className="text-3xl font-bold text-gray-900">{assignment.activity?.title || 'Untitled Activity'}</h1>
                         <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500">
                             <span className="flex items-center">
                                 <Clock className="w-4 h-4 mr-1" />
-                                Due: {activity.dueDate ? new Date(activity.dueDate).toLocaleDateString() : 'No deadline'}
+                                Due: {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No deadline'}
                             </span>
-                            {activity.category && (
+                            {assignment.activity?.category && (
                                 <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-700">
-                                    {activity.category.name}
+                                    {assignment.activity.category.name}
                                 </span>
                             )}
-                            {activity.tags?.map((tag) => (
+                            {assignment.activity?.tags?.map((tag) => (
                                 <span key={tag.slug} className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-xs">
                                     {tag.name}
                                 </span>
                             ))}
                         </div>
                     </div>
-                    <Badge className={`text-sm px-4 py-2 ${getStatusColor(activity.activityStatus)} border-0`}>
-                        {formatStatus(activity.activityStatus)}
+                    <Badge className={`text-sm px-4 py-2 ${getStatusColor(assignment.status)} border-0`}>
+                        {formatStatus(assignment.status)}
                     </Badge>
                 </div>
 
@@ -186,9 +196,9 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                     <TabsTrigger value="submission">Submission</TabsTrigger>
                     <TabsTrigger value="feedback" className="relative">
                         Feedback
-                        {activity.feedbackThread && activity.feedbackThread.length > 0 && (
+                        {assignment.feedback && assignment.feedback.length > 0 && (
                             <span className="ml-2 px-2 py-0.5 text-xs bg-primary text-white rounded-full">
-                                {activity.feedbackThread.length}
+                                {assignment.feedback.length}
                             </span>
                         )}
                     </TabsTrigger>
@@ -204,12 +214,12 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                                     <CardTitle>Instructions</CardTitle>
                                 </CardHeader>
                                 <CardContent className="prose max-w-none">
-                                    {activity.excerpt && (
-                                        <p className="text-lg text-gray-700 mb-4">{activity.excerpt}</p>
+                                    {assignment.activity?.excerpt && (
+                                        <p className="text-lg text-gray-700 mb-4">{assignment.activity.excerpt}</p>
                                     )}
-                                    {activity.description ? (
-                                        typeof activity.description === 'string' ? (
-                                            <p>{activity.description}</p>
+                                    {assignment.activity?.description ? (
+                                        typeof assignment.activity.description === 'string' ? (
+                                            <p>{assignment.activity.description}</p>
                                         ) : (
                                             <div className="bg-gray-50 p-4 rounded-lg">
                                                 {/* TODO: Use proper BlocksRenderer */}
@@ -221,16 +231,16 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                                     ) : (
                                         <p className="text-gray-500 italic">No detailed description provided.</p>
                                     )}
-                                    {activity.goFromLink && (
+                                    {assignment.activity?.goFromLink && (
                                         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                                             <p className="font-medium text-blue-900">Go From Link:</p>
                                             <a
-                                                href={activity.goFromLink}
+                                                href={assignment.activity.goFromLink}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-600 hover:underline break-all"
                                             >
-                                                {activity.goFromLink}
+                                                {assignment.activity.goFromLink}
                                             </a>
                                         </div>
                                     )}
@@ -245,8 +255,8 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                                     <CardTitle className="text-lg">Resources</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
-                                    {activity.downloadables && activity.downloadables.length > 0 ? (
-                                        activity.downloadables.map((file, i) => (
+                                    {assignment.activity?.downloadables && assignment.activity.downloadables.length > 0 ? (
+                                        assignment.activity.downloadables.map((file, i) => (
                                             <a
                                                 key={i}
                                                 href={file.url}
@@ -278,25 +288,17 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                                     <div className="space-y-4">
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Mentor</p>
-                                            <p className="text-sm mt-1">{activity.mentor?.username || 'Pending Assignment'}</p>
+                                            <p className="text-sm mt-1">{assignment.mentor?.username || assignment.activity?.mentor?.username || 'Pending Assignment'}</p>
                                         </div>
                                         <Separator />
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Grade</p>
                                             <p className="text-3xl font-bold mt-1 text-gray-900">
-                                                {activity.grade !== undefined && activity.grade !== null ? activity.grade : '--'}
+                                                {assignment.grade !== undefined && assignment.grade !== null ? assignment.grade : '--'}
                                                 <span className="text-sm font-normal text-gray-500">/100</span>
                                             </p>
                                         </div>
-                                        {activity.startDate && (
-                                            <>
-                                                <Separator />
-                                                <div>
-                                                    <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Start Date</p>
-                                                    <p className="text-sm mt-1">{new Date(activity.startDate).toLocaleDateString()}</p>
-                                                </div>
-                                            </>
-                                        )}
+                                        {/* Removed activity.startDate as it is not fetched and not on assignment */}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -330,7 +332,7 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                                 </div>
                             ) : canSubmit ? (
                                 <FileUpload
-                                    activityId={activity.documentId}
+                                    assignmentId={assignment.documentId}
                                     onUploadComplete={fetchData}
                                 />
                             ) : isSubmitted ? (
@@ -350,11 +352,11 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                             )}
 
                             {/* List existing submissions */}
-                            {activity.submissionUploads && activity.submissionUploads.length > 0 && (
+                            {assignment.submissionUploads && assignment.submissionUploads.length > 0 && (
                                 <div className="space-y-3">
                                     <h4 className="font-medium text-gray-900">Uploaded Files</h4>
                                     <div className="grid gap-2">
-                                        {activity.submissionUploads.map((file, i) => (
+                                        {assignment.submissionUploads.map((file, i) => (
                                             <div
                                                 key={i}
                                                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
@@ -375,7 +377,7 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                             )}
 
                             {/* Submit Button */}
-                            {canSubmit && activity.submissionUploads && activity.submissionUploads.length > 0 && (
+                            {canSubmit && assignment.submissionUploads && assignment.submissionUploads.length > 0 && (
                                 <div className="pt-4 border-t">
                                     <Button
                                         onClick={handleMarkAsSubmitted}
@@ -409,8 +411,8 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                         </CardHeader>
                         <CardContent>
                             <FeedbackThread
-                                activityId={activity.documentId}
-                                feedbackThread={activity.feedbackThread}
+                                assignmentId={assignment.documentId}
+                                feedbackThread={assignment.feedback}
                                 currentUserRole="student"
                                 currentUserName={user?.username || user?.email || 'Student'}
                                 onFeedbackAdded={fetchData}
@@ -424,19 +426,20 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
     );
 }
 
-function getStatusColor(status: string) {
+function getStatusColor(status: string | null | undefined) {
     const map: Record<string, string> = {
-        assigned: 'bg-blue-100 text-blue-800',
+        not_started: 'bg-blue-100 text-blue-800',
         in_progress: 'bg-indigo-100 text-indigo-800',
         submitted: 'bg-yellow-100 text-yellow-800',
         under_review: 'bg-purple-100 text-purple-800',
-        reviewed: 'bg-purple-100 text-purple-800',
         approved: 'bg-green-100 text-green-800',
-        changes_requested: 'bg-red-100 text-red-800',
+        needs_changes: 'bg-red-100 text-red-800',
     };
-    return map[status] || 'bg-gray-100 text-gray-800';
+    const safeStatus = status || 'not_started';
+    return map[safeStatus] || 'bg-gray-100 text-gray-800';
 }
 
-function formatStatus(status: string) {
-    return status.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+function formatStatus(status: string | null | undefined) {
+    const safeStatus = status || 'not_started';
+    return safeStatus.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }

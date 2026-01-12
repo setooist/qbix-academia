@@ -249,6 +249,17 @@ export function Navigation() {
                       <DropdownMenuSeparator />
                     </>
                   )}
+                  {(user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') && (
+                    <>
+                      <DropdownMenuItem asChild className="cursor-pointer rounded-lg p-2.5 focus:bg-primary/10">
+                        <Link href={getLocalizedHref('/account/mentor', locale)} className="flex items-center gap-3">
+                          <Users className="w-4 h-4 text-purple-600" />
+                          <span className="font-medium">Mentor Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   {accountNavItems.map((item) => {
                     const Icon = item.icon;
                     return (
@@ -387,6 +398,17 @@ export function Navigation() {
                       <Shield className="w-5 h-5 text-primary" />
                     </div>
                     <span className="font-medium">Admin Panel</span>
+                  </Link>
+                )}
+
+                {(user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') && (
+                  <Link
+                    href={getLocalizedHref('/account/mentor', locale)}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-purple-700 bg-purple-50 hover:bg-purple-100"
+                  >
+                    <Users className="w-5 h-5" />
+                    <span className="font-medium">Mentor Dashboard</span>
                   </Link>
                 )}
 

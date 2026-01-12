@@ -4,10 +4,10 @@ import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Upload, X, FileText, Image, File, CheckCircle } from 'lucide-react';
-import { uploadSubmission } from '@/lib/api/activity-mutations';
+import { uploadAssignmentSubmission } from '@/lib/api/assignment-mutations';
 
 interface FileUploadProps {
-    activityId: string;
+    assignmentId: string;
     onUploadComplete?: () => void;
     maxFiles?: number;
     maxSizeMB?: number;
@@ -23,7 +23,7 @@ interface SelectedFile {
 }
 
 export function FileUpload({
-    activityId,
+    assignmentId,
     onUploadComplete,
     maxFiles = 5,
     maxSizeMB = 10,
@@ -119,8 +119,8 @@ export function FileUpload({
         );
 
         try {
-            await uploadSubmission(
-                activityId,
+            await uploadAssignmentSubmission(
+                assignmentId,
                 validFiles.map((f) => f.file)
             );
 

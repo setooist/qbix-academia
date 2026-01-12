@@ -9,23 +9,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getActivities, Activity } from '@/lib/api/activities';
 
 export default function ActivityManagement() {
-  console.log('Admin Activity Page: COMPONENT RENDER START');
   const router = useRouter();
   const { hasPermission, loading } = usePermissions();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
 
-  // Debugging: Log permissions state
-  console.log('Admin Activity Page: Permissions Loading State:', loading);
-  console.log('Admin Activity Page: Has Permission State:', hasPermission('activities.read'));
 
   useEffect(() => {
-    // Force fetch on mount
-    console.log('Admin Activity Page: Mount Effect - Calling fetchActivities');
     async function fetchActivities() {
       try {
         const data = await getActivities();
-        console.log('Admin Activity Page: Fetched Data:', data);
         setActivities(data);
       } catch (err) {
         console.error('Admin Activity Page: Fetch Error:', err);

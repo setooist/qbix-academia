@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,14 +11,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { getActivityById, Activity } from '@/lib/api/activities';
-import { approveActivity, requestChanges, gradeActivity } from '@/lib/api/activity-mutations';
+import { getAssignmentById, Assignment } from '@/lib/api/assignments';
+import { getStrapiMedia } from '@/lib/strapi/client';
+import { approveAssignment, requestAssignmentChanges, gradeAssignment } from '@/lib/api/assignment-mutations';
 import { FeedbackThread } from '@/components/activities/feedback-thread';
 import {
     ArrowLeft,
     User,
     Calendar,
     FileText,
+    Eye,
     Download,
     CheckCircle,
     XCircle,
@@ -31,8 +33,10 @@ import { Separator } from '@/components/ui/separator';
 
 export default function MentorReviewPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
+    const urlParams = useParams();
+    const lang = urlParams?.lang || 'en';
     const { user, loading: authLoading } = useAuth();
-    const [activity, setActivity] = useState<Activity | null>(null);
+    const [assignment, setAssignment] = useState<Assignment | null>(null);
     const [loading, setLoading] = useState(true);
     const [documentId, setDocumentId] = useState<string | null>(null);
 
@@ -53,15 +57,24 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
     }, [params]);
 
     useEffect(() => {
-        if (!authLoading && !user) {
-            router.push('/auth/login');
+        if (!authLoading) {
+            if (!user) {
+                router.push(`/${lang}/auth/login`);
+            } else {
+                // Check if user has mentor role
+                const isMentor = user.role?.name === 'Mentor' || user.role?.type === 'mentor';
+
+                if (!isMentor) {
+                    router.push(`/${lang}/account/activities`);
+                }
+            }
         }
-    }, [user, authLoading, router]);
+    }, [user, authLoading, router, lang]);
 
     const fetchData = useCallback(async () => {
         if (documentId) {
-            const data = await getActivityById(documentId);
-            setActivity(data);
+            const data = await getAssignmentById(documentId);
+            setAssignment(data);
             if (data?.grade) {
                 setGrade(data.grade.toString());
             }
@@ -76,26 +89,26 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
     }, [documentId, user, fetchData]);
 
     const handleApprove = async () => {
-        if (!activity) return;
+        if (!assignment) return;
         setActionLoading(true);
         try {
             const gradeValue = grade ? parseFloat(grade) : undefined;
-            await approveActivity(activity.documentId, gradeValue, approvalFeedback);
+            await approveAssignment(assignment.documentId, gradeValue, approvalFeedback);
             setShowApproveDialog(false);
             await fetchData();
         } catch (error) {
             console.error('Failed to approve:', error);
-            alert('Failed to approve activity. Please try again.');
+            alert('Failed to approve assignment. Please try again.');
         } finally {
             setActionLoading(false);
         }
     };
 
     const handleRequestChanges = async () => {
-        if (!activity || !rejectionFeedback.trim()) return;
+        if (!assignment || !rejectionFeedback.trim()) return;
         setActionLoading(true);
         try {
-            await requestChanges(activity.documentId, rejectionFeedback);
+            await requestAssignmentChanges(assignment.documentId, rejectionFeedback);
             setShowRejectDialog(false);
             await fetchData();
         } catch (error) {
@@ -107,10 +120,10 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
     };
 
     const handleSaveGrade = async () => {
-        if (!activity || !grade) return;
+        if (!assignment || !grade) return;
         setActionLoading(true);
         try {
-            await gradeActivity(activity.documentId, parseFloat(grade));
+            await gradeAssignment(assignment.documentId, parseFloat(grade));
             await fetchData();
         } catch (error) {
             console.error('Failed to save grade:', error);
@@ -120,24 +133,78 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
         }
     };
 
+    const handleDownload = async (url: string, filename: string) => {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Download failed');
+
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error('Download error:', error);
+            // Fallback to opening in new tab if blob fetch fails
+            window.open(url, '_blank');
+        }
+    };
+
+    const handleView = async (url: string, filename: string, mimeType?: string) => {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('View failed');
+
+            const blob = await response.blob();
+
+            // Use provided mimeType if available, otherwise try to detect from extension
+            let finalMimeType = mimeType || blob.type;
+
+            // Fallback extension logic if mimeType is generic or missing
+            if (!mimeType || finalMimeType === 'application/octet-stream') {
+                const ext = filename.split('.').pop()?.toLowerCase();
+                if (ext === 'pdf') finalMimeType = 'application/pdf';
+                else if (['jpg', 'jpeg'].includes(ext || '')) finalMimeType = 'image/jpeg';
+                else if (ext === 'png') finalMimeType = 'image/png';
+                else if (ext === 'gif') finalMimeType = 'image/gif';
+                else if (ext === 'webp') finalMimeType = 'image/webp';
+            }
+
+            // Create a new blob with the specific type
+            const newBlob = new Blob([blob], { type: finalMimeType });
+            const blobUrl = window.URL.createObjectURL(newBlob);
+            window.open(blobUrl, '_blank');
+
+            // Note: We can't revokeObjectURL immediately as the new tab needs time to load it. 
+        } catch (error) {
+            console.error('View error:', error);
+            window.open(url, '_blank');
+        }
+    };
+
     if (loading || authLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading activity...</p>
+                    <p className="mt-4 text-gray-600">Loading assignment...</p>
                 </div>
             </div>
         );
     }
 
-    if (!activity) {
+    if (!assignment) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Activity not found</h2>
-                    <Button onClick={() => router.push('/account/mentor')}>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Assignment not found</h2>
+                    <Button onClick={() => router.push(`/${lang}/account/mentor`)}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Dashboard
                     </Button>
@@ -146,35 +213,40 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
         );
     }
 
-    const isApproved = activity.activityStatus === 'approved';
-    const canReview = activity.activityStatus === 'submitted' || activity.activityStatus === 'under_review';
-    const isChangesRequested = activity.activityStatus === 'changes_requested';
+    const isApproved = assignment.status === 'approved';
+    const canReview = assignment.status === 'submitted' ||
+        assignment.status === 'under_review' ||
+        (assignment.status === 'in_progress' && assignment.submissionUploads && assignment.submissionUploads.length > 0);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 py-8">
             <div className="container mx-auto px-4 max-w-6xl space-y-8">
                 {/* Header */}
                 <div>
-                    <Button variant="ghost" className="mb-4 pl-0" onClick={() => router.push('/account/mentor')}>
+                    <Button variant="ghost" className="mb-4 pl-0" onClick={() => router.push(`/${lang}/account/mentor`)}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Mentor Dashboard
                     </Button>
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">{activity.title}</h1>
+                            <h1 className="text-3xl font-bold text-gray-900">{assignment.activity?.title || 'Untitled'}</h1>
                             <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-600">
                                 <span className="flex items-center">
                                     <User className="w-4 h-4 mr-1" />
-                                    Student: {activity.assignee?.username || 'Unknown'}
+                                    Student: {assignment.user ? (
+                                        assignment.user.fullName ?
+                                            `${assignment.user.fullName} (${assignment.user.username})` :
+                                            assignment.user.username
+                                    ) : 'Unknown'}
                                 </span>
                                 <span className="flex items-center">
                                     <Calendar className="w-4 h-4 mr-1" />
-                                    Due: {activity.dueDate ? new Date(activity.dueDate).toLocaleDateString() : 'No deadline'}
+                                    Due: {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No deadline'}
                                 </span>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <StatusBadge status={activity.activityStatus} />
+                            <StatusBadge status={assignment.status} />
                         </div>
                     </div>
                 </div>
@@ -214,7 +286,7 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                                 <div>
                                     <p className="font-semibold text-green-900">Activity Approved</p>
                                     <p className="text-sm text-green-700">
-                                        Grade: {activity.grade ?? '-'}/100
+                                        Grade: {assignment.grade ?? '-'}/100
                                     </p>
                                 </div>
                             </div>
@@ -229,9 +301,9 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                         <TabsTrigger value="details">Activity Details</TabsTrigger>
                         <TabsTrigger value="feedback" className="relative">
                             Feedback
-                            {activity.feedbackThread && activity.feedbackThread.length > 0 && (
+                            {assignment.feedback && assignment.feedback.length > 0 && (
                                 <span className="ml-2 px-2 py-0.5 text-xs bg-primary text-white rounded-full">
-                                    {activity.feedbackThread.length}
+                                    {assignment.feedback.length}
                                 </span>
                             )}
                         </TabsTrigger>
@@ -245,13 +317,13 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                                     <CardHeader>
                                         <CardTitle>Student Submission</CardTitle>
                                         <CardDescription>
-                                            Files uploaded by {activity.assignee?.username || 'the student'}
+                                            Files uploaded by {assignment.user ? (assignment.user.fullName || assignment.user.username) : 'the student'}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        {activity.submissionUploads && activity.submissionUploads.length > 0 ? (
+                                        {assignment.submissionUploads && assignment.submissionUploads.length > 0 ? (
                                             <div className="space-y-3">
-                                                {activity.submissionUploads.map((file, i) => (
+                                                {assignment.submissionUploads.map((file, i) => (
                                                     <div
                                                         key={i}
                                                         className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border hover:border-primary transition-colors"
@@ -265,12 +337,30 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                                                                 <p className="text-sm text-gray-500">Click to view/download</p>
                                                             </div>
                                                         </div>
-                                                        <Button variant="outline" asChild>
-                                                            <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                                        <div className="flex gap-2">
+                                                            {/* <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    const fullUrl = getStrapiMedia(file.url);
+                                                                    if (fullUrl) handleView(fullUrl, file.name, file.mime);
+                                                                }}
+                                                            >
+                                                                <Eye className="w-4 h-4 mr-2" />
+                                                                View
+                                                            </Button> */}
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    const fullUrl = getStrapiMedia(file.url);
+                                                                    if (fullUrl) handleDownload(fullUrl, file.name);
+                                                                }}
+                                                            >
                                                                 <Download className="w-4 h-4 mr-2" />
                                                                 Download
-                                                            </a>
-                                                        </Button>
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -317,7 +407,7 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                                         <Separator />
                                         <div className="text-center">
                                             <p className="text-4xl font-bold text-gray-900">
-                                                {activity.grade ?? '--'}
+                                                {assignment.grade ?? '--'}
                                             </p>
                                             <p className="text-gray-500">Current Grade</p>
                                         </div>
@@ -336,12 +426,12 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                                         <CardTitle>Activity Instructions</CardTitle>
                                     </CardHeader>
                                     <CardContent className="prose max-w-none">
-                                        {activity.excerpt && (
-                                            <p className="text-lg text-gray-700 mb-4">{activity.excerpt}</p>
+                                        {assignment.activity?.excerpt && (
+                                            <p className="text-lg text-gray-700 mb-4">{assignment.activity.excerpt}</p>
                                         )}
-                                        {activity.description ? (
-                                            typeof activity.description === 'string' ? (
-                                                <p>{activity.description}</p>
+                                        {assignment.activity?.description ? (
+                                            typeof assignment.activity.description === 'string' ? (
+                                                <p>{assignment.activity.description}</p>
                                             ) : (
                                                 <div className="bg-gray-50 p-4 rounded">
                                                     <p className="text-gray-600">Rich content available</p>
@@ -359,9 +449,9 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                                         <CardTitle>Resources</CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        {activity.downloadables && activity.downloadables.length > 0 ? (
+                                        {assignment.activity?.downloadables && assignment.activity.downloadables.length > 0 ? (
                                             <div className="space-y-2">
-                                                {activity.downloadables.map((file, i) => (
+                                                {assignment.activity.downloadables.map((file, i) => (
                                                     <a
                                                         key={i}
                                                         href={file.url}
@@ -397,8 +487,8 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                             </CardHeader>
                             <CardContent>
                                 <FeedbackThread
-                                    activityId={activity.documentId}
-                                    feedbackThread={activity.feedbackThread}
+                                    assignmentId={assignment.documentId}
+                                    feedbackThread={assignment.feedback}
                                     currentUserRole="mentor"
                                     currentUserName={user?.username || user?.email || 'Mentor'}
                                     onFeedbackAdded={fetchData}
@@ -493,19 +583,19 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
     );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string | null }) {
     const styles: Record<string, string> = {
-        assigned: 'bg-gray-100 text-gray-800',
+        not_started: 'bg-gray-100 text-gray-800',
         in_progress: 'bg-blue-100 text-blue-800',
         submitted: 'bg-yellow-100 text-yellow-800',
         under_review: 'bg-purple-100 text-purple-800',
-        reviewed: 'bg-indigo-100 text-indigo-800',
         approved: 'bg-green-100 text-green-800',
-        changes_requested: 'bg-red-100 text-red-800',
+        needs_changes: 'bg-red-100 text-red-800',
     };
-    const label = status.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const safeStatus = status || 'not_started';
+    const label = safeStatus.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     return (
-        <Badge className={`${styles[status] || 'bg-gray-100'} border-0 text-sm px-3 py-1`}>
+        <Badge className={`${styles[safeStatus] || 'bg-gray-100'} border-0 text-sm px-3 py-1`}>
             {label}
         </Badge>
     );

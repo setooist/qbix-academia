@@ -1,0 +1,50 @@
+{
+    "kind": "collectionType",
+    "collectionName": "submissions",
+    "info": {
+        "singularName": "submission",
+        "pluralName": "submissions",
+        "displayName": "Submission",
+        "description": "Student work"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "activity_assignment": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::activity-assignment.activity-assignment",
+            "inversedBy": "submissions"
+        },
+        "uploaded_files": {
+            "type": "media",
+            "multiple": true,
+            "allowedTypes": [
+                "files",
+                "images",
+                "videos",
+                "audios"
+            ]
+        },
+        "student_note": {
+            "type": "text"
+        },
+        "attempt_number": {
+            "type": "integer"
+        },
+        "is_final": {
+            "type": "boolean",
+            "default": false
+        },
+        "submitted_by": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user"
+        },
+        "submitted_at": {
+            "type": "datetime"
+        }
+    }
+}
