@@ -2,39 +2,38 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Calendar, User, Bookmark, Share2, Lock, Download, FileText } from 'lucide-react';
+import { Calendar, User, Bookmark, Share2, Lock, Download, FileText, Crown } from 'lucide-react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { Downloadable } from '@/lib/api/downloadables';
 import { getStrapiMedia } from '@/lib/strapi/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import Link from 'next/link';
+import { StrapiBlocksRenderer } from '@/lib/utils/strapi-blocks-renderer';
 
 interface DownloadableViewProps {
-    downloadable: Downloadable;
+    readonly downloadable: Downloadable;
 }
 
 export function DownloadableView({ downloadable }: DownloadableViewProps) {
     const { user } = useAuth();
 
     const hasAccess = () => {
-        if (!downloadable.allowedRoles) return false;
-        if (downloadable.allowedRoles.length === 0) return true;
-        const isPubliclyAllowed = downloadable.allowedRoles.some(
-            r => r.type === 'public' || r.name.toLowerCase() === 'public'
-        );
-        if (isPubliclyAllowed) return true;
-        if (!user) return false;
-        const userRoleType = user.role?.type?.toLowerCase();
-        const userRoleName = user.role?.name?.toLowerCase();
+        if (!downloadable) return false;
 
-        return downloadable.allowedRoles.some(r =>
-            (r.type && r.type.toLowerCase() === userRoleType) ||
-            (r.name && r.name.toLowerCase() === userRoleName)
-        );
+        // Check Tiers (Primary Check)
+        if (downloadable.allowedTiers && downloadable.allowedTiers.length > 0) {
+            return checkTierAccess(user, downloadable.allowedTiers);
+        }
+
+        // Fallback to Roles check
+        return checkRoleAccess(user, downloadable.allowedRoles);
     };
 
     const accessible = hasAccess();
+
+    // Determine if it's a subscription-based restriction (for CTA text)
+    const isSubscriptionRestricted = downloadable.allowedTiers && downloadable.allowedTiers.length > 0 && !downloadable.allowedTiers.includes('FREE');
 
     return (
         <article className="py-12">
@@ -51,7 +50,11 @@ export function DownloadableView({ downloadable }: DownloadableViewProps) {
                                 v{downloadable.version}
                             </Badge>
                         )}
-                        {!accessible && <Badge variant="destructive">Member Only</Badge>}
+                        {!accessible && (
+                            <Badge variant="destructive">
+                                {isSubscriptionRestricted ? 'Subscription Required' : 'Member Only'}
+                            </Badge>
+                        )}
                     </div>
 
                     <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
@@ -120,7 +123,7 @@ export function DownloadableView({ downloadable }: DownloadableViewProps) {
                                 fill
                                 priority
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 60vw"
-                                className={`object-cover ${!accessible ? 'grayscale blur-sm' : ''}`}
+                                className={`object-cover ${accessible ? '' : 'grayscale blur-sm'}`}
                             />
                             {!accessible && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
@@ -138,20 +141,7 @@ export function DownloadableView({ downloadable }: DownloadableViewProps) {
                             {typeof downloadable.description === 'string' ? (
                                 <ReactMarkdown>{downloadable.description}</ReactMarkdown>
                             ) : (
-                                Array.isArray(downloadable.description) && downloadable.description.map((block: any, i: number) => {
-                                    if (block.type === 'paragraph') {
-                                        return <p key={i} className="mb-4">{block.children?.map((c: any) => c.text).join('')}</p>
-                                    }
-                                    if (block.type === 'heading') {
-                                        const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
-                                        return <Tag key={i} className="font-bold my-4">{block.children?.map((c: any) => c.text).join('')}</Tag>
-                                    }
-                                    if (block.type === 'list') {
-                                        const Tag = block.format === 'ordered' ? 'ol' : 'ul';
-                                        return <Tag key={i} className="list-disc pl-5 mb-4">{block.children?.map((li: any, j: number) => <li key={j}>{li.children?.map((c: any) => c.text).join('')}</li>)}</Tag>
-                                    }
-                                    return null;
-                                })
+                                <StrapiBlocksRenderer content={downloadable.description} />
                             )}
                         </div>
                     ) : (
@@ -165,15 +155,29 @@ export function DownloadableView({ downloadable }: DownloadableViewProps) {
                             </div>
 
                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-t from-white via-white/90 to-transparent p-8 text-center">
-                                <Lock className="w-12 h-12 text-primary mb-4" />
-                                <h3 className="text-2xl font-bold mb-2">Member Only Resource</h3>
+                                {isSubscriptionRestricted ? (
+                                    <Crown className="w-12 h-12 text-yellow-500 mb-4" />
+                                ) : (
+                                    <Lock className="w-12 h-12 text-primary mb-4" />
+                                )}
+                                <h3 className="text-2xl font-bold mb-2">
+                                    {isSubscriptionRestricted ? 'Subscription Required' : 'Member Only Resource'}
+                                </h3>
                                 <p className="text-gray-600 mb-6 max-w-md">
-                                    Join our community to download this resource and access other exclusive materials.
+                                    {isSubscriptionRestricted
+                                        ? 'Upgrade your subscription to download this resource and access exclusive materials.'
+                                        : 'Log in to download this resource.'}
                                 </p>
                                 <div className="flex gap-4">
-                                    <Button asChild variant="outline" size="lg">
-                                        <Link href="/auth/login">Log In</Link>
-                                    </Button>
+                                    {user ? (
+                                        <Button asChild size="lg" className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white hover:from-yellow-600 hover:to-amber-700 border-0">
+                                            <Link href="/account/subscription">Upgrade Now</Link>
+                                        </Button>
+                                    ) : (
+                                        <Button asChild variant="outline" size="lg">
+                                            <Link href="/auth/login">Log In</Link>
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -190,3 +194,49 @@ export function DownloadableView({ downloadable }: DownloadableViewProps) {
         </article>
     );
 }
+
+function isMentor(user: any): boolean {
+    if (!user) return false;
+    const userRoleName = user.role?.name?.toLowerCase();
+    const userRoleType = user.role?.type?.toLowerCase();
+    return userRoleName === 'mentor' || userRoleType === 'mentor';
+}
+
+function checkTierAccess(user: any, allowedTiers: string[]): boolean {
+    if (allowedTiers.includes('FREE')) return true;
+
+    if (!user) return false;
+    if (isMentor(user)) return true;
+
+    const userTier = user.tier || 'FREE';
+    if (allowedTiers.includes(userTier)) return true;
+
+    if (allowedTiers.includes('SUBSCRIPTION')) {
+        if (user.subscriptionActive === true) return true;
+        return user.subscriptions?.some((sub: any) => sub.subscription_status === 'active') ?? false;
+    }
+
+    return false;
+}
+
+function checkRoleAccess(user: any, allowedRoles: any[] | undefined): boolean {
+    if (!allowedRoles) return false;
+    if (allowedRoles.length === 0) return true;
+
+    const isPubliclyAllowed = allowedRoles.some(
+        (r: any) => r.type === 'public' || r.name.toLowerCase() === 'public'
+    );
+    if (isPubliclyAllowed) return true;
+
+    if (!user) return false;
+    if (isMentor(user)) return true;
+
+    const userRoleType = user.role?.type?.toLowerCase();
+    const userRoleName = user.role?.name?.toLowerCase();
+
+    return allowedRoles.some((r: any) =>
+        (r.type && r.type.toLowerCase() === userRoleType) ||
+        (r.name && r.name.toLowerCase() === userRoleName)
+    );
+}
+

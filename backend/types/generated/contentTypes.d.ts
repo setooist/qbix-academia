@@ -699,6 +699,7 @@ export interface ApiCaseStudieCaseStudie extends Struct.CollectionTypeSchema {
       'manyToMany',
       'plugin::users-permissions.role'
     >;
+    allowedTiers: Schema.Attribute.JSON;
     approach: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -992,6 +993,7 @@ export interface ApiDownloadableDownloadable
       'manyToMany',
       'plugin::users-permissions.role'
     >;
+    allowedTiers: Schema.Attribute.JSON;
     author: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -1106,6 +1108,7 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
       'manyToMany',
       'plugin::users-permissions.role'
     >;
+    allowedTiers: Schema.Attribute.JSON;
     capacity: Schema.Attribute.Integer;
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
     coverImage: Schema.Attribute.Media<'images'>;
@@ -1404,6 +1407,7 @@ export interface ApiRecommendationRecommendation
       'manyToMany',
       'plugin::users-permissions.role'
     >;
+    allowedTiers: Schema.Attribute.JSON;
     authors: Schema.Attribute.Component<'recommendation.author', true>;
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
     coverImage: Schema.Attribute.Media<'images'>;

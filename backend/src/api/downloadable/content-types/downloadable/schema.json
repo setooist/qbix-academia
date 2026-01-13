@@ -121,6 +121,9 @@
       "relation": "manyToMany",
       "target": "plugin::users-permissions.role"
     },
+    "allowedTiers": {
+      "type": "json"
+    },
     "seo": {
       "type": "component",
       "pluginOptions": {
