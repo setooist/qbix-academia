@@ -1,0 +1,109 @@
+{
+    "kind": "collectionType",
+    "collectionName": "recommendations",
+    "info": {
+        "singularName": "recommendation",
+        "pluralName": "recommendations",
+        "displayName": "Recommendation",
+        "description": "Curated learning resources"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {
+        "i18n": {
+            "localized": true
+        }
+    },
+    "attributes": {
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "slug": {
+            "type": "uid",
+            "targetField": "title"
+        },
+        "subtitle": {
+            "type": "string"
+        },
+        "type": {
+            "type": "enumeration",
+            "enum": [
+                "Book",
+                "Tool",
+                "Course",
+                "Article",
+                "Video",
+                "Other"
+            ],
+            "default": "Book",
+            "required": true
+        },
+        "authors": {
+            "type": "component",
+            "repeatable": true,
+            "component": "recommendation.author"
+        },
+        "publisher": {
+            "type": "string"
+        },
+        "category": {
+            "type": "relation",
+            "relation": "oneToOne",
+            "target": "api::category.category"
+        },
+        "tags": {
+            "type": "relation",
+            "relation": "oneToMany",
+            "target": "api::tag.tag"
+        },
+        "editionIsbn": {
+            "type": "string"
+        },
+        "summary": {
+            "type": "blocks"
+        },
+        "keyTakeaways": {
+            "type": "component",
+            "repeatable": true,
+            "component": "recommendation.key-takeaway"
+        },
+        "publicationType": {
+            "type": "string"
+        },
+        "publicationDate": {
+            "type": "date"
+        },
+        "readTime": {
+            "type": "string"
+        },
+        "pages": {
+            "type": "integer"
+        },
+        "sourceUrl": {
+            "type": "string"
+        },
+        "coverImage": {
+            "type": "media",
+            "multiple": false,
+            "required": false,
+            "allowedTypes": [
+                "images"
+            ]
+        },
+        "recommendationNotes": {
+            "type": "blocks"
+        },
+        "allowedRoles": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "plugin::users-permissions.role"
+        },
+        "seo": {
+            "type": "component",
+            "repeatable": true,
+            "component": "shared.seo"
+        }
+    }
+}

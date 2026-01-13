@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_footer_footer_links",
+  "info": {
+    "displayName": "Footer Links"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "internal",
+        "external"
+      ]
+    }
+  },
+  "config": {}
+}

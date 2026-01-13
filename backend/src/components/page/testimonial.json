@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_page_testimonials",
+  "info": {
+    "displayName": "Testimonial"
+  },
+  "options": {},
+  "attributes": {
+    "quote": {
+      "type": "text"
+    },
+    "author": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://qbix-website.vercel.app
+
+# Sitemaps
+Sitemap: https://qbix-website.vercel.app/sitemap.xml
