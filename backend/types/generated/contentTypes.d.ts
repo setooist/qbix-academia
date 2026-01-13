@@ -430,6 +430,131 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiActivityAssignmentActivityAssignment
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'activity_assignments';
+  info: {
+    description: 'One activity assigned to ONE student';
+    displayName: 'Activity Assignment';
+    pluralName: 'activity-assignments';
+    singularName: 'activity-assignment';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    activity_template: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::activity-template.activity-template'
+    >;
+    approved_at: Schema.Attribute.DateTime;
+    assigned_at: Schema.Attribute.DateTime;
+    assignee: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    assignment_status: Schema.Attribute.Enumeration<
+      [
+        'not_started',
+        'in_progress',
+        'submitted',
+        'under_review',
+        'approved',
+        'needs_changes',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'not_started'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    due_date: Schema.Attribute.DateTime;
+    feedback_thread: Schema.Attribute.JSON;
+    grade: Schema.Attribute.Float;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::activity-assignment.activity-assignment'
+    > &
+      Schema.Attribute.Private;
+    mentor: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    reminders: Schema.Attribute.JSON;
+    reviewed_at: Schema.Attribute.DateTime;
+    start_date: Schema.Attribute.DateTime;
+    submissions: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::submission.submission'
+    >;
+    submitted_at: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiActivityTemplateActivityTemplate
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'activity_templates';
+  info: {
+    description: 'Reusable task definition';
+    displayName: 'Activity Template';
+    pluralName: 'activity-templates';
+    singularName: 'activity-template';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    activity_assignments: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::activity-assignment.activity-assignment'
+    >;
+    allowedRoles: Schema.Attribute.Relation<
+      'manyToMany',
+      'plugin::users-permissions.role'
+    >;
+    category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    default_reviewer: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    description: Schema.Attribute.Blocks;
+    downloadables: Schema.Attribute.Media<
+      'files' | 'images' | 'videos' | 'audios',
+      true
+    >;
+    excerpt: Schema.Attribute.Text;
+    go_from_link: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::activity-template.activity-template'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'>;
+    status: Schema.Attribute.Enumeration<
+      ['draft', 'review', 'published', 'archived']
+    > &
+      Schema.Attribute.DefaultTo<'draft'>;
+    tags: Schema.Attribute.Relation<'manyToMany', 'api::tag.tag'>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    visibility: Schema.Attribute.Enumeration<
+      ['public', 'registered', 'role', 'tier', 'allowlist']
+    > &
+      Schema.Attribute.DefaultTo<'registered'>;
+  };
+}
+
 export interface ApiAuthorAuthor extends Struct.CollectionTypeSchema {
   collectionName: 'authors';
   info: {
@@ -506,6 +631,10 @@ export interface ApiBlogBlog extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    editorialStatus: Schema.Attribute.Enumeration<
+      ['Draft', 'In Review', 'Scheduled', 'Published', 'Updated', 'Archived']
+    > &
+      Schema.Attribute.DefaultTo<'Draft'>;
     excerpt: Schema.Attribute.Text &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -984,6 +1113,10 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     description: Schema.Attribute.RichText;
     endDateTime: Schema.Attribute.DateTime;
+    eventStatus: Schema.Attribute.Enumeration<
+      ['Draft', 'Published', 'Registration Open', 'Closed', 'Past']
+    > &
+      Schema.Attribute.DefaultTo<'Draft'>;
     eventType: Schema.Attribute.Enumeration<
       ['Webinar', 'Workshop', 'Masterclass', 'Panel', 'Meetup', 'Other']
     > &
@@ -1308,6 +1441,50 @@ export interface ApiRecommendationRecommendation
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiSubmissionSubmission extends Struct.CollectionTypeSchema {
+  collectionName: 'submissions';
+  info: {
+    description: 'Student work';
+    displayName: 'Submission';
+    pluralName: 'submissions';
+    singularName: 'submission';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    activity_assignment: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::activity-assignment.activity-assignment'
+    >;
+    attempt_number: Schema.Attribute.Integer;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    is_final: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::submission.submission'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    student_note: Schema.Attribute.Text;
+    submitted_at: Schema.Attribute.DateTime;
+    submitted_by: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    uploaded_files: Schema.Attribute.Media<
+      'files' | 'images' | 'videos' | 'audios',
+      true
+    >;
   };
 }
 
@@ -1862,6 +2039,10 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.user'
     > &
       Schema.Attribute.Private;
+    memberStatus: Schema.Attribute.Enumeration<
+      ['Invited', 'Registered', 'Active', 'Suspended']
+    > &
+      Schema.Attribute.DefaultTo<'Registered'>;
     password: Schema.Attribute.Password;
     phone: Schema.Attribute.String;
     provider: Schema.Attribute.String & Schema.Attribute.DefaultTo<'local'>;
@@ -1888,6 +2069,8 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::activity-assignment.activity-assignment': ApiActivityAssignmentActivityAssignment;
+      'api::activity-template.activity-template': ApiActivityTemplateActivityTemplate;
       'api::author.author': ApiAuthorAuthor;
       'api::blog.blog': ApiBlogBlog;
       'api::case-studie.case-studie': ApiCaseStudieCaseStudie;
@@ -1900,6 +2083,7 @@ declare module '@strapi/strapi' {
       'api::navigation.navigation': ApiNavigationNavigation;
       'api::page.page': ApiPagePage;
       'api::recommendation.recommendation': ApiRecommendationRecommendation;
+      'api::submission.submission': ApiSubmissionSubmission;
       'api::tag.tag': ApiTagTag;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

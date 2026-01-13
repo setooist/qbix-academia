@@ -1,0 +1,90 @@
+{
+    "kind": "collectionType",
+    "collectionName": "activity_templates",
+    "info": {
+        "singularName": "activity-template",
+        "pluralName": "activity-templates",
+        "displayName": "Activity Template",
+        "description": "Reusable task definition"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "slug": {
+            "type": "uid",
+            "targetField": "title"
+        },
+        "excerpt": {
+            "type": "text"
+        },
+        "description": {
+            "type": "blocks"
+        },
+        "category": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::category.category"
+        },
+        "tags": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "api::tag.tag"
+        },
+        "downloadables": {
+            "type": "media",
+            "multiple": true,
+            "allowedTypes": [
+                "files",
+                "images",
+                "videos",
+                "audios"
+            ]
+        },
+        "go_from_link": {
+            "type": "string"
+        },
+        "default_reviewer": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user"
+        },
+        "visibility": {
+            "type": "enumeration",
+            "enum": [
+                "public",
+                "registered",
+                "role",
+                "tier",
+                "allowlist"
+            ],
+            "default": "registered"
+        },
+        "allowedRoles": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "plugin::users-permissions.role"
+        },
+        "status": {
+            "type": "enumeration",
+            "enum": [
+                "draft",
+                "review",
+                "published",
+                "archived"
+            ],
+            "default": "draft"
+        },
+        "activity_assignments": {
+            "type": "relation",
+            "relation": "oneToMany",
+            "target": "api::activity-assignment.activity-assignment",
+            "mappedBy": "activity_template"
+        }
+    }
+}

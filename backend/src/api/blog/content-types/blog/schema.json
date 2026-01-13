@@ -35,6 +35,18 @@
       "required": true,
       "unique": true
     },
+    "editorialStatus": {
+      "type": "enumeration",
+      "enum": [
+        "Draft",
+        "In Review",
+        "Scheduled",
+        "Published",
+        "Updated",
+        "Archived"
+      ],
+      "default": "Draft"
+    },
     "slug": {
       "type": "uid",
       "required": true

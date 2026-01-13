@@ -23,19 +23,15 @@ async function createAdminUser() {
 
     if (authError) {
       if (authError.message.includes('already registered')) {
-        console.log('Admin user already exists');
-
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: adminEmail,
           password: adminPassword,
         });
 
         if (signInError) {
-          console.error('Error signing in:', signInError.message);
           return;
         }
 
-        console.log('Signed in as existing admin');
         await updateAdminRole(signInData.user.id);
         return;
       }
@@ -43,17 +39,7 @@ async function createAdminUser() {
     }
 
     if (authData.user) {
-      console.log('Admin user created successfully');
-      console.log('User ID:', authData.user.id);
-
       await updateAdminRole(authData.user.id);
-
-      console.log('\n=================================');
-      console.log('Admin Credentials:');
-      console.log('=================================');
-      console.log('Email:', adminEmail);
-      console.log('Password:', adminPassword);
-      console.log('=================================\n');
     }
   } catch (error) {
     console.error('Error creating admin user:', error);
@@ -67,9 +53,6 @@ async function updateAdminRole(userId: string) {
 
   if (error) {
     console.error('Error promoting to admin:', error.message);
-  } else {
-    console.log('Admin role assigned successfully');
   }
 }
-
 createAdminUser();
