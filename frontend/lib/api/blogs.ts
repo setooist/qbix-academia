@@ -7,13 +7,7 @@ const client = new ApolloClient({
     link: new HttpLink({
         uri: `${STRAPI_URL}/graphql`,
         fetch: (uri: RequestInfo | URL, options?: RequestInit) => {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-            return fetch(uri, {
-                ...options,
-                signal: controller.signal,
-            }).finally(() => clearTimeout(timeoutId));
+            return fetch(uri, options);
         },
     }),
     cache: new InMemoryCache(),
@@ -55,6 +49,7 @@ const GET_BLOGS = gql`
                 name
                 type
             }
+            allowedTiers
         }
     }
 `;
@@ -88,6 +83,7 @@ const GET_BLOG_BY_SLUG = gql`
                 name
                 type
             }
+            allowedTiers
             seo {
               metaTitle
               metaDescription
@@ -126,6 +122,7 @@ export interface BlogPost {
         name: string;
         type: string;
     }[];
+    allowedTiers?: string[] | null;
     seo?: {
         metaTitle: string;
         metaDescription: string;
@@ -143,14 +140,21 @@ interface BlogQueryResponse {
     blogs: BlogPost[];
 }
 
-export async function getBlogs(locale: string = 'en') {
+export async function getBlogs(locale: string = 'en', token?: string) {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
+    const context = token ? {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    } : {};
+
     try {
         const { data, error } = await client.query<BlogsResponse>({
             query: GET_BLOGS,
             variables: { locale: activeLocale },
             fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
+            errorPolicy: 'all',
+            context
         });
         return data?.blogs || [];
     } catch (error) {
@@ -158,15 +162,39 @@ export async function getBlogs(locale: string = 'en') {
     }
 }
 
-export async function getBlogBySlug(slug: string, locale: string = 'en') {
+export async function getBlogBySlug(slug: string, locale: string = 'en', token?: string) {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
+    const context = token ? {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    } : {};
+
     try {
-        const { data, error } = await client.query<BlogQueryResponse>({
+        const result = await client.query<BlogQueryResponse>({
             query: GET_BLOG_BY_SLUG,
             variables: { slug, locale: activeLocale },
             fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
+            errorPolicy: 'all',
+            context
         });
+
+        const { data } = result;
+        // Handle both standard ApolloQueryResult (errors array) and potential QueryResult (error object)
+        const errors = (result as any).errors;
+        const error = (result as any).error;
+
+        const actualErrors = errors || (error?.graphQLErrors ? error.graphQLErrors : null);
+
+        if (actualErrors?.length) {
+            // Check for the specific tier restriction code we added in backend
+            const tierError = actualErrors.find((e: any) => e.message.includes("TIER_RESTRICTED") || e.extensions?.code === 'TIER_RESTRICTED' || e.message.includes('forbidden'));
+
+            if (tierError) {
+                return { error: 'TIER_RESTRICTED' };
+            }
+        }
+
         return data?.blogs[0] || null;
     } catch (error) {
         return null;

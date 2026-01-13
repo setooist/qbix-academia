@@ -18,15 +18,55 @@ export function BlogPostView({ blog }: BlogPostViewProps) {
     const { user } = useAuth();
 
     const hasAccess = () => {
+        if (!blog) return false;
+
+        // Check Tiers (Primary Check)
+        const allowedTiers = blog.allowedTiers;
+        if (allowedTiers && allowedTiers.length > 0) {
+            // If 'FREE' is allowed, everyone has access
+            if (allowedTiers.includes('FREE')) return true;
+
+            if (!user) return false;
+
+            // Check if user is Mentor (Always has access)
+            const userRoleName = user.role?.name?.toLowerCase();
+            const userRoleType = user.role?.type?.toLowerCase();
+            if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
+
+            // Check user tier
+            const userTier = user.tier || 'FREE';
+            if (allowedTiers.includes(userTier)) return true;
+
+            // Also check if user has an active subscription (in case tier wasn't updated)
+            if (allowedTiers.includes('SUBSCRIPTION')) {
+                // Check subscriptionActive flag
+                if (user.subscriptionActive === true) return true;
+
+                // Check subscriptions relation for any active subscription
+                const activeSubscription = user.subscriptions?.some(
+                    (sub: any) => sub.subscription_status === 'active'
+                );
+                if (activeSubscription) return true;
+            }
+
+            return false;
+        }
+
+        // Fallback to Roles check (Original Logic)
         if (!blog.allowedRoles) return false;
         if (blog.allowedRoles.length === 0) return true;
         const isPubliclyAllowed = blog.allowedRoles.some(
             r => r.type === 'public' || r.name.toLowerCase() === 'public'
         );
         if (isPubliclyAllowed) return true;
+
         if (!user) return false;
+
         const userRoleType = user.role?.type?.toLowerCase();
         const userRoleName = user.role?.name?.toLowerCase();
+
+        // Also allow Mentors via role check fallback
+        if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
 
         return blog.allowedRoles.some(r =>
             (r.type && r.type.toLowerCase() === userRoleType) ||
@@ -147,14 +187,11 @@ export function BlogPostView({ blog }: BlogPostViewProps) {
 
                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-t from-white via-white/90 to-transparent p-8 text-center">
                                 <Lock className="w-12 h-12 text-primary mb-4" />
-                                <h3 className="text-2xl font-bold mb-2">Member Only Content</h3>
+                                <h3 className="text-2xl font-bold mb-2">Subscription Required</h3>
                                 <p className="text-gray-600 mb-6 max-w-md">
                                     Join our community to access this full article and other exclusive resources.
                                 </p>
                                 <div className="flex gap-4">
-                                    <Button asChild size="lg">
-                                        <Link href="/auth/register">Sign Up Free</Link>
-                                    </Button>
                                     <Button asChild variant="outline" size="lg">
                                         <Link href="/auth/login">Log In</Link>
                                     </Button>

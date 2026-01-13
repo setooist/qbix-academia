@@ -280,14 +280,9 @@ export function Navigation() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
-                <Button asChild variant="ghost" className="text-gray-700 hover:text-primary hover:bg-gray-100 transition-all duration-300 font-medium">
-                  <Link href={getLocalizedHref('/auth/login', locale)}>Log In</Link>
-                </Button>
-                <Button asChild className="bg-gradient-to-r from-primary to-orange hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-105 font-medium">
-                  <Link href={getLocalizedHref('/auth/signup', locale)}>Sign Up</Link>
-                </Button>
-              </>
+              <Button asChild className="bg-gradient-to-r from-primary to-orange hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-105 font-medium">
+                <Link href={getLocalizedHref('/auth/login', locale)}>Log In</Link>
+              </Button>
             )}
           </div>
 
@@ -446,14 +441,9 @@ export function Navigation() {
 
             {!user && (
               <div className="border-t border-gray-200 mt-4 pt-4 space-y-3">
-                <Button asChild variant="ghost" className="w-full justify-center text-gray-700 hover:text-primary hover:bg-gray-100 font-medium h-12">
+                <Button asChild className="w-full bg-gradient-to-r from-primary to-orange hover:shadow-lg hover:shadow-primary/30 font-medium h-12">
                   <Link href={getLocalizedHref('/auth/login', locale)} onClick={() => setMobileMenuOpen(false)}>
                     Log In
-                  </Link>
-                </Button>
-                <Button asChild className="w-full bg-gradient-to-r from-primary to-orange hover:shadow-lg hover:shadow-primary/30 font-medium h-12">
-                  <Link href={getLocalizedHref('/auth/signup', locale)} onClick={() => setMobileMenuOpen(false)}>
-                    Sign Up
                   </Link>
                 </Button>
               </div>

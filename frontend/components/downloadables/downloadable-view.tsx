@@ -171,9 +171,6 @@ export function DownloadableView({ downloadable }: DownloadableViewProps) {
                                     Join our community to download this resource and access other exclusive materials.
                                 </p>
                                 <div className="flex gap-4">
-                                    <Button asChild size="lg">
-                                        <Link href="/auth/register">Sign Up Free</Link>
-                                    </Button>
                                     <Button asChild variant="outline" size="lg">
                                         <Link href="/auth/login">Log In</Link>
                                     </Button>

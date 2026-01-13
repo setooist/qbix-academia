@@ -55,6 +55,28 @@
             "relation": "manyToOne",
             "target": "plugin::users-permissions.role",
             "inversedBy": "users"
+        },
+        "tier": {
+            "type": "enumeration",
+            "enum": [
+                "FREE",
+                "QBIX",
+                "SUBSCRIPTION"
+            ],
+            "default": "FREE"
+        },
+        "subscriptionActive": {
+            "type": "boolean",
+            "default": false
+        },
+        "subscriptionValidTill": {
+            "type": "datetime"
+        },
+        "subscriptions": {
+            "type": "relation",
+            "relation": "oneToMany",
+            "target": "api::subscription.subscription",
+            "mappedBy": "user"
         }
     }
 }
