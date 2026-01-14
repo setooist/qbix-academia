@@ -32,6 +32,16 @@
         "bio": {
             "type": "text"
         },
+        "memberStatus": {
+            "type": "enumeration",
+            "enum": [
+                "Invited",
+                "Registered",
+                "Active",
+                "Suspended"
+            ],
+            "default": "Registered"
+        },
         "confirmed": {
             "type": "boolean",
             "default": false

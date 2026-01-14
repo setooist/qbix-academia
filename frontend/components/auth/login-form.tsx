@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { signIn } from '@/lib/strapi/auth';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { localeConfig } from '@/config/locale-config';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -16,6 +17,8 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const params = useParams();
+  const lang = params?.lang || 'en';
   const { toast } = useToast();
   const { refreshUser } = useAuth();
 
@@ -25,12 +28,28 @@ export function LoginForm() {
 
     try {
       await signIn(email, password);
-      await refreshUser(); // Fetch and update user profile in context after login
+      const user = await refreshUser(); // Fetch and update user profile in context after login
+
+      // Store role in local storage if available
+      if (user?.role) {
+        localStorage.setItem('user_role', user.role.type || user.role.name || 'authenticated');
+      }
+
       toast({
         title: 'Success',
         description: 'You have been logged in successfully.',
       });
-      router.push('/');
+
+      // Check URL prefix based on config
+      const urlPrefix = localeConfig.multilanguage.enabled ? `/${lang}` : '';
+
+      // Check if user is mentor and redirect
+      if (user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') {
+        router.push(`${urlPrefix}/account/mentor`);
+      } else {
+        router.push(`${urlPrefix}/account/activities`);
+      }
+
       router.refresh();
     } catch (error: any) {
       console.error('Login Error:', error);
@@ -45,6 +64,7 @@ export function LoginForm() {
         title: 'Login Failed',
         description: errorMessage,
         variant: 'destructive',
+        duration: 5000,
       });
     } finally {
       setLoading(false);

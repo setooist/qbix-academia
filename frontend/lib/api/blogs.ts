@@ -38,6 +38,7 @@ const GET_BLOGS = gql`
             published
             readTime
             author
+            editorialStatus
             coverImage {
                 url
                 alternativeText
@@ -70,6 +71,7 @@ const GET_BLOG_BY_SLUG = gql`
             published
             readTime
             author
+            editorialStatus
             coverImage {
                 url
                 alternativeText
@@ -107,6 +109,7 @@ export interface BlogPost {
     published?: string | null;
     readTime?: number | null;
     author?: string | null;
+    editorialStatus?: 'Draft' | 'In Review' | 'Scheduled' | 'Published' | 'Updated' | 'Archived';
     coverImage?: {
         url: string;
         alternativeText: string | null;

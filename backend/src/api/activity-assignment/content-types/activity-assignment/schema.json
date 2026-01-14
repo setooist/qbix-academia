@@ -1,0 +1,77 @@
+{
+    "kind": "collectionType",
+    "collectionName": "activity_assignments",
+    "info": {
+        "singularName": "activity-assignment",
+        "pluralName": "activity-assignments",
+        "displayName": "Activity Assignment",
+        "description": "One activity assigned to ONE student"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "activity_template": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::activity-template.activity-template",
+            "inversedBy": "activity_assignments"
+        },
+        "assignee": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user"
+        },
+        "mentor": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user"
+        },
+        "start_date": {
+            "type": "datetime"
+        },
+        "due_date": {
+            "type": "datetime"
+        },
+        "reminders": {
+            "type": "json"
+        },
+        "assignment_status": {
+            "type": "enumeration",
+            "enum": [
+                "not_started",
+                "in_progress",
+                "submitted",
+                "under_review",
+                "approved",
+                "needs_changes"
+            ],
+            "default": "not_started"
+        },
+        "grade": {
+            "type": "float"
+        },
+        "assigned_at": {
+            "type": "datetime"
+        },
+        "submitted_at": {
+            "type": "datetime"
+        },
+        "reviewed_at": {
+            "type": "datetime"
+        },
+        "approved_at": {
+            "type": "datetime"
+        },
+        "feedback_thread": {
+            "type": "json"
+        },
+        "submissions": {
+            "type": "relation",
+            "relation": "oneToMany",
+            "target": "api::submission.submission",
+            "mappedBy": "activity_assignment"
+        }
+    }
+}
