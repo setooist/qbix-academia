@@ -34,6 +34,7 @@ export default [
   {
     name: 'strapi::body',
     config: {
+      includeUnparsed: true,
       formLimit: '256mb', // increase limit
       jsonLimit: '256mb',
       textLimit: '256mb',

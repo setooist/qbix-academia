@@ -12,7 +12,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Clock, Calendar, ArrowRight, Lock, Download, FileText } from 'lucide-react';
+import { Calendar, ArrowRight, Lock, FileText, Crown } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -20,43 +20,90 @@ import { Downloadable } from '@/lib/api/downloadables';
 import { getStrapiMedia } from '@/lib/strapi/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 
+const isMentor = (user: any) => {
+    if (!user?.role) return false;
+    const name = user.role.name?.toLowerCase();
+    const type = user.role.type?.toLowerCase();
+    return name === 'mentor' || type === 'mentor';
+};
+
+const hasActiveSubscription = (user: any) => {
+    if (user.subscriptionActive === true) return true;
+    return user.subscriptions?.some((sub: any) => sub.subscription_status === 'active');
+};
+
+const checkTierAccess = (allowedTiers: string[], user: any) => {
+    if (allowedTiers.includes('FREE')) return true;
+    if (!user) return false;
+    if (isMentor(user)) return true;
+
+    const userTier = user.tier || 'FREE';
+    if (allowedTiers.includes(userTier)) return true;
+
+    if (allowedTiers.includes('SUBSCRIPTION') && hasActiveSubscription(user)) {
+        return true;
+    }
+
+    return false;
+};
+
+const checkRoleAccess = (allowedRoles: Downloadable['allowedRoles'], user: any) => {
+    if (!allowedRoles) return false;
+    if (allowedRoles.length === 0) return true;
+
+    const isPubliclyAllowed = allowedRoles.some(
+        r => r.type === 'public' || r.name?.toLowerCase() === 'public'
+    );
+    if (isPubliclyAllowed) return true;
+
+    if (!user) return false;
+    if (isMentor(user)) return true;
+
+    const userRoleType = user.role?.type?.toLowerCase();
+    const userRoleName = user.role?.name?.toLowerCase();
+
+    return allowedRoles.some(r =>
+        (r.type && r.type.toLowerCase() === userRoleType) ||
+        (r.name && r.name.toLowerCase() === userRoleName)
+    );
+};
+
 interface DownloadableListProps {
-    downloadables: Downloadable[];
+    readonly downloadables: Downloadable[];
 }
 
 export function DownloadableList({ downloadables }: DownloadableListProps) {
     const { user } = useAuth();
     const router = useRouter();
     const [showLoginModal, setShowLoginModal] = useState(false);
+    const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
     const hasAccess = (item: Downloadable) => {
         if (!item) return false;
-        if (!item.allowedRoles) return false;
-        if (item.allowedRoles.length === 0) return true;
-        const isPubliclyAllowed = item.allowedRoles.some(
-            r => r.type === 'public' || r.name.toLowerCase() === 'public'
-        );
-        if (isPubliclyAllowed) return true;
-        if (!user) return false;
-        const userRoleType = user.role?.type?.toLowerCase();
-        const userRoleName = user.role?.name?.toLowerCase();
-        return item.allowedRoles.some(r =>
-            (r.type && r.type.toLowerCase() === userRoleType) ||
-            (r.name && r.name.toLowerCase() === userRoleName)
-        );
+
+        const { allowedTiers, allowedRoles } = item;
+        if (allowedTiers && allowedTiers.length > 0) {
+            return checkTierAccess(allowedTiers, user);
+        }
+
+        return checkRoleAccess(allowedRoles, user);
     };
 
     const handleCardClick = (e: React.MouseEvent, accessible: boolean) => {
         if (!accessible) {
             e.preventDefault();
-            setShowLoginModal(true);
+            if (user) {
+                setShowSubscriptionModal(true);
+            } else {
+                setShowLoginModal(true);
+            }
         }
     };
 
     return (
         <>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {downloadables.filter(item => item).map((item) => {
+                {downloadables.filter(Boolean).map((item) => {
                     const accessible = hasAccess(item);
                     const LinkWrapper = accessible ? Link : 'div';
                     const linkProps = accessible ? { href: `/downloadables/${item.slug}` } : {};
@@ -168,6 +215,30 @@ export function DownloadableList({ downloadables }: DownloadableListProps) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Subscription Modal */}
+            <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Crown className="w-5 h-5 text-yellow-500" />
+                            <DialogTitle>Premium Content</DialogTitle>
+                        </div>
+                        <DialogDescription>
+                            This downloadable is exclusive to premium members. Upgrade your plan to unlock full access.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 sm:gap-0">
+                        <Button variant="outline" onClick={() => setShowSubscriptionModal(false)}>
+                            Maybe Later
+                        </Button>
+                        <Button className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white hover:from-yellow-600 hover:to-amber-700 border-0" onClick={() => router.push('/account/subscription')}>
+                            Upgrade Now
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
+

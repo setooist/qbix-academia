@@ -9,7 +9,8 @@ import {
     GraduationCap,
     BookOpen,
     User,
-    LayoutDashboard
+    LayoutDashboard,
+    CreditCard
 } from 'lucide-react';
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
@@ -45,6 +46,12 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
             label: 'My Library',
             icon: BookOpen,
             description: 'Saved resources'
+        },
+        {
+            href: getHref('/account/subscription'),
+            label: 'Subscription',
+            icon: CreditCard,
+            description: 'Manage your plan'
         },
         {
             href: getHref('/account/profile'),
