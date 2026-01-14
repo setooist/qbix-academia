@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +12,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { BookOpen, Link as LinkIcon, Lock, Star, ExternalLink } from 'lucide-react';
+import { BookOpen, Lock, ExternalLink, Crown } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -21,42 +21,91 @@ import { getStrapiMedia } from '@/lib/strapi/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 
 interface RecommendationListProps {
-    recommendations: Recommendation[];
+    readonly recommendations: Recommendation[];
 }
 
 export function RecommendationList({ recommendations }: RecommendationListProps) {
     const { user } = useAuth();
     const router = useRouter();
     const [showLoginModal, setShowLoginModal] = useState(false);
+    const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
-    const hasAccess = (item: Recommendation) => {
-        if (!item) return false;
+    const checkTierAccess = (item: Recommendation) => {
+        const allowedTiers = item.allowedTiers;
+        if (!allowedTiers || allowedTiers.length === 0) return false;
+
+        if (allowedTiers.includes('FREE')) return true;
+
+        if (!user) return false;
+
+        // Check if user is Mentor (Always has access)
+        const userRoleName = user.role?.name?.toLowerCase();
+        const userRoleType = user.role?.type?.toLowerCase();
+        if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
+
+        // Check user tier
+        const userTier = user.tier || 'FREE';
+        if (allowedTiers.includes(userTier)) return true;
+
+        // Check subscription
+        if (allowedTiers.includes('SUBSCRIPTION')) {
+            if (user.subscriptionActive === true) return true;
+            return user.subscriptions?.some(
+                (sub: any) => sub.subscription_status === 'active'
+            ) ?? false;
+        }
+
+        return false;
+    };
+
+    const checkRoleAccess = (item: Recommendation) => {
         if (!item.allowedRoles) return false;
         if (item.allowedRoles.length === 0) return true;
+
         const isPubliclyAllowed = item.allowedRoles.some(
             r => r.type === 'public' || r.name.toLowerCase() === 'public'
         );
         if (isPubliclyAllowed) return true;
+
         if (!user) return false;
-        const userRoleType = user.role?.type?.toLowerCase();
+
         const userRoleName = user.role?.name?.toLowerCase();
+        const userRoleType = user.role?.type?.toLowerCase();
+        if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
+
         return item.allowedRoles.some(r =>
             (r.type && r.type.toLowerCase() === userRoleType) ||
             (r.name && r.name.toLowerCase() === userRoleName)
         );
     };
 
+    const hasAccess = (item: Recommendation): boolean => {
+        if (!item) return false;
+
+        // Check Tiers (Primary Check)
+        if (item.allowedTiers && item.allowedTiers.length > 0) {
+            return checkTierAccess(item);
+        }
+
+        // Fallback to Roles check
+        return checkRoleAccess(item);
+    };
+
     const handleCardClick = (e: React.MouseEvent, accessible: boolean) => {
         if (!accessible) {
             e.preventDefault();
-            setShowLoginModal(true);
+            if (user) {
+                setShowSubscriptionModal(true);
+            } else {
+                setShowLoginModal(true);
+            }
         }
     };
 
     return (
         <>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {recommendations.filter(item => item).map((item) => {
+                {recommendations.filter(Boolean).map((item) => {
                     const accessible = hasAccess(item);
                     const LinkWrapper = accessible ? Link : 'div';
                     const linkProps = accessible ? { href: `/recommendations/${item.slug}` } : {};
@@ -161,6 +210,30 @@ export function RecommendationList({ recommendations }: RecommendationListProps)
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Subscription Modal */}
+            <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Crown className="w-5 h-5 text-yellow-500" />
+                            <DialogTitle>Premium Content</DialogTitle>
+                        </div>
+                        <DialogDescription>
+                            This recommendation is exclusive to premium members. Upgrade your plan to unlock full access.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 sm:gap-0">
+                        <Button variant="outline" onClick={() => setShowSubscriptionModal(false)}>
+                            Maybe Later
+                        </Button>
+                        <Button className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white hover:from-yellow-600 hover:to-amber-700 border-0" onClick={() => router.push('/account/subscription')}>
+                            Upgrade Now
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
+

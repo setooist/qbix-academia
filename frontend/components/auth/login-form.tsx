@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { signIn } from '@/lib/strapi/auth';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Button } from '@/components/ui/button';
@@ -18,9 +19,17 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const lang = params?.lang || 'en';
   const { toast } = useToast();
   const { refreshUser } = useAuth();
+
+  const getLocalizedHref = (href: string) => {
+    if (localeConfig.multilanguage.enabled) {
+      return `/${lang}${href}`;
+    }
+    return href;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,9 +51,11 @@ export function LoginForm() {
 
       // Check URL prefix based on config
       const urlPrefix = localeConfig.multilanguage.enabled ? `/${lang}` : '';
+      const redirectUrl = searchParams.get('redirect');
 
-      // Check if user is mentor and redirect
-      if (user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') {
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else if (user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') {
         router.push(`${urlPrefix}/account/mentor`);
       } else {
         router.push(`${urlPrefix}/account/activities`);
@@ -55,13 +66,23 @@ export function LoginForm() {
       console.error('Login Error:', error);
 
       let errorMessage = error?.message || error?.error?.message || 'Failed to login. Please check your credentials.';
+      let errorTitle = 'Login Failed';
 
-      if (errorMessage.toLowerCase().includes('invalid')) {
+      // Check for blocked/unapproved account
+      if (
+        errorMessage.toLowerCase().includes('blocked') ||
+        errorMessage.toLowerCase().includes('confirmed') ||
+        errorMessage.toLowerCase().includes('not confirmed') ||
+        errorMessage.toLowerCase().includes('approval')
+      ) {
+        errorTitle = 'Account Pending Approval';
+        errorMessage = 'Your account is pending admin approval. You will be notified via email once your account is approved.';
+      } else if (errorMessage.toLowerCase().includes('invalid')) {
         errorMessage = 'Invalid email or password. Please try again.';
       }
 
       toast({
-        title: 'Login Failed',
+        title: errorTitle,
         description: errorMessage,
         variant: 'destructive',
         duration: 5000,
@@ -108,6 +129,18 @@ export function LoginForm() {
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? 'Logging in...' : 'Log In'}
       </Button>
+
+      {/* <div className="text-center pt-4 border-t border-gray-200">
+        <p className="text-sm text-gray-600">
+          New student?{' '}
+          <Link
+            href={getLocalizedHref('/auth/signup')}
+            className="font-semibold text-primary hover:text-primary/80 transition-colors"
+          >
+            Create an account
+          </Link>
+        </p>
+      </div> */}
     </form>
   );
 }

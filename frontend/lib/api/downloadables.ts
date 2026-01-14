@@ -53,6 +53,7 @@ const GET_DOWNLOADABLES = gql`
                 name
                 type
             }
+            allowedTiers
             version
             file {
                 url
@@ -92,6 +93,7 @@ const GET_DOWNLOADABLE_BY_SLUG = gql`
                 name
                 type
             }
+            allowedTiers
             seo {
               metaTitle
               metaDescription
@@ -140,6 +142,7 @@ export interface Downloadable {
         name: string;
         type: string;
     }[];
+    allowedTiers?: string[] | null;
     seo?: {
         metaTitle: string;
         metaDescription: string;
@@ -179,6 +182,7 @@ export async function getDownloadables(locale: string = 'en') {
         });
         return data?.downloadables || [];
     } catch (error) {
+        console.error("Error fetching downloadables:", error);
         return [];
     }
 }
@@ -195,6 +199,7 @@ export async function getDownloadableBySlug(slug: string, locale: string = 'en')
 
         return data?.downloadables[0] || null;
     } catch (error) {
+        console.error("Error fetching downloadable by slug:", error);
         return null;
     }
 }
@@ -224,6 +229,7 @@ export async function getDownloadableListPageSeo() {
         });
         return data?.pages?.[0] || null;
     } catch (error) {
+        console.error("Error fetching downloadable list page SEO:", error);
         return null;
     }
 }

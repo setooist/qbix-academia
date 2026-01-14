@@ -55,6 +55,7 @@ const GET_CASE_STUDIES = gql`
                 name
                 type
             }
+            allowedTiers
         }
     }
 `;
@@ -87,6 +88,7 @@ const GET_CASE_STUDY_BY_SLUG = gql`
                 name
                 type
             }
+            allowedTiers
         }
     }
 `;
@@ -117,6 +119,7 @@ export interface CaseStudy {
         name: string;
         type: string;
     }[];
+    allowedTiers?: string[] | null;
     excerpt?: string;
     content?: string | any[];
     author?: string;

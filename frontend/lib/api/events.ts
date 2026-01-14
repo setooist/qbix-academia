@@ -56,6 +56,7 @@ const GET_EVENTS = gql`
                 name
                 type
             }
+            allowedTiers
         }
     }
 `;
@@ -130,6 +131,7 @@ const GET_EVENT_BY_SLUG = gql`
                 name
                 type
             }
+            allowedTiers
             seo {
                 metaTitle
                 metaDescription
@@ -209,6 +211,7 @@ export interface Event {
         name: string;
         type: string;
     }[];
+    allowedTiers?: string[] | null;
     seo?: any[];
 }
 

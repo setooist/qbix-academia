@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Event } from '@/lib/api/events';
 import { getStrapiMedia } from '@/lib/strapi/client';
-import { Calendar, MapPin, Monitor, Lock } from 'lucide-react';
+import { Calendar, MapPin, Monitor, Lock, Crown } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Badge } from '@/components/ui/badge';
@@ -20,14 +20,67 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 
+function checkTierAccess(user: any, allowedTiers: string[]) {
+    // If 'FREE' is allowed, everyone has access
+    if (allowedTiers.includes('FREE')) return true;
+
+    if (!user) return false;
+
+    // Check if user is Mentor (Always has access)
+    const userRoleName = user.role?.name?.toLowerCase();
+    const userRoleType = user.role?.type?.toLowerCase();
+    if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
+
+    // Check user tier
+    const userTier = user.tier || 'FREE';
+    if (allowedTiers.includes(userTier)) return true;
+
+    // Also check if user has an active subscription (in case tier wasn't updated)
+    if (allowedTiers.includes('SUBSCRIPTION')) {
+        // Check subscriptionActive flag
+        if (user.subscriptionActive === true) return true;
+
+        // Check subscriptions relation for any active subscription
+        const activeSubscription = user.subscriptions?.some(
+            (sub: any) => sub.subscription_status === 'active'
+        );
+        if (activeSubscription) return true;
+    }
+
+    return false;
+}
+
+function checkRoleAccess(user: any, allowedRoles: any[]) {
+    if (allowedRoles.length === 0) return true;
+
+    const isPubliclyAllowed = allowedRoles.some(
+        (r: any) => r.type === 'public' || r.name.toLowerCase() === 'public'
+    );
+    if (isPubliclyAllowed) return true;
+
+    if (!user) return false;
+
+    const userRoleType = user.role?.type?.toLowerCase();
+    const userRoleName = user.role?.name?.toLowerCase();
+
+    // Also allow Mentors via role check fallback
+    if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
+
+    return allowedRoles.some((r: any) =>
+        (r.type && r.type.toLowerCase() === userRoleType) ||
+        (r.name && r.name.toLowerCase() === userRoleName)
+    );
+}
+
 interface EventListProps {
-    events: Event[];
+    readonly events: readonly Event[];
 }
 
 export function EventList({ events }: EventListProps) {
     const { user } = useAuth();
     const router = useRouter();
     const [showLoginModal, setShowLoginModal] = useState(false);
+    const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
     if (!events || events.length === 0) {
         return (
@@ -37,10 +90,28 @@ export function EventList({ events }: EventListProps) {
         );
     }
 
+    const hasAccess = (event: Event) => {
+        if (!event) return false;
+
+        // Check Tiers (Primary Check)
+        const allowedTiers = event.allowedTiers;
+        if (allowedTiers && allowedTiers.length > 0) {
+            return checkTierAccess(user, allowedTiers);
+        }
+
+        // Fallback to Roles check (Original Logic)
+        const allowedRoles = event.allowedRoles || [];
+        return checkRoleAccess(user, allowedRoles);
+    };
+
     const handleCardClick = (e: React.MouseEvent, accessible: boolean) => {
         if (!accessible) {
             e.preventDefault();
-            setShowLoginModal(true);
+            if (user) {
+                setShowSubscriptionModal(true);
+            } else {
+                setShowLoginModal(true);
+            }
         }
     };
 
@@ -50,12 +121,8 @@ export function EventList({ events }: EventListProps) {
                 {events.map((event) => {
                     const imageUrl = event.coverImage ? getStrapiMedia(event.coverImage.url) : null;
                     const startDate = new Date(event.startDateTime);
-
-                    // Check Access
-                    const allowedRoles = event.allowedRoles || [];
-                    const isPublic = allowedRoles.length === 0 || allowedRoles.some(r => r.type === 'public' || (r.name && r.name.toLowerCase() === 'public'));
-                    const userHasAccess = user && allowedRoles.some(r => r.type === user.role?.type || (user.role?.name && r.name === user.role.name));
-                    const accessible = Boolean(isPublic || userHasAccess);
+                    const accessible = hasAccess(event);
+                    const isLocalImage = imageUrl?.includes('localhost') || imageUrl?.includes('127.0.0.1');
 
                     const LinkWrapper = accessible ? Link : 'div';
                     const linkProps = accessible ? { href: `/events/${event.slug}` } : {};
@@ -74,6 +141,7 @@ export function EventList({ events }: EventListProps) {
                                         src={imageUrl}
                                         alt={event.coverImage?.alternativeText || event.title}
                                         fill
+                                        unoptimized={isLocalImage}
                                         className={`object-cover transition-transform duration-300 ${accessible ? 'group-hover:scale-105' : 'grayscale blur-[2px]'}`}
                                     />
                                 ) : (
@@ -162,6 +230,29 @@ export function EventList({ events }: EventListProps) {
                         </Button>
                         <Button onClick={() => router.push('/auth/login')}>
                             Login
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Subscription Modal */}
+            <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Crown className="w-5 h-5 text-yellow-500" />
+                            <DialogTitle>Premium Content</DialogTitle>
+                        </div>
+                        <DialogDescription>
+                            This event is exclusive to premium members. Upgrade your plan to unlock full access.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 sm:gap-0">
+                        <Button variant="outline" onClick={() => setShowSubscriptionModal(false)}>
+                            Maybe Later
+                        </Button>
+                        <Button className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white hover:from-yellow-600 hover:to-amber-700 border-0" onClick={() => router.push('/account/subscription')}>
+                            Upgrade Now
                         </Button>
                     </DialogFooter>
                 </DialogContent>

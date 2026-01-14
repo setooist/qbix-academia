@@ -15,6 +15,8 @@ export const metadata: Metadata = {
 
 import { i18nConfig } from '@/config/i18n';
 
+import { Suspense } from 'react';
+
 export async function generateStaticParams() {
   return i18nConfig.locales.map((locale) => ({ lang: locale }));
 }
@@ -31,7 +33,9 @@ export default async function RootLayout({
     <html lang={lang}>
       <body>
         <AuthProvider>
-          <Navigation />
+          <Suspense fallback={<div className="h-20 bg-white/80" />}>
+            <Navigation />
+          </Suspense>
           <main className="min-h-screen">
             {children}
           </main>
