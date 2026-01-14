@@ -22,18 +22,29 @@ export function Footer() {
   const address = footerData?.Address;
   const columns = (footerData?.Column || []).filter(col => col.links && col.links.length > 0).slice(0, 2);
   const bottom = footerData?.Bottum[0];
+
+  // Get logo from Strapi or use fallback
+  const logoUrl = bottom?.logo && bottom.logo.length > 0
+    ? getStrapiMedia(bottom.logo[0].url)
+    : '/logo.png';
+  const logoAlt = bottom?.logo && bottom.logo.length > 0
+    ? (bottom.logo[0].alternativeText || bottom?.altText || 'QBIX Academia Logo')
+    : 'QBIX Academia Logo';
+  const isLocalLogo = logoUrl?.includes('localhost') || logoUrl?.includes('127.0.0.1');
+
   return (
     <footer className="bg-secondary text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <Link href="/" className="inline-block mb-4 group bg-white">
-              <div className="transition-transform duration-300 group-hover:scale-105 bg-white/10 backdrop-blur-sm rounded-lg p-3">
+            <Link href={bottom?.link || "/"} className="inline-block mb-4 group">
+              <div className="transition-transform duration-300 group-hover:scale-105 backdrop-blur-sm rounded-lg p-3">
                 <Image
-                  src="/logo-transparent copy.png"
-                  alt="QBIX Academia Logo"
+                  src={logoUrl || '/logo.png'}
+                  alt={logoAlt}
                   width={200}
                   height={55}
+                  unoptimized={isLocalLogo}
                   className="drop-shadow-xl"
                 />
               </div>
@@ -52,12 +63,12 @@ export function Footer() {
           </div>
 
           {/* Dynamic Columns */}
-          {columns.map((col, idx) => (
-            <div key={idx}>
+          {columns.map((col) => (
+            <div key={col.title}>
               <h3 className="text-lg font-semibold mb-4">{col.title}</h3>
               <ul className="space-y-2 text-sm">
-                {col.links.map((link, lIdx) => (
-                  <li key={lIdx}>
+                {col.links.map((link) => (
+                  <li key={`${link.label}-${link.url}`}>
                     {link.type === 'internal' ? (
                       <Link href={link.url} className="text-gray-300 hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block">
                         {link.label}
@@ -100,7 +111,7 @@ export function Footer() {
               </li>
               <li className="flex items-start group">
                 <Phone className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5 transition-transform duration-300 group-hover:scale-110" />
-                <a href={`tel:${(address?.phone || '+91 1234567890').replace(/\s/g, '')}`} className="text-gray-300 hover:text-primary transition-colors">
+                <a href={`tel:${(address?.phone || '+91 1234567890').replaceAll(/\s/g, '')}`} className="text-gray-300 hover:text-primary transition-colors">
                   {address?.phone || '+91 1234567890'}
                 </a>
               </li>

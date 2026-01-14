@@ -1,8 +1,12 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { LoginForm } from '@/components/auth/login-form';
 import { Navigation } from '@/components/layout/navigation';
 import { Footer } from '@/components/layout/footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
   return (
@@ -31,13 +35,15 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginForm />
-            <div className="mt-6 text-center text-sm">
+            <Suspense fallback={<div className="flex justify-center py-4"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
+              <LoginForm />
+            </Suspense>
+            {/* <div className="mt-6 text-center text-sm">
               <span className="text-muted-foreground">Don't have an account? </span>
               <Link href="/auth/signup" className="text-primary hover:underline font-medium">
                 Sign up
               </Link>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </main>

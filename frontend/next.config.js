@@ -10,7 +10,7 @@ try {
   strapiHostname = url.hostname;
   strapiPort = url.port;
 } catch (e) {
-  console.warn("Invalid NEXT_PUBLIC_STRAPI_URL, using default localhost:1337");
+  console.warn("Invalid Strapi backend URL", e);
 }
 
 const nextConfig = {
@@ -36,6 +36,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'images.pexels.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'holy-chickens-9e70e06b5d.media.strapiapp.com',
       },
     ],
   },

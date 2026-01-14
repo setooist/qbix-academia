@@ -1,14 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { signUp } from '@/lib/strapi/auth';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle2, Clock, Mail } from 'lucide-react';
+import { localeConfig } from '@/config/locale-config';
 
 export function SignupForm() {
   const [fullName, setFullName] = useState('');
@@ -17,9 +19,18 @@ export function SignupForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [signupSuccess, setSignupSuccess] = useState(false);
   const { toast } = useToast();
   const { refreshUser } = useAuth();
+  const params = useParams();
+  const lang = params?.lang || 'en';
+
+  const getLocalizedHref = (href: string) => {
+    if (localeConfig.multilanguage.enabled) {
+      return `/${lang}${href}`;
+    }
+    return href;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,12 +38,11 @@ export function SignupForm() {
 
     try {
       await signUp(email, password, fullName, phone);
+      setSignupSuccess(true);
       toast({
-        title: 'Success',
-        description: 'Your account has been created successfully. Please log in.',
+        title: 'Registration Submitted',
+        description: 'Your account request has been submitted for approval.',
       });
-      router.push('/auth/login');
-      router.refresh();
     } catch (error: any) {
       console.error('Signup Error:', error);
 
@@ -61,6 +71,52 @@ export function SignupForm() {
       setLoading(false);
     }
   };
+
+  // Success state - show approval pending message
+  if (signupSuccess) {
+    return (
+      <div className="text-center space-y-6 py-4">
+        <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+          <CheckCircle2 className="w-10 h-10 text-green-600" />
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold text-gray-900">Registration Submitted!</h3>
+          <p className="text-gray-600">
+            Thank you for registering, <span className="font-medium">{fullName}</span>!
+          </p>
+        </div>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left space-y-3">
+          <div className="flex items-start gap-3">
+            <Clock className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-amber-800">Pending Approval</p>
+              <p className="text-sm text-amber-700">
+                Your account is currently pending admin approval. You will be notified once your account is approved.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <Mail className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm text-amber-700">
+                We'll send a confirmation email to <span className="font-medium">{email}</span> once approved.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-gray-200">
+          <Link href={getLocalizedHref('/auth/login')}>
+            <Button variant="outline" className="w-full">
+              Back to Login
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -120,8 +176,12 @@ export function SignupForm() {
         </div>
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Creating account...' : 'Sign Up'}
+        {loading ? 'Submitting...' : 'Submit Registration'}
       </Button>
+
+      <p className="text-xs text-center text-gray-500 mt-2">
+        By registering, your account will be reviewed by our team before approval.
+      </p>
     </form>
   );
 }

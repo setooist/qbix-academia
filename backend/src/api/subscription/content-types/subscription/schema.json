@@ -1,0 +1,41 @@
+{
+    "kind": "collectionType",
+    "collectionName": "subscriptions",
+    "info": {
+        "singularName": "subscription",
+        "pluralName": "subscriptions",
+        "displayName": "Subscription",
+        "description": "Tracks Stripe subscriptions"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "stripeSubscriptionId": {
+            "type": "string"
+        },
+        "subscription_status": {
+            "type": "enumeration",
+            "enum": [
+                "active",
+                "canceled",
+                "past_due",
+                "trialing"
+            ],
+            "default": "active"
+        },
+        "user": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user",
+            "inversedBy": "subscriptions"
+        },
+        "start_date": {
+            "type": "datetime"
+        },
+        "end_date": {
+            "type": "datetime"
+        }
+    }
+}

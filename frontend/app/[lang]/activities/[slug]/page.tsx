@@ -203,7 +203,7 @@ export default function ActivityDetailsPage({ params }: { params: Promise<{ slug
 
                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-t from-white via-white/90 to-transparent p-8 text-center">
                                     <Lock className="w-12 h-12 text-primary mb-4" />
-                                    <h3 className="text-2xl font-bold mb-2">Member Only Content</h3>
+                                    <h3 className="text-2xl font-bold mb-2">Subscription Required</h3>
                                     <p className="text-gray-600 mb-6 max-w-md">
                                         Log in to access your assigned activity details.
                                     </p>

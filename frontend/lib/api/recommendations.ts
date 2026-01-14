@@ -61,6 +61,7 @@ const GET_RECOMMENDATIONS = gql`
                 name
                 type
             }
+            allowedTiers
         }
     }
 `;
@@ -104,6 +105,7 @@ const GET_RECOMMENDATION_BY_SLUG = gql`
                 name
                 type
             }
+            allowedTiers
             seo {
               metaTitle
               metaDescription
@@ -152,6 +154,7 @@ export interface Recommendation {
         name: string;
         type: string;
     }[];
+    allowedTiers?: string[] | null;
     seo?: {
         metaTitle: string;
         metaDescription: string;

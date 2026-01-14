@@ -606,6 +606,7 @@ export interface ApiBlogBlog extends Struct.CollectionTypeSchema {
       'manyToMany',
       'plugin::users-permissions.role'
     >;
+    allowedTiers: Schema.Attribute.JSON;
     author: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -698,6 +699,7 @@ export interface ApiCaseStudieCaseStudie extends Struct.CollectionTypeSchema {
       'manyToMany',
       'plugin::users-permissions.role'
     >;
+    allowedTiers: Schema.Attribute.JSON;
     approach: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -991,6 +993,7 @@ export interface ApiDownloadableDownloadable
       'manyToMany',
       'plugin::users-permissions.role'
     >;
+    allowedTiers: Schema.Attribute.JSON;
     author: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -1105,6 +1108,7 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
       'manyToMany',
       'plugin::users-permissions.role'
     >;
+    allowedTiers: Schema.Attribute.JSON;
     capacity: Schema.Attribute.Integer;
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
     coverImage: Schema.Attribute.Media<'images'>;
@@ -1403,6 +1407,7 @@ export interface ApiRecommendationRecommendation
       'manyToMany',
       'plugin::users-permissions.role'
     >;
+    allowedTiers: Schema.Attribute.JSON;
     authors: Schema.Attribute.Component<'recommendation.author', true>;
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
     coverImage: Schema.Attribute.Media<'images'>;
@@ -1484,6 +1489,46 @@ export interface ApiSubmissionSubmission extends Struct.CollectionTypeSchema {
     uploaded_files: Schema.Attribute.Media<
       'files' | 'images' | 'videos' | 'audios',
       true
+    >;
+  };
+}
+
+export interface ApiSubscriptionSubscription
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'subscriptions';
+  info: {
+    description: 'Tracks Stripe subscriptions';
+    displayName: 'Subscription';
+    pluralName: 'subscriptions';
+    singularName: 'subscription';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    end_date: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::subscription.subscription'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    start_date: Schema.Attribute.DateTime;
+    stripeSubscriptionId: Schema.Attribute.String;
+    subscription_status: Schema.Attribute.Enumeration<
+      ['active', 'canceled', 'past_due', 'trialing']
+    > &
+      Schema.Attribute.DefaultTo<'active'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
     >;
   };
 }
@@ -2051,6 +2096,15 @@ export interface PluginUsersPermissionsUser
       'manyToOne',
       'plugin::users-permissions.role'
     >;
+    subscriptionActive: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    subscriptions: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::subscription.subscription'
+    >;
+    subscriptionValidTill: Schema.Attribute.DateTime;
+    tier: Schema.Attribute.Enumeration<['FREE', 'QBIX', 'SUBSCRIPTION']> &
+      Schema.Attribute.DefaultTo<'FREE'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2084,6 +2138,7 @@ declare module '@strapi/strapi' {
       'api::page.page': ApiPagePage;
       'api::recommendation.recommendation': ApiRecommendationRecommendation;
       'api::submission.submission': ApiSubmissionSubmission;
+      'api::subscription.subscription': ApiSubscriptionSubscription;
       'api::tag.tag': ApiTagTag;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

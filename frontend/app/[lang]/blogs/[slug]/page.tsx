@@ -14,14 +14,16 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, lang } = await params;
-  const blog = await getBlogBySlug(slug, lang);
+  const result = await getBlogBySlug(slug, lang);
 
-  if (!blog) {
+  // Handle error case or missing blog
+  if (!result || (result as any).error) {
     return {
-      title: 'Blog Not Found',
+      title: 'Blog Not Found or Restricted',
     };
   }
 
+  const blog = result as any; // We know it's a blog post now
   const seoItem = blog.seo && blog.seo.length > 0 ? blog.seo[0] : null;
 
   return generateStrapiMetadata(seoItem as any, {
@@ -33,7 +35,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug, lang } = await params;
-  const blog = await getBlogBySlug(slug, lang);
+  const result = await getBlogBySlug(slug, lang);
+
+  // Check if result is an error object or a blog post
+  const isError = (result as any)?.error === 'TIER_RESTRICTED';
+  const blog = isError ? null : result as any;
 
   if (!blog) {
     notFound();

@@ -12,7 +12,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Clock, Calendar, ArrowRight, Lock } from 'lucide-react';
+import { Clock, Calendar, ArrowRight, Lock, Crown } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -28,18 +28,59 @@ export function BlogList({ blogs }: BlogListProps) {
     const { user } = useAuth();
     const router = useRouter();
     const [showLoginModal, setShowLoginModal] = useState(false);
+    const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
     const hasAccess = (blog: BlogPost) => {
         if (!blog) return false;
+
+        // Check Tiers (Primary Check)
+        const allowedTiers = blog.allowedTiers;
+        if (allowedTiers && allowedTiers.length > 0) {
+            // If 'FREE' is allowed, everyone has access
+            if (allowedTiers.includes('FREE')) return true;
+
+            if (!user) return false;
+
+            // Check if user is Mentor (Always has access)
+            const userRoleName = user.role?.name?.toLowerCase();
+            const userRoleType = user.role?.type?.toLowerCase();
+            if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
+
+            // Check user tier
+            const userTier = user.tier || 'FREE';
+            if (allowedTiers.includes(userTier)) return true;
+
+            // Also check if user has an active subscription (in case tier wasn't updated)
+            if (allowedTiers.includes('SUBSCRIPTION')) {
+                // Check subscriptionActive flag
+                if (user.subscriptionActive === true) return true;
+
+                // Check subscriptions relation for any active subscription
+                const activeSubscription = user.subscriptions?.some(
+                    (sub: any) => sub.subscription_status === 'active'
+                );
+                if (activeSubscription) return true;
+            }
+
+            return false;
+        }
+
+        // Fallback to Roles check (Original Logic)
         if (!blog.allowedRoles) return false;
         if (blog.allowedRoles.length === 0) return true;
         const isPubliclyAllowed = blog.allowedRoles.some(
             r => r.type === 'public' || r.name.toLowerCase() === 'public'
         );
         if (isPubliclyAllowed) return true;
+
         if (!user) return false;
+
         const userRoleType = user.role?.type?.toLowerCase();
         const userRoleName = user.role?.name?.toLowerCase();
+
+        // Also allow Mentors via role check fallback
+        if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
+
         return blog.allowedRoles.some(r =>
             (r.type && r.type.toLowerCase() === userRoleType) ||
             (r.name && r.name.toLowerCase() === userRoleName)
@@ -49,7 +90,11 @@ export function BlogList({ blogs }: BlogListProps) {
     const handleCardClick = (e: React.MouseEvent, blog: BlogPost) => {
         if (!hasAccess(blog)) {
             e.preventDefault();
-            setShowLoginModal(true);
+            if (!user) {
+                setShowLoginModal(true);
+            } else {
+                setShowSubscriptionModal(true);
+            }
         }
     };
 
@@ -164,6 +209,29 @@ export function BlogList({ blogs }: BlogListProps) {
                         </Button>
                         <Button onClick={() => router.push('/auth/login')}>
                             Login
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Subscription Modal */}
+            <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Crown className="w-5 h-5 text-yellow-500" />
+                            <DialogTitle>Premium Content</DialogTitle>
+                        </div>
+                        <DialogDescription>
+                            This content is exclusive to premium members. Upgrade your plan to unlock full access.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 sm:gap-0">
+                        <Button variant="outline" onClick={() => setShowSubscriptionModal(false)}>
+                            Maybe Later
+                        </Button>
+                        <Button className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white hover:from-yellow-600 hover:to-amber-700 border-0" onClick={() => router.push('/account/subscription')}>
+                            Upgrade Now
                         </Button>
                     </DialogFooter>
                 </DialogContent>
