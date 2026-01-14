@@ -22,7 +22,7 @@ interface PopulatedAssignment {
 export default {
     async afterCreate(event) {
         const { result } = event;
-        strapi.log.info('🚀 Lifecycle afterCreate triggered for Assignment ID:', result.id);
+        strapi.log.info('Lifecycle afterCreate triggered for Assignment ID:', result.id);
 
 
         try {
@@ -68,7 +68,7 @@ export default {
                         <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
                             <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                                 <div style="background: #3b82f6; background: linear-gradient(135deg, #3b82f6, #f97316); padding: 30px; border-radius: 12px 12px 0 0;">
-                                    <h1 style="color: white; margin: 0; font-size: 24px;">📚 New Activity Assigned</h1>
+                                    <h1 style="color: white; margin: 0; font-size: 24px;">New Activity Assigned</h1>
                                 </div>
                                 <div style="background: white; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                                     <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
@@ -119,7 +119,7 @@ export default {
                     `,
                 });
 
-                strapi.log.info(`📧 Email notification sent to ${assignment.assignee.email} for activity: ${activityTitle}`);
+                strapi.log.info(`Email notification sent to ${assignment.assignee.email} for activity: ${activityTitle}`);
             }
         } catch (error) {
             strapi.log.error('Failed to send activity assignment email notification:', error);

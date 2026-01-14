@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, User, LogOut, ChevronDown, Shield, BookOpen, Calendar, FileText, Users, Home, Briefcase, Mail, Library, GraduationCap, Phone, MapPin } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams, useParams } from 'next/navigation';
+import { Menu, X, User, LogOut, ChevronDown, Shield, BookOpen, Calendar, FileText, Users, Briefcase, Mail, Library, GraduationCap } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { usePermissions } from '@/lib/hooks/use-permissions';
@@ -15,10 +15,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { getNavigation, NavigationData, MenuItem } from '@/lib/api/navigation';
+import { getNavigation, NavigationData } from '@/lib/api/navigation';
 import { getGlobal, GlobalData } from '@/lib/api/global';
 import { getStrapiMedia } from '@/lib/strapi/client';
-import { useParams } from 'next/navigation';
+
 import { localeConfig } from '@/config/locale-config';
 
 const getLocalizedHref = (href: string, locale: string) => {
@@ -58,6 +58,7 @@ export function Navigation() {
 
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const params = useParams();
   const locale = (params?.lang as string) || 'en';
   const { user, profile, signOut } = useAuth();
@@ -95,6 +96,18 @@ export function Navigation() {
   const handleSignOut = async () => {
     await signOut();
     router.push('/');
+  };
+
+  const getLoginUrl = () => {
+    // Return default login URL if pathname is missing or user is already on auth pages
+    if (!pathname || pathname.includes('/auth/login') || pathname.includes('/auth/signup')) {
+      return getLocalizedHref('/auth/login', locale);
+    }
+
+    const currentSearch = searchParams?.toString();
+    const fullPath = currentSearch ? `${pathname}?${currentSearch}` : pathname;
+
+    return `${getLocalizedHref('/auth/login', locale)}?redirect=${encodeURIComponent(fullPath)}`;
   };
 
   const getInitials = (name: string) => {
@@ -143,7 +156,7 @@ export function Navigation() {
                 if (hasSubmenu) {
                   return (
                     <DropdownMenu
-                      key={index}
+                      key={item.label}
                       open={openDropdowns[item.label] || false}
                       onOpenChange={(open) => toggleDropdown(item.label, open)}
                     >
@@ -164,7 +177,7 @@ export function Navigation() {
                         {item.submenu.map((subItem, subIndex) => {
                           const Icon = getIconForLabel(subItem.label);
                           return (
-                            <DropdownMenuItem key={subIndex} asChild className="cursor-pointer rounded-lg p-3 focus:bg-primary/10">
+                            <DropdownMenuItem key={subItem.href} asChild className="cursor-pointer rounded-lg p-3 focus:bg-primary/10">
                               <Link href={getLocalizedHref(subItem.href, locale)} prefetch={true} className="flex items-start gap-3">
                                 <div className="mt-0.5 p-2 rounded-lg bg-primary/10">
                                   <Icon className="w-4 h-4 text-primary" />
@@ -184,7 +197,7 @@ export function Navigation() {
 
                 return (
                   <Link
-                    key={index}
+                    key={item.label}
                     href={getLocalizedHref(item.href, locale)}
                     prefetch={true}
                     className={`relative px-5 py-2.5 rounded-lg font-medium text-[15px] transition-all duration-300 ${isActive(item.href)
@@ -281,7 +294,7 @@ export function Navigation() {
               </DropdownMenu>
             ) : (
               <Button asChild className="bg-gradient-to-r from-primary to-orange hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-105 font-medium">
-                <Link href={getLocalizedHref('/auth/login', locale)}>Log In</Link>
+                <Link href={getLoginUrl()}>Log In</Link>
               </Button>
             )}
           </div>
@@ -310,7 +323,7 @@ export function Navigation() {
               if (hasSubmenu) {
                 const isOpen = openDropdowns[`mobile-${item.label}`];
                 return (
-                  <div key={index} className="space-y-2">
+                  <div key={item.label} className="space-y-2">
                     <button
                       onClick={() => toggleDropdown(`mobile-${item.label}`, !isOpen)}
                       className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-all duration-300"
@@ -327,7 +340,7 @@ export function Navigation() {
                           const SubIcon = getIconForLabel(subItem.label);
                           return (
                             <Link
-                              key={subIndex}
+                              key={subItem.href}
                               href={getLocalizedHref(subItem.href, locale)}
                               onClick={() => {
                                 setMobileMenuOpen(false);
@@ -351,7 +364,7 @@ export function Navigation() {
 
               return (
                 <Link
-                  key={index}
+                  key={item.label}
                   href={getLocalizedHref(item.href, locale)}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${isActive(item.href)
@@ -442,7 +455,7 @@ export function Navigation() {
             {!user && (
               <div className="border-t border-gray-200 mt-4 pt-4 space-y-3">
                 <Button asChild className="w-full bg-gradient-to-r from-primary to-orange hover:shadow-lg hover:shadow-primary/30 font-medium h-12">
-                  <Link href={getLocalizedHref('/auth/login', locale)} onClick={() => setMobileMenuOpen(false)}>
+                  <Link href={getLoginUrl()} onClick={() => setMobileMenuOpen(false)}>
                     Log In
                   </Link>
                 </Button>
