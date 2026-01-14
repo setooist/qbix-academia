@@ -34,6 +34,7 @@ export async function signUp(email: string, password: string, fullName: string, 
       register(input: $input) {
         jwt
         user {
+          documentId
           id
           username
           email
@@ -71,6 +72,7 @@ export async function signIn(email: string, password: string) {
       login(input: $input) {
         jwt
         user {
+          documentId
           id
           username
           email

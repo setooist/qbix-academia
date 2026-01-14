@@ -2,7 +2,6 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { AuthProvider } from '@/lib/contexts/auth-context';
 import { Toaster } from '@/components/ui/toaster';
-import { LoadingBar } from '@/components/ui/loading-bar';
 import { Navigation } from '@/components/layout/navigation';
 import { Footer } from '@/components/layout/footer';
 
@@ -31,7 +30,6 @@ export default async function RootLayout({
   return (
     <html lang={lang}>
       <body>
-        <LoadingBar />
         <AuthProvider>
           <Navigation />
           <main className="min-h-screen">

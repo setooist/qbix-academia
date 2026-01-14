@@ -15,10 +15,33 @@ export default [
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
     },
   },
-  'strapi::security',
+  {
+    name: 'strapi::security',
+    config: {
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          'connect-src': ["'self'", 'https:'],
+          'img-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com'],
+          'media-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com'],
+          upgradeInsecureRequests: null,
+        },
+      },
+    },
+  },
   'strapi::poweredBy',
   'strapi::query',
-  'strapi::body',
+  {
+    name: 'strapi::body',
+    config: {
+      formLimit: '256mb', // increase limit
+      jsonLimit: '256mb',
+      textLimit: '256mb',
+      formidable: {
+        maxFileSize: 200 * 1024 * 1024, // 200MB
+      },
+    },
+  },
   'strapi::session',
   'strapi::favicon',
   'strapi::public',
