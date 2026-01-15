@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-interface TextChild {
+export interface TextChild {
     type: 'text';
     text: string;
     bold?: boolean;
@@ -12,15 +12,15 @@ interface TextChild {
     code?: boolean;
 }
 
-interface LinkChild {
+export interface LinkChild {
     type: 'link';
     url: string;
     children: TextChild[];
 }
 
-type BlockChild = TextChild | LinkChild;
+export type BlockChild = TextChild | LinkChild;
 
-interface Block {
+export interface Block {
     type: 'paragraph' | 'heading' | 'list' | 'quote' | 'code' | 'image';
     level?: number;
     format?: 'ordered' | 'unordered';
@@ -34,23 +34,23 @@ interface Block {
 /**
  * Renders a single text child with proper formatting (bold, italic, etc.)
  */
-function renderTextChild(child: TextChild, key: number): React.ReactNode {
+function renderTextChild(child: TextChild, index: number): React.ReactNode {
     let content: React.ReactNode = child.text;
 
     if (child.code) {
-        content = <code key={key} className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{content}</code>;
+        content = <code key={`text-${index}`} className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{content}</code>;
     }
     if (child.bold) {
-        content = <strong key={key}>{content}</strong>;
+        content = <strong key={`text-${index}`}>{content}</strong>;
     }
     if (child.italic) {
-        content = <em key={key}>{content}</em>;
+        content = <em key={`text-${index}`}>{content}</em>;
     }
     if (child.underline) {
-        content = <u key={key}>{content}</u>;
+        content = <u key={`text-${index}`}>{content}</u>;
     }
     if (child.strikethrough) {
-        content = <s key={key}>{content}</s>;
+        content = <s key={`text-${index}`}>{content}</s>;
     }
 
     return content;
@@ -64,9 +64,12 @@ function renderChildren(children: BlockChild[] | undefined): React.ReactNode {
 
     return children.map((child, index) => {
         if (child.type === 'link') {
+            // Create a stable key from URL and first text content
+            const linkText = child.children?.[0]?.text || '';
+            const stableKey = `link-${child.url}-${linkText}`.replaceAll(/\s+/g, '-');
             return (
                 <a
-                    key={index}
+                    key={stableKey}
                     href={child.url}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -77,7 +80,7 @@ function renderChildren(children: BlockChild[] | undefined): React.ReactNode {
             );
         }
         // Default: treat as text
-        return renderTextChild(child as TextChild, index);
+        return renderTextChild(child, index);
     });
 }
 
@@ -86,7 +89,7 @@ function renderChildren(children: BlockChild[] | undefined): React.ReactNode {
  */
 function renderListItem(item: Block, index: number): React.ReactNode {
     return (
-        <li key={index}>
+        <li key={`list-item-${index}`}>
             {renderChildren(item.children as BlockChild[])}
         </li>
     );
@@ -97,14 +100,7 @@ function renderListItem(item: Block, index: number): React.ReactNode {
  */
 function renderBlock(block: Block, index: number): React.ReactNode {
     switch (block.type) {
-        case 'paragraph':
-            return (
-                <p key={index} className="mb-4">
-                    {renderChildren(block.children as BlockChild[])}
-                </p>
-            );
-
-        case 'heading':
+        case 'heading': {
             const level = block.level || 2;
             const headingClasses: Record<number, string> = {
                 1: 'text-4xl font-bold my-6',
@@ -116,61 +112,67 @@ function renderBlock(block: Block, index: number): React.ReactNode {
             };
             const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
             return (
-                <HeadingTag key={index} className={headingClasses[level] || headingClasses[2]}>
+                <HeadingTag key={`block-${index}`} className={headingClasses[level] || headingClasses[2]}>
                     {renderChildren(block.children as BlockChild[])}
                 </HeadingTag>
             );
+        }
 
-        case 'list':
+        case 'list': {
             const ListTag = block.format === 'ordered' ? 'ol' : 'ul';
             const listClass = block.format === 'ordered'
                 ? 'list-decimal pl-6 mb-4 space-y-1'
                 : 'list-disc pl-6 mb-4 space-y-1';
             return (
-                <ListTag key={index} className={listClass}>
+                <ListTag key={`block-${index}`} className={listClass}>
                     {block.children?.map((item, i) => renderListItem(item as Block, i))}
                 </ListTag>
             );
+        }
 
         case 'quote':
             return (
-                <blockquote key={index} className="border-l-4 border-primary pl-4 italic my-4 text-gray-600">
+                <blockquote key={`block-${index}`} className="border-l-4 border-primary pl-4 italic my-4 text-gray-600">
                     {renderChildren(block.children as BlockChild[])}
                 </blockquote>
             );
 
         case 'code':
             return (
-                <pre key={index} className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
+                <pre key={`block-${index}`} className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
                     <code className="text-sm font-mono">
                         {block.children?.map((c: any) => c.text).join('')}
                     </code>
                 </pre>
             );
 
-        case 'image':
-            if (block.image?.url) {
+        case 'image': {
+            const image = block.image;
+            if (image?.url) {
                 return (
-                    <figure key={index} className="my-6">
+                    <figure key={`block-${index}`} className="my-6">
                         <img
-                            src={block.image.url}
-                            alt={block.image.alternativeText || ''}
+                            src={image.url}
+                            alt={image.alternativeText || ''}
                             className="rounded-lg w-full"
                         />
-                        {block.image.alternativeText && (
+                        {image.alternativeText && (
                             <figcaption className="text-center text-sm text-gray-500 mt-2">
-                                {block.image.alternativeText}
+                                {image.alternativeText}
                             </figcaption>
                         )}
                     </figure>
                 );
             }
             return null;
+        }
 
+        case 'paragraph':
+        // eslint-disable-next-line no-fallthrough
         default:
-            // Fallback: try to render as paragraph
+            // Render paragraph and unknown block types as paragraphs
             return (
-                <p key={index} className="mb-4">
+                <p key={`block-${index}`} className="mb-4">
                     {renderChildren(block.children as BlockChild[])}
                 </p>
             );
@@ -178,9 +180,16 @@ function renderBlock(block: Block, index: number): React.ReactNode {
 }
 
 /**
+ * Props for the StrapiBlocksRenderer component
+ */
+interface StrapiBlocksRendererProps {
+    content: Block[] | string | null | undefined;
+}
+
+/**
  * Main component to render Strapi blocks content
  */
-export function StrapiBlocksRenderer({ content }: { content: Block[] | string | null | undefined }) {
+export function StrapiBlocksRenderer({ content }: Readonly<StrapiBlocksRendererProps>) {
     if (!content) return null;
 
     // If content is a string, just return it wrapped in a p tag
