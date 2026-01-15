@@ -1,27 +1,20 @@
-'use client';
-
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { getFooter, FooterData } from '@/lib/api/footer';
+import { getFooter, FooterColumn, FooterData, FooterLink } from '@/lib/api/footer';
 import { getStrapiMedia } from '@/lib/strapi/client';
 
-export function Footer() {
-  const [footerData, setFooterData] = useState<FooterData | null>(null);
+interface FooterProps {
+  readonly lang?: string;
+}
+
+export async function Footer({ lang = 'en' }: FooterProps) {
+  const footerData: FooterData | null = await getFooter(lang);
   const currentYear = new Date().getFullYear();
 
-  useEffect(() => {
-    getFooter().then(data => {
-      if (data) {
-        setFooterData(data);
-      }
-    });
-  }, []);
-
   const address = footerData?.Address;
-  const columns = (footerData?.Column || []).filter(col => col.links && col.links.length > 0).slice(0, 2);
-  const bottom = footerData?.Bottum[0];
+  const columns = (footerData?.Column || []).filter((col: FooterColumn) => col.links && col.links.length > 0).slice(0, 2);
+  const bottom = footerData?.Bottum?.[0];
 
   // Get logo from Strapi or use fallback
   const logoUrl = bottom?.logo && bottom.logo.length > 0
@@ -50,8 +43,7 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-gray-300 text-sm leading-relaxed mb-4">
-              {/* Static fallback description or could be fetched if added to schema */}
-              Your trusted partner in international education. We guide students towards their dream of studying abroad.
+              {bottom?.text || "Your trusted partner in international education. We guide students towards their dream of studying abroad."}
             </p>
             <div className="flex space-x-4">
               {/* Socials - keeping static as per common pattern unless schema has specific social block */}
@@ -63,11 +55,11 @@ export function Footer() {
           </div>
 
           {/* Dynamic Columns */}
-          {columns.map((col) => (
+          {columns.map((col: FooterColumn) => (
             <div key={col.title}>
               <h3 className="text-lg font-semibold mb-4">{col.title}</h3>
               <ul className="space-y-2 text-sm">
-                {col.links.map((link) => (
+                {col.links.map((link: FooterLink) => (
                   <li key={`${link.label}-${link.url}`}>
                     {link.type === 'internal' ? (
                       <Link href={link.url} className="text-gray-300 hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block">
@@ -84,7 +76,7 @@ export function Footer() {
             </div>
           ))}
 
-          {/* Fallback if no columns loaded yet (optional skeleton) */}
+          {/* Fallback if no columns loaded (optional skeleton) */}
           {columns.length === 0 && (
             <>
               <div className="animate-pulse space-y-3">
@@ -111,7 +103,7 @@ export function Footer() {
               </li>
               <li className="flex items-start group">
                 <Phone className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5 transition-transform duration-300 group-hover:scale-110" />
-                <a href={`tel:${(address?.phone || '+91 1234567890').replaceAll(/\s/g, '')}`} className="text-gray-300 hover:text-primary transition-colors">
+                <a href={`tel:${(address?.phone || '+91 1234567890').replace(/\s/g, '')}`} className="text-gray-300 hover:text-primary transition-colors">
                   {address?.phone || '+91 1234567890'}
                 </a>
               </li>

@@ -1,18 +1,8 @@
-import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
 import { localeConfig } from '@/config/locale-config';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
-const client = new ApolloClient({
-  ssrMode: typeof window === "undefined",
-  link: new HttpLink({
-    uri: `${STRAPI_URL}/graphql`,
-  }),
-  cache: new InMemoryCache(),
-});
-
-
-export const GET_FOOTER = gql`
+export const GET_FOOTER = `
   query GetFooter($locale: I18NLocaleCode) {
     footer(locale: $locale) {
       Column {
@@ -80,17 +70,26 @@ export interface FooterData {
   Bottum: FooterBottom[];
 }
 
-export async function getFooter(locale: string = 'en') {
+export async function getFooter(locale: string = 'en'): Promise<FooterData | null> {
   try {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
-    const { data } = await client.query<{ footer: FooterData }>({
-      query: GET_FOOTER,
-      variables: { locale: activeLocale },
-      fetchPolicy: 'no-cache',
-      errorPolicy: 'all',
+
+    const response = await fetch(`${STRAPI_URL}/graphql`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: GET_FOOTER,
+        variables: { locale: activeLocale },
+      }),
+      cache: 'force-cache',
     });
-    return data?.footer || null;
+
+    const { data } = await response.json();
+    return (data?.footer as FooterData) || null;
   } catch (error) {
+    console.error("Error fetching footer:", error);
     return null;
   }
 }

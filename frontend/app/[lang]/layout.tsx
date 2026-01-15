@@ -34,12 +34,12 @@ export default async function RootLayout({
       <body>
         <AuthProvider>
           <Suspense fallback={<div className="h-20 bg-white/80" />}>
-            <Navigation />
+            <Navigation lang={lang} />
           </Suspense>
           <main className="min-h-screen">
             {children}
           </main>
-          <Footer />
+          <Footer lang={lang} />
           <Toaster />
         </AuthProvider>
       </body>
