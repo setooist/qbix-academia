@@ -1,3 +1,27 @@
+/**
+ * Production-only logger for email debugging
+ * Only logs when NODE_ENV is 'production'
+ */
+const isProd = process.env.NODE_ENV === 'production';
+
+const prodLog = {
+    info: (message: string, data?: unknown) => {
+        if (isProd) {
+            strapi.log.info(`[EMAIL] ${message}`, data ? JSON.stringify(data) : '');
+        }
+    },
+    error: (message: string, error?: unknown) => {
+        if (isProd) {
+            strapi.log.error(`[EMAIL] ${message}`, error);
+        }
+    },
+    debug: (message: string, data?: unknown) => {
+        if (isProd) {
+            strapi.log.debug(`[EMAIL] ${message}`, data ? JSON.stringify(data) : '');
+        }
+    },
+};
+
 interface PopulatedAssignment {
     id: number;
     assignee?: {
@@ -22,6 +46,14 @@ export default {
     async afterCreate(event) {
         const { result } = event;
 
+        prodLog.info('=== ACTIVITY ASSIGNMENT EMAIL START ===');
+        prodLog.info(`afterCreate triggered for assignment ID: ${result.id}`);
+        prodLog.debug('SMTP Config', {
+            host: process.env.SMTP_HOST,
+            port: process.env.SMTP_PORT,
+            from: process.env.EMAIL_FROM,
+        });
+
         try {
             const assignment = await strapi.entityService.findOne(
                 'api::activity-assignment.activity-assignment',
@@ -35,7 +67,16 @@ export default {
                 }
             ) as PopulatedAssignment;
 
-            if (!assignment?.assignee?.email) return;
+            prodLog.debug('Assignment loaded', {
+                id: assignment?.id,
+                assigneeEmail: assignment?.assignee?.email,
+                activityTitle: assignment?.activity_template?.title,
+            });
+
+            if (!assignment?.assignee?.email) {
+                prodLog.info('No assignee email found - skipping email send');
+                return;
+            }
 
             const studentName =
                 assignment.assignee.fullName ||
@@ -61,6 +102,8 @@ export default {
 
             const frontendUrl =
                 process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+
+            prodLog.info(`Attempting to send email to: ${assignment.assignee.email}`);
 
             await strapi
                 .plugin('email')
@@ -103,8 +146,16 @@ export default {
           `,
                 });
 
-        } catch (error) {
-            strapi.log.error('Email send failed:', error);
+            prodLog.info(`EMAIL SENT SUCCESSFULLY to: ${assignment.assignee.email}`);
+            prodLog.info('=== ACTIVITY ASSIGNMENT EMAIL END ===');
+
+        } catch (error: unknown) {
+            const err = error as Error;
+            prodLog.error('EMAIL SEND FAILED!');
+            prodLog.error(`Error name: ${err?.name}`);
+            prodLog.error(`Error message: ${err?.message}`);
+            prodLog.error(`Error stack: ${err?.stack}`);
+            strapi.log.error('[EMAIL] Send failed:', error);
         }
     },
 };
