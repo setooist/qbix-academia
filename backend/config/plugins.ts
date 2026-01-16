@@ -1,3 +1,16 @@
+const isProd = process.env.NODE_ENV === 'production';
+
+// Log email config on startup (production only)
+if (isProd) {
+    console.log('[EMAIL CONFIG] Loading email plugin configuration...');
+    console.log('[EMAIL CONFIG] SMTP_HOST:', process.env.SMTP_HOST);
+    console.log('[EMAIL CONFIG] SMTP_PORT:', process.env.SMTP_PORT);
+    console.log('[EMAIL CONFIG] SMTP_USERNAME:', process.env.SMTP_USERNAME ? '***SET***' : 'NOT SET');
+    console.log('[EMAIL CONFIG] SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? '***SET***' : 'NOT SET');
+    console.log('[EMAIL CONFIG] EMAIL_FROM:', process.env.EMAIL_FROM);
+    console.log('[EMAIL CONFIG] TLS Mode:', Number(process.env.SMTP_PORT) === 465 ? 'SSL' : 'STARTTLS');
+}
+
 export default () => ({
     i18n: {
         enabled: true,
@@ -24,16 +37,21 @@ export default () => ({
             providerOptions: {
                 host: process.env.SMTP_HOST,
                 port: Number(process.env.SMTP_PORT) || 587,
-                secure: Number(process.env.SMTP_PORT) === 465, // true for port 465 (SSL), false for 587 (STARTTLS)
-                requireTLS: Number(process.env.SMTP_PORT) === 587, // Required for STARTTLS on port 587
+                secure: Number(process.env.SMTP_PORT) === 465,
+                requireTLS: Number(process.env.SMTP_PORT) === 587,
                 auth: {
                     user: process.env.SMTP_USERNAME,
                     pass: process.env.SMTP_PASSWORD,
                 },
                 tls: {
-                    rejectUnauthorized: process.env.NODE_ENV === 'production', // Enforce in production
+                    rejectUnauthorized: isProd,
                     minVersion: 'TLSv1.2',
                 },
+                // Production debugging
+                ...(isProd && {
+                    logger: true,
+                    debug: true,
+                }),
             },
             settings: {
                 defaultFrom: process.env.EMAIL_FROM,
