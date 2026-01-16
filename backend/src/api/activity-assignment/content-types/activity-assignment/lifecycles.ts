@@ -21,11 +21,16 @@ interface PopulatedAssignment {
 
 export default {
     async afterCreate(event) {
-        const { result } = event;
-        strapi.log.info('Lifecycle afterCreate triggered for Assignment ID:', result.id);
+        const { result, params } = event;
 
+        strapi.log.info('=== LIFECYCLE: afterCreate START ===');
+        strapi.log.info('Assignment ID:', result.id);
+        strapi.log.info('Event result:', JSON.stringify(result, null, 2));
+        strapi.log.info('Event params:', JSON.stringify(params, null, 2));
 
         try {
+            strapi.log.info('Fetching full assignment with relations...');
+
             // Fetch the full assignment with relations to get assignee and activity details
             const assignment = await strapi.entityService.findOne(
                 'api::activity-assignment.activity-assignment',
@@ -39,7 +44,17 @@ export default {
                 }
             ) as PopulatedAssignment | null;
 
+            strapi.log.info('Populated assignment:', JSON.stringify(assignment, null, 2));
+
+            // Check if email plugin is available
+            const emailPlugin = strapi.plugins['email'];
+            strapi.log.info('Email plugin available:', !!emailPlugin);
+            strapi.log.info('Email service available:', !!emailPlugin?.services?.email);
+
             // Only send email if there's an assignee with an email
+            strapi.log.info('Assignee exists:', !!assignment?.assignee);
+            strapi.log.info('Assignee email:', assignment?.assignee?.email || 'NOT FOUND');
+
             if (assignment?.assignee?.email) {
                 const studentName = assignment.assignee.fullName || assignment.assignee.username || 'Student';
                 const activityTitle = assignment.activity_template?.title || 'New Activity';
@@ -55,7 +70,18 @@ export default {
 
                 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-                await strapi.plugins['email'].services.email.send({
+                strapi.log.info('=== Preparing to send email ===');
+                strapi.log.info('Email TO:', assignment.assignee.email);
+                strapi.log.info('Email SUBJECT:', `New Activity Assigned: ${activityTitle}`);
+                strapi.log.info('Student Name:', studentName);
+                strapi.log.info('Activity Title:', activityTitle);
+                strapi.log.info('Mentor Name:', mentorName);
+                strapi.log.info('Due Date:', dueDate);
+                strapi.log.info('Frontend URL:', frontendUrl);
+
+                strapi.log.info('Calling strapi.plugins.email.services.email.send()...');
+
+                const emailResult = await strapi.plugins['email'].services.email.send({
                     to: assignment.assignee.email,
                     subject: `New Activity Assigned: ${activityTitle}`,
                     html: `
@@ -119,11 +145,28 @@ export default {
                     `,
                 });
 
-                strapi.log.info(`Email notification sent to ${assignment.assignee.email} for activity: ${activityTitle}`);
+                strapi.log.info('=== Email send result ===');
+                strapi.log.info('Email result:', JSON.stringify(emailResult, null, 2));
+                strapi.log.info(`SUCCESS: Email notification sent to ${assignment.assignee.email} for activity: ${activityTitle}`);
+            } else {
+                strapi.log.warn('=== SKIPPING EMAIL ===');
+                strapi.log.warn('Reason: No assignee email found');
+                strapi.log.warn('Assignment ID:', assignment?.id);
             }
-        } catch (error) {
-            strapi.log.error('Failed to send activity assignment email notification:', error);
+        } catch (error: unknown) {
+            strapi.log.error('=== EMAIL SEND FAILED ===');
+            strapi.log.error('Error type:', typeof error);
+
+            if (error instanceof Error) {
+                strapi.log.error('Error name:', error.name);
+                strapi.log.error('Error message:', error.message);
+                strapi.log.error('Error stack:', error.stack);
+            } else {
+                strapi.log.error('Error (raw):', JSON.stringify(error, null, 2));
+            }
             // Don't throw - we don't want email failure to break the assignment creation
         }
+
+        strapi.log.info('=== LIFECYCLE: afterCreate END ===');
     },
 };
