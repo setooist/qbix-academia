@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Calendar, User, Bookmark, Share2, Lock, Crown } from 'lucide-react';
+import { Clock, Calendar, User, Bookmark, Share2, Lock } from 'lucide-react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { CaseStudy } from '@/lib/api/case-studies';
@@ -10,82 +10,18 @@ import { getStrapiMedia } from '@/lib/strapi/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import Link from 'next/link';
 import { StrapiBlocksRenderer } from '@/lib/utils/strapi-blocks-renderer';
+import { checkAccess } from '@/components/auth/access-gate';
 
 interface CaseStudyViewProps {
     readonly caseStudy: CaseStudy;
 }
 
-const checkTierAccess = (caseStudy: CaseStudy, user: any) => {
-    const allowedTiers = caseStudy.allowedTiers;
-    // Should depend on caller to check existence of allowedTiers, but safe to check here
-    if (!allowedTiers) return false;
+interface CoverImageProps {
+    readonly caseStudy: CaseStudy;
+    readonly accessible: boolean;
+}
 
-    // If 'FREE' is allowed, everyone has access
-    if (allowedTiers.includes('FREE')) return true;
-
-    if (!user) return false;
-
-    // Check if user is Mentor (Always has access)
-    const userRoleName = user.role?.name?.toLowerCase();
-    const userRoleType = user.role?.type?.toLowerCase();
-    if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
-
-    // Check user tier
-    const userTier = user.tier || 'FREE';
-    if (allowedTiers.includes(userTier)) return true;
-
-    // Also check if user has an active subscription (in case tier wasn't updated)
-    if (allowedTiers.includes('SUBSCRIPTION')) {
-        // Check subscriptionActive flag
-        if (user.subscriptionActive === true) return true;
-
-        // Check subscriptions relation for any active subscription
-        const activeSubscription = user.subscriptions?.some(
-            (sub: any) => sub.subscription_status === 'active'
-        );
-        if (activeSubscription) return true;
-    }
-
-    return false;
-};
-
-const checkRoleAccess = (caseStudy: CaseStudy, user: any) => {
-    if (!caseStudy.allowedRoles) return false;
-    if (caseStudy.allowedRoles.length === 0) return true;
-
-    const isPubliclyAllowed = caseStudy.allowedRoles.some(
-        r => r.type === 'public' || r.name.toLowerCase() === 'public'
-    );
-    if (isPubliclyAllowed) return true;
-
-    if (!user) return false;
-
-    const userRoleType = user.role?.type?.toLowerCase();
-    const userRoleName = user.role?.name?.toLowerCase();
-
-    // Also allow Mentors via role check fallback
-    if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
-
-    return caseStudy.allowedRoles.some(r =>
-        (r.type && r.type.toLowerCase() === userRoleType) ||
-        (r.name && r.name.toLowerCase() === userRoleName)
-    );
-};
-
-const getCaseStudyAccess = (caseStudy: CaseStudy, user: any) => {
-    if (!caseStudy) return false;
-
-    // Check Tiers (Primary Check)
-    const allowedTiers = caseStudy.allowedTiers;
-    if (allowedTiers && allowedTiers.length > 0) {
-        return checkTierAccess(caseStudy, user);
-    }
-
-    // Fallback to Roles check (Original Logic)
-    return checkRoleAccess(caseStudy, user);
-};
-
-function CaseStudyCoverImage({ caseStudy, accessible }: { readonly caseStudy: CaseStudy; readonly accessible: boolean }) {
+function CaseStudyCoverImage({ caseStudy, accessible }: CoverImageProps) {
     if (!caseStudy.coverImage || caseStudy.coverImage.length === 0) return null;
 
     const imageUrl = getStrapiMedia(caseStudy.coverImage[0].url) || 'https://images.pexels.com/photos/262508/pexels-photo-262508.jpeg';
@@ -111,20 +47,26 @@ function CaseStudyCoverImage({ caseStudy, accessible }: { readonly caseStudy: Ca
     );
 }
 
-export function CaseStudyView({ caseStudy }: CaseStudyViewProps) {
-    const { user } = useAuth();
-    const accessible = getCaseStudyAccess(caseStudy, user);
-
-    // Determine if it's a subscription-based restriction (for CTA text)
-    const isSubscriptionRestricted = caseStudy.allowedTiers && caseStudy.allowedTiers.length > 0 && !caseStudy.allowedTiers.includes('FREE');
-
-    const contentElement = typeof caseStudy.content === 'string' ? (
-        <ReactMarkdown>{caseStudy.content}</ReactMarkdown>
-    ) : (
+function CaseStudyContent({ content }: { readonly content: CaseStudy['content'] }) {
+    if (typeof content === 'string') {
+        return <ReactMarkdown>{content}</ReactMarkdown>;
+    }
+    return (
         <div className="text-gray-800">
-            <StrapiBlocksRenderer content={caseStudy.content} />
+            <StrapiBlocksRenderer content={content} />
         </div>
     );
+}
+
+export function CaseStudyView({ caseStudy }: CaseStudyViewProps) {
+    const { user } = useAuth();
+
+    const hasAccess = () => {
+        if (!caseStudy) return false;
+        return checkAccess(user, caseStudy.allowedTiers, caseStudy.allowedRoles);
+    };
+
+    const accessible = hasAccess();
 
     return (
         <article className="py-12">
@@ -136,11 +78,7 @@ export function CaseStudyView({ caseStudy }: CaseStudyViewProps) {
                                 {caseStudy.category.name}
                             </Badge>
                         )}
-                        {!accessible && (
-                            <Badge variant="destructive">
-                                {isSubscriptionRestricted ? 'Subscription Required' : 'Member Only'}
-                            </Badge>
-                        )}
+                        {!accessible && <Badge variant="destructive">Member Only</Badge>}
                     </div>
 
                     <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
@@ -186,8 +124,7 @@ export function CaseStudyView({ caseStudy }: CaseStudyViewProps) {
 
                 <div className="prose prose-lg max-w-none relative">
                     {accessible ? (
-                        // Full Content
-                        contentElement
+                        <CaseStudyContent content={caseStudy.content} />
                     ) : (
                         // Teaser Content + CTA
                         <div className="space-y-8">
@@ -199,29 +136,15 @@ export function CaseStudyView({ caseStudy }: CaseStudyViewProps) {
                             </div>
 
                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-t from-white via-white/90 to-transparent p-8 text-center">
-                                {isSubscriptionRestricted ? (
-                                    <Crown className="w-12 h-12 text-yellow-500 mb-4" />
-                                ) : (
-                                    <Lock className="w-12 h-12 text-primary mb-4" />
-                                )}
-                                <h3 className="text-2xl font-bold mb-2">
-                                    {isSubscriptionRestricted ? 'Subscription Required' : 'Member Only Content'}
-                                </h3>
+                                <Lock className="w-12 h-12 text-primary mb-4" />
+                                <h3 className="text-2xl font-bold mb-2">Subscription Required</h3>
                                 <p className="text-gray-600 mb-6 max-w-md">
-                                    {isSubscriptionRestricted
-                                        ? 'Upgrade your subscription to access this case study and exclusive resources.'
-                                        : 'Log in to access this full case study.'}
+                                    Join our community to access this full case study and other exclusive resources.
                                 </p>
                                 <div className="flex gap-4">
-                                    {user ? (
-                                        <Button asChild size="lg" className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white hover:from-yellow-600 hover:to-amber-700 border-0">
-                                            <Link href="/account/subscription">Upgrade Now</Link>
-                                        </Button>
-                                    ) : (
-                                        <Button asChild variant="outline" size="lg">
-                                            <Link href="/auth/login">Log In</Link>
-                                        </Button>
-                                    )}
+                                    <Button asChild variant="outline" size="lg">
+                                        <Link href="/auth/login">Log In</Link>
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -238,4 +161,3 @@ export function CaseStudyView({ caseStudy }: CaseStudyViewProps) {
         </article>
     );
 }
-

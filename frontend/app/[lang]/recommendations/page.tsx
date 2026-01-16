@@ -1,13 +1,21 @@
 import { Metadata } from 'next';
 import { getRecommendationListPageSeo, getRecommendations } from '@/lib/api/recommendations';
-import { getStrapiMedia } from '@/lib/strapi/client';
 import { RecommendationList } from '@/components/recommendations/recommendation-list';
-
 import { generateStrapiMetadata } from '@/lib/utils/metadata';
+import { i18nConfig } from '@/config/i18n';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateStaticParams() {
+  return i18nConfig.locales.map((lang) => ({ lang }));
+}
+
+type Props = {
+  params: Promise<{ lang: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang: _lang } = await params;
   const page = await getRecommendationListPageSeo();
   const seo = page?.Seo?.[0];
 
@@ -17,12 +25,12 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function RecommendationsPage() {
-  const recommendations = await getRecommendations();
+export default async function RecommendationsPage({ params }: Readonly<Props>) {
+  const { lang } = await params;
+  const recommendations = await getRecommendations(lang);
 
   return (
     <div className="flex flex-col min-h-screen">
-
       <section className="relative bg-gradient-to-br from-cobalt-blue to-secondary text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">

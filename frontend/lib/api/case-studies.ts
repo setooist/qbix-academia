@@ -1,33 +1,8 @@
-import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
 import { localeConfig } from '@/config/locale-config';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
-const client = new ApolloClient({
-    ssrMode: typeof window === 'undefined',
-    link: new HttpLink({
-        uri: `${STRAPI_URL}/graphql`,
-        fetch: (uri: RequestInfo | URL, options?: RequestInit) => {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-            return fetch(uri, {
-                ...options,
-                signal: controller.signal,
-            }).finally(() => clearTimeout(timeoutId));
-        },
-    }),
-    cache: new InMemoryCache(),
-    defaultOptions: {
-        query: {
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'ignore',
-        },
-    },
-});
-
-
-const GET_CASE_STUDIES = gql`
+const GET_CASE_STUDIES = `
     query GetCaseStudies($locale: I18NLocaleCode) {
         caseStudies(locale: $locale) {
             documentId
@@ -60,7 +35,7 @@ const GET_CASE_STUDIES = gql`
     }
 `;
 
-const GET_CASE_STUDY_BY_SLUG = gql`
+const GET_CASE_STUDY_BY_SLUG = `
     query GetCaseStudyBySlug($slug: String!, $locale: I18NLocaleCode) {
         caseStudies(filters: { slug: { eq: $slug } }, locale: $locale) {
             documentId
@@ -93,6 +68,31 @@ const GET_CASE_STUDY_BY_SLUG = gql`
     }
 `;
 
+const GET_CASE_STUDY_LIST_SEO = `
+    query GetCaseStudyListSeo {
+        pages(filters: { slug: { eq: "case-studies" } }) {
+            title
+            slug
+            Seo {
+                metaTitle
+                metaDescription
+                shareImage {
+                    url
+                }
+            }
+        }
+    }
+`;
+
+const GET_CASE_STUDY_SLUGS = `
+    query GetCaseStudySlugs($locale: I18NLocaleCode) {
+        caseStudies(locale: $locale) {
+            slug
+            documentId
+        }
+    }
+`;
+
 export interface CaseStudy {
     documentId: string;
     title: string;
@@ -121,28 +121,28 @@ export interface CaseStudy {
     }[];
     allowedTiers?: string[] | null;
     excerpt?: string;
-    content?: string | any[];
+    content?: string;
     author?: string;
     coverImage?: {
         url: string;
         alternativeText: string | null;
     }[] | null;
     readTime?: number;
-    seo?: any[];
+    seo?: {
+        metaTitle: string;
+        metaDescription: string;
+        shareImage?: {
+            url: string;
+        };
+    }[];
 }
 
-interface CaseStudiesResponse {
-    caseStudies: CaseStudy[];
-}
+import { fetchGraphQL } from './graphql-client';
 
-interface CaseStudyQueryResponse {
-    caseStudies: CaseStudy[];
-}
-
-const mapCaseStudy = (cs: any): CaseStudy => ({
+const mapCaseStudy = (cs: CaseStudy): CaseStudy => ({
     ...cs,
     excerpt: cs.problem?.substring(0, 150) + '...' || '',
-    content: `## Problem\n${cs.problem}\n\n## Approach\n${cs.approach}\n\n## Outcome\n${cs.outcome}\n\n> ${cs.testimonial || ''}`, // Construct content
+    content: `## Problem\n${cs.problem}\n\n## Approach\n${cs.approach}\n\n## Outcome\n${cs.outcome}\n\n> ${cs.testimonial || ''}`,
     author: cs.studentName,
     coverImage: cs.mediaGallery,
     readTime: 5,
@@ -150,61 +150,25 @@ const mapCaseStudy = (cs: any): CaseStudy => ({
 
 export async function getCaseStudies(locale: string = 'en') {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
-    try {
-        const { data } = await client.query<CaseStudiesResponse>({
-            query: GET_CASE_STUDIES,
-            variables: { locale: activeLocale },
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        const items = data?.caseStudies || [];
-        return items.map(mapCaseStudy);
-    } catch (error) {
-        return [];
-    }
+    const data = await fetchGraphQL(GET_CASE_STUDIES, { locale: activeLocale });
+    const items = data?.caseStudies || [];
+    return items.map(mapCaseStudy);
 }
 
 export async function getCaseStudyBySlug(slug: string, locale: string = 'en') {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
-    try {
-        const { data } = await client.query<CaseStudyQueryResponse>({
-            query: GET_CASE_STUDY_BY_SLUG,
-            variables: { slug, locale: activeLocale },
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        const items = data?.caseStudies || [];
-        return items.length > 0 ? mapCaseStudy(items[0]) : null;
-    } catch (error) {
-        return null;
-    }
+    const data = await fetchGraphQL(GET_CASE_STUDY_BY_SLUG, { slug, locale: activeLocale });
+    const items = data?.caseStudies || [];
+    return items.length > 0 ? mapCaseStudy(items[0]) : null;
 }
 
-const GET_CASE_STUDY_LIST_SEO = gql`
-    query GetCaseStudyListSeo {
-        pages(filters: { slug: { eq: "case-studies" } }) {
-            title
-            slug
-            Seo {
-                metaTitle
-                metaDescription
-                shareImage {
-                    url
-                }
-            }
-        }
-    }
-`;
-
 export async function getCaseStudyListPageSeo() {
-    try {
-        const { data } = await client.query<{ pages: any[] }>({
-            query: GET_CASE_STUDY_LIST_SEO,
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        return data?.pages?.[0] || null;
-    } catch (error) {
-        return null;
-    }
+    const data = await fetchGraphQL(GET_CASE_STUDY_LIST_SEO);
+    return data?.pages?.[0] || null;
+}
+
+export async function getAllCaseStudySlugs(locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
+    const data = await fetchGraphQL(GET_CASE_STUDY_SLUGS, { locale: activeLocale });
+    return data?.caseStudies?.filter((cs: CaseStudy) => cs.slug) || [];
 }

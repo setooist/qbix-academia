@@ -1,15 +1,33 @@
 import { notFound } from 'next/navigation';
-import { getEventBySlug } from '@/lib/api/events';
+import { getEventBySlug, getEvents } from '@/lib/api/events';
 import { EventView } from '@/components/events/event-view';
 import { Metadata } from 'next';
 import { getStrapiMedia } from '@/lib/strapi/client';
 import { generateStrapiMetadata } from '@/lib/utils/metadata';
+import { i18nConfig } from '@/config/i18n';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-    const { slug } = await params;
-    const event = await getEventBySlug(slug);
+export async function generateStaticParams() {
+    const params: { lang: string; slug: string }[] = [];
+
+    for (const lang of i18nConfig.locales) {
+        const events = await getEvents(lang);
+        events.forEach((event: { slug: string }) => {
+            params.push({ lang, slug: event.slug });
+        });
+    }
+
+    return params;
+}
+
+type Props = {
+    params: Promise<{ slug: string; lang: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const { slug, lang } = await params;
+    const event = await getEventBySlug(slug, lang);
 
     if (!event) {
         return {
@@ -19,16 +37,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     const seoItem = event.seo && event.seo.length > 0 ? event.seo[0] : null;
 
-    return generateStrapiMetadata(seoItem as any, {
+    return generateStrapiMetadata(seoItem, {
         title: event.title,
         description: event.excerpt || event.title,
         image: (event.coverImage?.url ? getStrapiMedia(event.coverImage.url) : undefined) || undefined
     });
 }
 
-export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
-    const { slug } = await params;
-    const event = await getEventBySlug(slug);
+export default async function EventPage({ params }: Readonly<Props>) {
+    const { slug, lang } = await params;
+    const event = await getEventBySlug(slug, lang);
 
     if (!event) {
         notFound();
@@ -40,3 +58,4 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
     );
 }
+

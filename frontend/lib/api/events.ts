@@ -1,33 +1,8 @@
-import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
-
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-
-const client = new ApolloClient({
-    ssrMode: typeof window === 'undefined',
-    link: new HttpLink({
-        uri: `${STRAPI_URL}/graphql`,
-        fetch: (uri: RequestInfo | URL, options?: RequestInit) => {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-            return fetch(uri, {
-                ...options,
-                signal: controller.signal,
-            }).finally(() => clearTimeout(timeoutId));
-        },
-    }),
-    cache: new InMemoryCache(),
-    defaultOptions: {
-        query: {
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'ignore',
-        },
-    },
-});
-
 import { localeConfig } from '@/config/locale-config';
+import { Block } from '@/lib/utils/strapi-blocks-renderer';
+import { fetchGraphQL } from './graphql-client';
 
-const GET_EVENTS = gql`
+const GET_EVENTS = `
     query GetEvents($sort: [String], $locale: I18NLocaleCode) {
         events(sort: $sort, locale: $locale) {
             documentId
@@ -61,7 +36,7 @@ const GET_EVENTS = gql`
     }
 `;
 
-const GET_EVENT_BY_SLUG = gql`
+const GET_EVENT_BY_SLUG = `
     query GetEventBySlug($slug: String!, $locale: I18NLocaleCode) {
         events(filters: { slug: { eq: $slug } }, locale: $locale) {
             documentId
@@ -143,12 +118,28 @@ const GET_EVENT_BY_SLUG = gql`
     }
 `;
 
+const GET_EVENT_LIST_SEO = `
+    query GetEventListSeo {
+        pages(filters: { slug: { eq: "events" } }) {
+            title
+            slug
+            Seo {
+                metaTitle
+                metaDescription
+                shareImage {
+                    url
+                }
+            }
+        }
+    }
+`;
+
 export interface Event {
     documentId: string;
     title: string;
     slug: string;
     excerpt?: string;
-    description?: string | any; // Blocks
+    description?: string | Block[]; // Blocks
     eventType: 'Webinar' | 'Workshop' | 'Masterclass' | 'Panel' | 'Meetup' | 'Other';
     startDateTime: string;
     endDateTime?: string;
@@ -215,14 +206,6 @@ export interface Event {
     seo?: any[];
 }
 
-interface EventsResponse {
-    events: any[];
-}
-
-interface EventQueryResponse {
-    events: any[];
-}
-
 const mapEvent = (e: any): Event => ({
     ...e,
     coverImage: e.coverImage?.url ? e.coverImage : (e.coverImage?.[0] || null), // Unify media handling if array/single
@@ -242,63 +225,19 @@ const mapEvent = (e: any): Event => ({
 
 export async function getEvents(locale: string = 'en') {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
-    try {
-        const { data } = await client.query<EventsResponse>({
-            query: GET_EVENTS,
-            variables: { sort: ['startDateTime:desc'], locale: activeLocale },
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        const items = data?.events || [];
-        return items.map(mapEvent);
-    } catch (error) {
-        // console.error("Error fetching events:", error);
-        return [];
-    }
+    const data = await fetchGraphQL(GET_EVENTS, { sort: ['startDateTime:desc'], locale: activeLocale });
+    const items = data?.events || [];
+    return items.map(mapEvent);
 }
 
 export async function getEventBySlug(slug: string, locale: string = 'en') {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
-    try {
-        const { data } = await client.query<EventQueryResponse>({
-            query: GET_EVENT_BY_SLUG,
-            variables: { slug, locale: activeLocale },
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        const items = data?.events || [];
-        return items.length > 0 ? mapEvent(items[0]) : null;
-    } catch (error) {
-        // console.error("Error fetching event by slug:", error);
-        return null;
-    }
+    const data = await fetchGraphQL(GET_EVENT_BY_SLUG, { slug, locale: activeLocale });
+    const items = data?.events || [];
+    return items.length > 0 ? mapEvent(items[0]) : null;
 }
 
-const GET_EVENT_LIST_SEO = gql`
-    query GetEventListSeo {
-        pages(filters: { slug: { eq: "events" } }) {
-            title
-            slug
-            Seo {
-                metaTitle
-                metaDescription
-                shareImage {
-                    url
-                }
-            }
-        }
-    }
-`;
-
 export async function getEventListPageSeo() {
-    try {
-        const { data } = await client.query<{ pages: any[] }>({
-            query: GET_EVENT_LIST_SEO,
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        return data?.pages?.[0] || null;
-    } catch (error) {
-        return null;
-    }
+    const data = await fetchGraphQL(GET_EVENT_LIST_SEO);
+    return data?.pages?.[0] || null;
 }

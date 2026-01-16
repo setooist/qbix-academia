@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Recommendation } from '@/lib/api/recommendations';
+import { checkAccess } from '@/components/auth/access-gate';
 import {
     ContentSection,
     MobileActionButtons,
@@ -15,75 +16,10 @@ interface RecommendationViewProps {
     readonly recommendation: Recommendation;
 }
 
-const isMentor = (user: any) => {
-    const userRoleName = user?.role?.name?.toLowerCase();
-    const userRoleType = user?.role?.type?.toLowerCase();
-    return userRoleName === 'mentor' || userRoleType === 'mentor';
-};
-
-const hasActiveSubscription = (user: any) => {
-    if (user.subscriptionActive === true) return true;
-    return user.subscriptions?.some(
-        (sub: any) => sub.subscription_status === 'active'
-    );
-};
-
-const checkTierAccess = (user: any, allowedTiers: string[]) => {
-    if (allowedTiers.includes('FREE')) return true;
-
-    if (!user) return false;
-
-    if (isMentor(user)) return true;
-
-    const userTier = user.tier || 'FREE';
-    if (allowedTiers.includes(userTier)) return true;
-
-    if (allowedTiers.includes('SUBSCRIPTION') && hasActiveSubscription(user)) {
-        return true;
-    }
-
-    return false;
-};
-
-const checkRoleAccess = (user: any, allowedRoles: any[] | undefined) => {
-    if (!allowedRoles) return false;
-    if (allowedRoles.length === 0) return true;
-
-    const isPubliclyAllowed = allowedRoles.some(
-        (r: any) => r.type === 'public' || (r.name && r.name.toLowerCase() === 'public')
-    );
-    if (isPubliclyAllowed) return true;
-
-    if (!user) return false;
-
-    if (isMentor(user)) return true;
-
-    const userRoleType = user.role?.type?.toLowerCase();
-    const userRoleName = user.role?.name?.toLowerCase();
-
-    return allowedRoles.some((r: any) =>
-        (r.type && r.type.toLowerCase() === userRoleType) ||
-        (r.name && r.name.toLowerCase() === userRoleName)
-    );
-};
-
 export function RecommendationView({ recommendation }: RecommendationViewProps) {
     const { user } = useAuth();
 
-    const hasAccess = () => {
-        if (!recommendation) return false;
-
-        // Check Tiers (Primary Check)
-        const allowedTiers = recommendation.allowedTiers;
-        if (allowedTiers && allowedTiers.length > 0) {
-            return checkTierAccess(user, allowedTiers);
-        }
-
-        // Fallback to Roles check (Original Logic)
-        return checkRoleAccess(user, recommendation.allowedRoles);
-    };
-
-    const accessible = hasAccess();
+    const accessible = checkAccess(user, recommendation.allowedTiers, recommendation.allowedRoles);
 
     // Determine if it's a subscription-based restriction (for CTA text)
     const isSubscriptionRestricted = Boolean(
@@ -140,4 +76,3 @@ export function RecommendationView({ recommendation }: RecommendationViewProps) 
         </article>
     );
 }
-

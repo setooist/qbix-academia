@@ -2,10 +2,20 @@ import { Metadata } from 'next';
 import { getEventListPageSeo, getEvents } from '@/lib/api/events';
 import { EventList } from '@/components/events/event-list';
 import { generateStrapiMetadata } from '@/lib/utils/metadata';
+import { i18nConfig } from '@/config/i18n';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateStaticParams() {
+  return i18nConfig.locales.map((lang) => ({ lang }));
+}
+
+type Props = {
+  params: Promise<{ lang: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang: _lang } = await params;
   const page = await getEventListPageSeo();
   const seo = page?.Seo?.[0];
 
@@ -15,8 +25,9 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function EventsPage() {
-  const events = await getEvents();
+export default async function EventsPage({ params }: Readonly<Props>) {
+  const { lang } = await params;
+  const events = await getEvents(lang);
 
   return (
     <div className="flex flex-col min-h-screen">

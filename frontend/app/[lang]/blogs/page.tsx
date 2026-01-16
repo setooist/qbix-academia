@@ -4,14 +4,14 @@ import { BlogList } from '@/components/blogs/blog-list';
 
 import { generateStrapiMetadata } from '@/lib/utils/metadata';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
 type Props = {
   params: Promise<{ lang: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { lang } = await params;
+
   const page = await getBlogListPageSeo();
   const seo = page?.Seo?.[0];
 
@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function BlogsPage({ params }: Props) {
+export default async function BlogsPage({ params }: Readonly<Props>) {
   const { lang } = await params;
   const blogs = await getBlogs(lang);
 

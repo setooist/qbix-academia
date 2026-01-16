@@ -1,12 +1,21 @@
 import { Metadata } from 'next';
 import { getDownloadableListPageSeo, getDownloadables } from '@/lib/api/downloadables';
 import { DownloadableList } from '@/components/downloadables/downloadable-list';
-
 import { generateStrapiMetadata } from '@/lib/utils/metadata';
+import { i18nConfig } from '@/config/i18n';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateStaticParams() {
+  return i18nConfig.locales.map((lang) => ({ lang }));
+}
+
+type Props = {
+  params: Promise<{ lang: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang: _lang } = await params;
   const page = await getDownloadableListPageSeo();
   const seo = page?.Seo?.[0];
 
@@ -16,12 +25,12 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function DownloadablesPage() {
-  const downloadables = await getDownloadables();
+export default async function DownloadablesPage({ params }: Readonly<Props>) {
+  const { lang } = await params;
+  const downloadables = await getDownloadables(lang);
 
   return (
     <div className="flex flex-col min-h-screen">
-
       <section className="relative bg-gradient-to-br from-cobalt-blue to-secondary text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">

@@ -1,12 +1,21 @@
 import { Metadata } from 'next';
 import { getCaseStudies, getCaseStudyListPageSeo } from '@/lib/api/case-studies';
 import { CaseStudyList } from '@/components/case-studies/case-study-list';
-
 import { generateStrapiMetadata } from '@/lib/utils/metadata';
+import { i18nConfig } from '@/config/i18n';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateStaticParams() {
+  return i18nConfig.locales.map((lang) => ({ lang }));
+}
+
+type Props = {
+  params: Promise<{ lang: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang: _lang } = await params;
   const page = await getCaseStudyListPageSeo();
   const seo = page?.Seo?.[0];
 
@@ -16,8 +25,9 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function CaseStudiesPage() {
-  const caseStudies = await getCaseStudies();
+export default async function CaseStudiesPage({ params }: Readonly<Props>) {
+  const { lang } = await params;
+  const caseStudies = await getCaseStudies(lang);
 
   return (
     <div className="flex flex-col min-h-screen">
