@@ -10,66 +10,13 @@ import { getStrapiMedia } from '@/lib/strapi/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import Link from 'next/link';
 import { StrapiBlocksRenderer } from '@/lib/utils/strapi-blocks-renderer';
+import { checkAccess } from '@/components/auth/access-gate';
 
 interface BlogPostViewProps {
     readonly blog: BlogPost;
 }
 
-function isMentor(user: any) {
-    const userRoleName = user?.role?.name?.toLowerCase();
-    const userRoleType = user?.role?.type?.toLowerCase();
-    return userRoleName === 'mentor' || userRoleType === 'mentor';
-}
 
-function hasActiveSubscription(user: any): boolean {
-    return user?.subscriptionActive === true ||
-        user?.subscriptions?.some((sub: any) => sub.subscription_status === 'active');
-}
-
-function checkTierAccess(blog: BlogPost, user: any): boolean | null {
-    const allowedTiers = blog.allowedTiers;
-
-    if (!allowedTiers || allowedTiers.length === 0) {
-        return null;
-    }
-
-    if (allowedTiers.includes('FREE')) return true;
-
-    if (!user) return false;
-
-    if (isMentor(user)) return true;
-
-    const userTier = user.tier || 'FREE';
-    if (allowedTiers.includes(userTier)) return true;
-
-    if (allowedTiers.includes('SUBSCRIPTION') && hasActiveSubscription(user)) {
-        return true;
-    }
-
-    return false;
-}
-
-function checkRoleAccess(blog: BlogPost, user: any): boolean {
-    if (!blog.allowedRoles) return false;
-    if (blog.allowedRoles.length === 0) return true;
-
-    const isPubliclyAllowed = blog.allowedRoles.some(
-        r => r.type === 'public' || r.name.toLowerCase() === 'public'
-    );
-    if (isPubliclyAllowed) return true;
-
-    if (!user) return false;
-
-    if (isMentor(user)) return true;
-
-    const userRoleType = user.role?.type?.toLowerCase();
-    const userRoleName = user.role?.name?.toLowerCase();
-
-    return blog.allowedRoles.some(r =>
-        (r.type && r.type.toLowerCase() === userRoleType) ||
-        (r.name && r.name.toLowerCase() === userRoleName)
-    );
-}
 
 function BlogCoverImage({ blog, accessible }: { readonly blog: BlogPost; readonly accessible: boolean }) {
     if (!blog.coverImage || blog.coverImage.length === 0) return null;
@@ -81,6 +28,7 @@ function BlogCoverImage({ blog, accessible }: { readonly blog: BlogPost; readonl
         <div className="relative w-full h-96 mb-12 rounded-xl overflow-hidden">
             <Image
                 src={imageUrl}
+                // Disable optimization for local images to prevent SSG build issues
                 unoptimized={isLocal}
                 alt={blog.coverImage[0].alternativeText || blog.title}
                 fill
@@ -113,11 +61,7 @@ export function BlogPostView({ blog }: BlogPostViewProps) {
 
     const hasAccess = () => {
         if (!blog) return false;
-
-        const tierAccess = checkTierAccess(blog, user);
-        if (tierAccess !== null) return tierAccess;
-
-        return checkRoleAccess(blog, user);
+        return checkAccess(user, blog.allowedTiers, blog.allowedRoles);
     };
 
     const accessible = hasAccess();

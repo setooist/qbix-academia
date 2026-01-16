@@ -1,18 +1,8 @@
-import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
 import { localeConfig } from '@/config/locale-config';
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
-const client = new ApolloClient({
-  ssrMode: typeof window === "undefined",
-  link: new HttpLink({
-    uri: `${STRAPI_URL}/graphql`,
-  }),
-  cache: new InMemoryCache(),
-});
-
-
-export const GET_NAVIGATION = gql`
+export const GET_NAVIGATION = `
   query GetNavigation($locale: I18NLocaleCode) {
     navigation(locale: $locale) {
       documentId
@@ -34,9 +24,6 @@ export const GET_NAVIGATION = gql`
     }
   }
 `;
-
-// ... interfaces ... (Keep existing, or use tool to preserve)
-// I will only replace the top query and the function.
 
 export interface ChildSubmenu {
   label: string;
@@ -65,12 +52,20 @@ export interface NavigationData {
 export async function getNavigation(locale: string = 'en') {
   try {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
-    const { data } = await client.query<{ navigation: NavigationData }>({
-      query: GET_NAVIGATION,
-      variables: { locale: activeLocale },
-      fetchPolicy: 'no-cache',
-      errorPolicy: 'all',
+
+    const response = await fetch(`${STRAPI_URL}/graphql`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: GET_NAVIGATION,
+        variables: { locale: activeLocale },
+      }),
+      cache: 'force-cache',
     });
+
+    const { data } = await response.json();
     return data?.navigation || null;
   } catch (error) {
     console.error("Error fetching navigation:", error);

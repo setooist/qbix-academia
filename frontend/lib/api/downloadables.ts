@@ -1,33 +1,7 @@
-import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
 import { localeConfig } from '@/config/locale-config';
+import { fetchGraphQL } from './graphql-client';
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-
-const client = new ApolloClient({
-    ssrMode: typeof window === 'undefined',
-    link: new HttpLink({
-        uri: `${STRAPI_URL}/graphql`,
-        fetch: (uri: RequestInfo | URL, options?: RequestInit) => {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-            return fetch(uri, {
-                ...options,
-                signal: controller.signal,
-            }).finally(() => clearTimeout(timeoutId));
-        },
-    }),
-    cache: new InMemoryCache(),
-    defaultOptions: {
-        query: {
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all',
-        },
-    },
-});
-
-
-const GET_DOWNLOADABLES = gql`
+const GET_DOWNLOADABLES = `
     query GetDownloadables($locale: I18NLocaleCode) {
         downloadables(locale: $locale) {
             documentId
@@ -65,7 +39,7 @@ const GET_DOWNLOADABLES = gql`
     }
 `;
 
-const GET_DOWNLOADABLE_BY_SLUG = gql`
+const GET_DOWNLOADABLE_BY_SLUG = `
     query GetDownloadableBySlug($slug: String!, $locale: I18NLocaleCode) {
         downloadables(filters: { slug: { eq: $slug } }, locale: $locale) {
             documentId
@@ -112,6 +86,31 @@ const GET_DOWNLOADABLE_BY_SLUG = gql`
                 quote
                 author
             }
+        }
+    }
+`;
+
+const GET_DOWNLOADABLE_LIST_SEO = `
+    query GetDownloadableListSeo {
+        pages(filters: { slug: { eq: "downloadables" } }) {
+            title
+            slug
+            Seo {
+                metaTitle
+                metaDescription
+                shareImage {
+                    url
+                }
+            }
+        }
+    }
+`;
+
+const GET_DOWNLOADABLE_SLUGS = `
+    query GetDownloadableSlugs($locale: I18NLocaleCode) {
+        downloadables(locale: $locale) {
+            slug
+            documentId
         }
     }
 `;
@@ -163,73 +162,25 @@ export interface Downloadable {
     }[] | null;
 }
 
-interface DownloadablesResponse {
-    downloadables: Downloadable[];
-}
-
-interface DownloadableQueryResponse {
-    downloadables: Downloadable[];
-}
-
 export async function getDownloadables(locale: string = 'en') {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
-    try {
-        const { data, error } = await client.query<DownloadablesResponse>({
-            query: GET_DOWNLOADABLES,
-            variables: { locale: activeLocale },
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        return data?.downloadables || [];
-    } catch (error) {
-        console.error("Error fetching downloadables:", error);
-        return [];
-    }
+    const data = await fetchGraphQL(GET_DOWNLOADABLES, { locale: activeLocale });
+    return data?.downloadables || [];
 }
 
 export async function getDownloadableBySlug(slug: string, locale: string = 'en') {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
-    try {
-        const { data, error } = await client.query<DownloadableQueryResponse>({
-            query: GET_DOWNLOADABLE_BY_SLUG,
-            variables: { slug, locale: activeLocale },
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-
-        return data?.downloadables[0] || null;
-    } catch (error) {
-        console.error("Error fetching downloadable by slug:", error);
-        return null;
-    }
+    const data = await fetchGraphQL(GET_DOWNLOADABLE_BY_SLUG, { slug, locale: activeLocale });
+    return data?.downloadables?.[0] || null;
 }
 
-const GET_DOWNLOADABLE_LIST_SEO = gql`
-    query GetDownloadableListSeo {
-        pages(filters: { slug: { eq: "downloadables" } }) {
-            title
-            slug
-            Seo {
-                metaTitle
-                metaDescription
-                shareImage {
-                    url
-                }
-            }
-        }
-    }
-`;
-
 export async function getDownloadableListPageSeo() {
-    try {
-        const { data } = await client.query<{ pages: any[] }>({
-            query: GET_DOWNLOADABLE_LIST_SEO,
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        return data?.pages?.[0] || null;
-    } catch (error) {
-        console.error("Error fetching downloadable list page SEO:", error);
-        return null;
-    }
+    const data = await fetchGraphQL(GET_DOWNLOADABLE_LIST_SEO);
+    return data?.pages?.[0] || null;
+}
+
+export async function getAllDownloadableSlugs(locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
+    const data = await fetchGraphQL(GET_DOWNLOADABLE_SLUGS, { locale: activeLocale });
+    return data?.downloadables?.filter((d: Downloadable) => d.slug) || [];
 }

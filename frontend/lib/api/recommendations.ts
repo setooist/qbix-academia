@@ -1,33 +1,7 @@
-import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
 import { localeConfig } from '@/config/locale-config';
+import { fetchGraphQL } from './graphql-client';
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-
-const client = new ApolloClient({
-    ssrMode: typeof window === 'undefined',
-    link: new HttpLink({
-        uri: `${STRAPI_URL}/graphql`,
-        fetch: (uri: RequestInfo | URL, options?: RequestInit) => {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-            return fetch(uri, {
-                ...options,
-                signal: controller.signal,
-            }).finally(() => clearTimeout(timeoutId));
-        },
-    }),
-    cache: new InMemoryCache(),
-    defaultOptions: {
-        query: {
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'ignore',
-        },
-    },
-});
-
-
-const GET_RECOMMENDATIONS = gql`
+const GET_RECOMMENDATIONS = `
     query GetRecommendations($locale: I18NLocaleCode) {
         recommendations(locale: $locale) {
             documentId
@@ -66,7 +40,7 @@ const GET_RECOMMENDATIONS = gql`
     }
 `;
 
-const GET_RECOMMENDATION_BY_SLUG = gql`
+const GET_RECOMMENDATION_BY_SLUG = `
     query GetRecommendationBySlug($slug: String!, $locale: I18NLocaleCode) {
         recommendations(filters: { slug: { eq: $slug } }, locale: $locale) {
             documentId
@@ -113,6 +87,31 @@ const GET_RECOMMENDATION_BY_SLUG = gql`
                 url
               }
             }
+        }
+    }
+`;
+
+const GET_RECOMMENDATION_LIST_SEO = `
+    query GetRecommendationListSeo {
+        pages(filters: { slug: { eq: "recommendations" } }) {
+            title
+            slug
+            Seo {
+                metaTitle
+                metaDescription
+                shareImage {
+                    url
+                }
+            }
+        }
+    }
+`;
+
+const GET_RECOMMENDATION_SLUGS = `
+    query GetRecommendationSlugs($locale: I18NLocaleCode) {
+        recommendations(locale: $locale) {
+            slug
+            documentId
         }
     }
 `;
@@ -164,70 +163,25 @@ export interface Recommendation {
     }[];
 }
 
-interface RecommendationsResponse {
-    recommendations: Recommendation[];
-}
-
-interface RecommendationQueryResponse {
-    recommendations: Recommendation[];
-}
-
 export async function getRecommendations(locale: string = 'en') {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
-    try {
-        const { data, error } = await client.query<RecommendationsResponse>({
-            query: GET_RECOMMENDATIONS,
-            variables: { locale: activeLocale },
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-
-        return data?.recommendations || [];
-    } catch (error) {
-        return [];
-    }
+    const data = await fetchGraphQL(GET_RECOMMENDATIONS, { locale: activeLocale });
+    return data?.recommendations || [];
 }
 
 export async function getRecommendationBySlug(slug: string, locale: string = 'en') {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
-    try {
-        const { data, error } = await client.query<RecommendationQueryResponse>({
-            query: GET_RECOMMENDATION_BY_SLUG,
-            variables: { slug, locale: activeLocale },
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        return data?.recommendations[0] || null;
-    } catch (error) {
-        return null;
-    }
+    const data = await fetchGraphQL(GET_RECOMMENDATION_BY_SLUG, { slug, locale: activeLocale });
+    return data?.recommendations?.[0] || null;
 }
 
-const GET_RECOMMENDATION_LIST_SEO = gql`
-    query GetRecommendationListSeo {
-        pages(filters: { slug: { eq: "recommendations" } }) {
-            title
-            slug
-            Seo {
-                metaTitle
-                metaDescription
-                shareImage {
-                    url
-                }
-            }
-        }
-    }
-`;
-
 export async function getRecommendationListPageSeo() {
-    try {
-        const { data } = await client.query<{ pages: any[] }>({
-            query: GET_RECOMMENDATION_LIST_SEO,
-            fetchPolicy: 'no-cache',
-            errorPolicy: 'all'
-        });
-        return data?.pages?.[0] || null;
-    } catch (error) {
-        return null;
-    }
+    const data = await fetchGraphQL(GET_RECOMMENDATION_LIST_SEO);
+    return data?.pages?.[0] || null;
+}
+
+export async function getAllRecommendationSlugs(locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
+    const data = await fetchGraphQL(GET_RECOMMENDATION_SLUGS, { locale: activeLocale });
+    return data?.recommendations?.filter((r: Recommendation) => r.slug) || [];
 }

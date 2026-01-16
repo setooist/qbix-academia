@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -12,16 +10,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Clock, Calendar, ArrowRight, Lock, Crown } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { CaseStudy } from '@/lib/api/case-studies';
+import { ContentCard } from '@/components/ui/content-card';
 import { getStrapiMedia } from '@/lib/strapi/client';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, Lock, ArrowRight, Crown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { CaseStudy } from '@/lib/api/case-studies';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { checkAccess } from '@/components/auth/access-gate';
 
 interface CaseStudyListProps {
-    caseStudies: CaseStudy[];
+    readonly caseStudies: readonly CaseStudy[];
 }
 
 export function CaseStudyList({ caseStudies }: CaseStudyListProps) {
@@ -29,72 +28,6 @@ export function CaseStudyList({ caseStudies }: CaseStudyListProps) {
     const router = useRouter();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-
-    const hasAccess = (caseStudy: CaseStudy) => {
-        if (!caseStudy) return false;
-
-        // Check Tiers (Primary Check)
-        const allowedTiers = caseStudy.allowedTiers;
-        if (allowedTiers && allowedTiers.length > 0) {
-            // If 'FREE' is allowed, everyone has access
-            if (allowedTiers.includes('FREE')) return true;
-
-            if (!user) return false;
-
-            // Check if user is Mentor (Always has access)
-            const userRoleName = user.role?.name?.toLowerCase();
-            const userRoleType = user.role?.type?.toLowerCase();
-            if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
-
-            // Check user tier
-            const userTier = user.tier || 'FREE';
-            if (allowedTiers.includes(userTier)) return true;
-
-            // Also check if user has an active subscription (in case tier wasn't updated)
-            if (allowedTiers.includes('SUBSCRIPTION')) {
-                // Check subscriptionActive flag
-                if (user.subscriptionActive === true) return true;
-
-                // Check subscriptions relation for any active subscription
-                const activeSubscription = user.subscriptions?.some(
-                    (sub: any) => sub.subscription_status === 'active'
-                );
-                if (activeSubscription) return true;
-            }
-
-            return false;
-        }
-
-        // Fallback to Roles check (Original Logic)
-        if (!caseStudy.allowedRoles) return false;
-        if (caseStudy.allowedRoles.length === 0) return true;
-        const isPubliclyAllowed = caseStudy.allowedRoles.some(
-            r => r.type === 'public' || r.name.toLowerCase() === 'public'
-        );
-        if (isPubliclyAllowed) return true;
-        if (!user) return false;
-        const userRoleType = user.role?.type?.toLowerCase();
-        const userRoleName = user.role?.name?.toLowerCase();
-
-        // Also allow Mentors via role check fallback
-        if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
-
-        return caseStudy.allowedRoles.some(r =>
-            (r.type && r.type.toLowerCase() === userRoleType) ||
-            (r.name && r.name.toLowerCase() === userRoleName)
-        );
-    };
-
-    const handleCardClick = (e: React.MouseEvent, accessible: boolean) => {
-        if (!accessible) {
-            e.preventDefault();
-            if (!user) {
-                setShowLoginModal(true);
-            } else {
-                setShowSubscriptionModal(true);
-            }
-        }
-    };
 
     if (!caseStudies || caseStudies.length === 0) {
         return (
@@ -104,98 +37,85 @@ export function CaseStudyList({ caseStudies }: CaseStudyListProps) {
         );
     }
 
+    const handleCardClick = (e: React.MouseEvent, caseStudy: CaseStudy) => {
+        if (!checkAccess(user, caseStudy.allowedTiers, caseStudy.allowedRoles)) {
+            e.preventDefault();
+            if (user) {
+                setShowSubscriptionModal(true);
+            } else {
+                setShowLoginModal(true);
+            }
+        }
+    };
+
     return (
         <>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {caseStudies.filter(cs => cs).map((caseStudy) => {
-                    const accessible = hasAccess(caseStudy);
-                    const LinkWrapper = accessible ? Link : 'div';
-                    const linkProps = accessible ? { href: `/case-studies/${caseStudy.slug}` } : {};
+                {caseStudies.filter(Boolean).map((caseStudy) => {
+                    const accessible = checkAccess(user, caseStudy.allowedTiers, caseStudy.allowedRoles);
+                    const imageUrl = (caseStudy.coverImage && caseStudy.coverImage.length > 0)
+                        ? getStrapiMedia(caseStudy.coverImage[0].url)
+                        : 'https://images.pexels.com/photos/262508/pexels-photo-262508.jpeg';
+                    const safeImageUrl = imageUrl || '';
+                    const isLocal = safeImageUrl.includes('localhost') || safeImageUrl.includes('127.0.0.1');
+
+                    const badges = [];
+                    if (caseStudy.category) {
+                        badges.push(<Badge key="category" variant="secondary">{caseStudy.category.name}</Badge>);
+                    }
+                    if (caseStudy.tag) {
+                        badges.push(<Badge key="tag" variant="outline">{caseStudy.tag.name}</Badge>);
+                    }
+                    if (!accessible) {
+                        badges.push(<Badge key="access" variant="destructive" className="ml-auto">Member Only</Badge>);
+                    }
+
+                    const meta = (
+                        <>
+                            <div className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" />
+                                {new Date(caseStudy.publishedAt).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                })}
+                            </div>
+                            {caseStudy.readTime && (
+                                <div className="flex items-center gap-1">
+                                    <Clock className="w-4 h-4" />
+                                    {caseStudy.readTime} min read
+                                </div>
+                            )}
+                        </>
+                    );
+
+                    const action = accessible ? (
+                        <div className="flex items-center gap-2 text-primary font-medium group-hover:translate-x-2 transition-transform duration-300">
+                            Read More
+                            <ArrowRight className="w-4 h-4" />
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 text-gray-400 font-medium">
+                            <Lock className="w-4 h-4" />
+                            <span>Locked Content</span>
+                        </div>
+                    );
 
                     return (
-                        // @ts-ignore
-                        <LinkWrapper
+                        <ContentCard
                             key={caseStudy.documentId}
-                            {...linkProps}
-                            className="block h-full cursor-pointer"
-                            onClick={(e: React.MouseEvent) => handleCardClick(e, accessible)}
-                        >
-                            <Card className={accessible
-                                ? "h-full border-2 hover:border-primary hover:shadow-2xl transition-all duration-300 group hover:-translate-y-2"
-                                : "h-full border-2 border-gray-200 bg-gray-50 opacity-80"
-                            }>
-
-                                <div className="relative w-full h-48 overflow-hidden rounded-t-lg">
-                                    {caseStudy.coverImage && caseStudy.coverImage.length > 0 && (() => {
-                                        const imageUrl = getStrapiMedia(caseStudy.coverImage[0].url) || 'https://images.pexels.com/photos/262508/pexels-photo-262508.jpeg';
-                                        const isLocal = imageUrl?.includes('localhost') || imageUrl?.includes('127.0.0.1');
-                                        return (
-                                            <Image
-                                                src={imageUrl}
-                                                unoptimized={isLocal}
-                                                alt={caseStudy.coverImage[0].alternativeText || caseStudy.title}
-                                                fill
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                className={`object-cover ${accessible ? '' : 'grayscale blur-sm'}`}
-                                            />
-                                        );
-                                    })()}
-
-                                    {!accessible && (
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px] z-10">
-                                            <div className="bg-white/90 p-3 rounded-full shadow-lg">
-                                                <Lock className="w-6 h-6 text-gray-700" />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <CardHeader>
-                                    <div className="flex items-center gap-2 mb-3">
-                                        {caseStudy.category && <Badge variant="secondary">{caseStudy.category.name}</Badge>}
-                                        {caseStudy.tag && <Badge variant="outline">{caseStudy.tag.name}</Badge>}
-                                        {!accessible && <Badge variant="destructive" className="ml-auto">Member Only</Badge>}
-                                    </div>
-                                    <CardTitle className={`line-clamp-2 ${accessible ? 'group-hover:text-primary transition-colors duration-300' : 'text-gray-600'}`}>
-                                        {caseStudy.title}
-                                    </CardTitle>
-                                    <CardDescription className="line-clamp-3">
-                                        {caseStudy.excerpt}
-                                    </CardDescription>
-                                </CardHeader>
-
-                                <CardContent className="mt-auto">
-                                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                                        <div className="flex items-center gap-1">
-                                            <Calendar className="w-4 h-4" />
-                                            {new Date(caseStudy.publishedAt).toLocaleDateString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                year: 'numeric',
-                                            })}
-                                        </div>
-                                        {caseStudy.readTime && (
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="w-4 h-4" />
-                                                {caseStudy.readTime} min read
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {accessible ? (
-                                        <div className="flex items-center gap-2 text-primary font-medium group-hover:translate-x-2 transition-transform duration-300">
-                                            Read More
-                                            <ArrowRight className="w-4 h-4" />
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center gap-2 text-gray-400 font-medium">
-                                            <Lock className="w-4 h-4" />
-                                            <span>Locked Content</span>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </LinkWrapper>
+                            title={caseStudy.title}
+                            description={caseStudy.excerpt || ''}
+                            imageSrc={safeImageUrl}
+                            imageAlt={caseStudy.coverImage?.[0]?.alternativeText || caseStudy.title}
+                            imageUnoptimized={isLocal}
+                            badges={badges}
+                            meta={meta}
+                            action={action}
+                            isLocked={!accessible}
+                            href={`/case-studies/${caseStudy.slug}`}
+                            onClick={(e) => handleCardClick(e, caseStudy)}
+                        />
                     );
                 })}
             </div>
@@ -245,4 +165,3 @@ export function CaseStudyList({ caseStudies }: CaseStudyListProps) {
         </>
     );
 }
-
