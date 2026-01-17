@@ -258,6 +258,12 @@ export function NavigationClient({ navData, globalData, lang }: NavigationClient
                                                     <span className="font-medium">Mentor Dashboard</span>
                                                 </Link>
                                             </DropdownMenuItem>
+                                            <DropdownMenuItem asChild className="cursor-pointer rounded-lg p-2.5 focus:bg-primary/10">
+                                                <Link href={getLocalizedHref('/admin/events', lang)} className="flex items-center gap-3">
+                                                    <Calendar className="w-4 h-4 text-orange-600" />
+                                                    <span className="font-medium">Event Management</span>
+                                                </Link>
+                                            </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                         </>
                                     )}
@@ -398,14 +404,24 @@ export function NavigationClient({ navData, globalData, lang }: NavigationClient
                                 )}
 
                                 {(user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') && (
-                                    <Link
-                                        href={getLocalizedHref('/account/mentor', lang)}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-purple-700 bg-purple-50 hover:bg-purple-100"
-                                    >
-                                        <Users className="w-5 h-5" />
-                                        <span className="font-medium">Mentor Dashboard</span>
-                                    </Link>
+                                    <>
+                                        <Link
+                                            href={getLocalizedHref('/account/mentor', lang)}
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-purple-700 bg-purple-50 hover:bg-purple-100"
+                                        >
+                                            <Users className="w-5 h-5" />
+                                            <span className="font-medium">Mentor Dashboard</span>
+                                        </Link>
+                                        <Link
+                                            href={getLocalizedHref('/admin/events', lang)}
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-orange-700 bg-orange-50 hover:bg-orange-100"
+                                        >
+                                            <Calendar className="w-5 h-5" />
+                                            <span className="font-medium">Event Management</span>
+                                        </Link>
+                                    </>
                                 )}
 
                                 {accountNavItems.map((item) => {

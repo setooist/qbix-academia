@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
 
 export interface Permission {
@@ -19,13 +18,17 @@ export interface Role {
 }
 
 export function usePermissions() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [permissions, setPermissions] = useState<string[]>([]);
   const [role, setRole] = useState<string | null>(null);
   const [isStaff, setIsStaff] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setPermissions([]);
       setRole(null);
@@ -34,66 +37,62 @@ export function usePermissions() {
       return;
     }
 
-    loadUserPermissions();
-  }, [user]);
+    // Get role from Strapi user object
+    // Strapi stores role in user.role.name or user.role.type
+    const userRole = user.role?.name || user.role?.type || null;
+    setRole(userRole);
 
-  async function loadUserPermissions() {
-    try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select(`
-          is_staff,
-          role_id,
-          member_roles!inner(
-            name,
-            level
-          )
-        `)
-        .eq('id', user?.id)
-        .maybeSingle();
+    // Check if user is staff/admin based on Strapi role
+    const adminRoles = ['admin', 'super_admin', 'superadmin', 'authenticated'];
+    const roleLower = userRole?.toLowerCase() || '';
+    const isAdminRole = adminRoles.includes(roleLower) ||
+      roleLower.includes('admin') ||
+      user.role?.type === 'admin';
+    setIsStaff(isAdminRole);
 
-      if (profileError) throw profileError;
-
-      if (profile) {
-        setIsStaff(profile.is_staff || false);
-        setRole((profile.member_roles as any)?.name || null);
-
-        const { data: rolePermissions, error: permError } = await supabase
-          .from('role_permissions')
-          .select(`
-            permissions!inner(name)
-          `)
-          .eq('role_id', profile.role_id);
-
-        if (permError) throw permError;
-
-        const permissionNames = rolePermissions.map(
-          (rp: any) => rp.permissions.name
-        );
-        setPermissions(permissionNames);
-      }
-    } catch (error) {
-      console.error('Error loading permissions:', error);
-    } finally {
-      setLoading(false);
+    // Set basic permissions based on role
+    if (isAdminRole) {
+      setPermissions([
+        'events.read',
+        'events.write',
+        'events.delete',
+        'users.read',
+        'users.write',
+        'content.read',
+        'content.write'
+      ]);
+    } else {
+      setPermissions(['events.read', 'content.read']);
     }
-  }
 
-  function hasPermission(permission: string): boolean {
+    setLoading(false);
+  }, [user, authLoading]);
+
+  const hasPermission = useCallback((permission: string): boolean => {
     return permissions.includes(permission);
-  }
+  }, [permissions]);
 
-  function hasAnyPermission(perms: string[]): boolean {
+  const hasAnyPermission = useCallback((perms: string[]): boolean => {
     return perms.some((p) => permissions.includes(p));
-  }
+  }, [permissions]);
 
-  function hasAllPermissions(perms: string[]): boolean {
+  const hasAllPermissions = useCallback((perms: string[]): boolean => {
     return perms.every((p) => permissions.includes(p));
-  }
+  }, [permissions]);
 
-  function isAdmin(): boolean {
-    return role === 'Admin';
-  }
+  const isAdmin = useCallback((): boolean => {
+    // Check multiple admin/manager role patterns for Strapi
+    if (!role) return false;
+    const roleLower = role.toLowerCase();
+    // Allow Admin, Mentor, and event manager roles
+    return roleLower === 'admin' ||
+      roleLower === 'super_admin' ||
+      roleLower === 'superadmin' ||
+      roleLower === 'mentor' ||
+      roleLower === 'event_manager' ||
+      roleLower.includes('admin') ||
+      roleLower.includes('mentor');
+  }, [role]);
 
   return {
     permissions,

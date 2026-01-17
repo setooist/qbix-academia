@@ -1,11 +1,13 @@
+interface Assignee {
+    id: number;
+    email?: string;
+    fullName?: string;
+    username?: string;
+}
+
 interface PopulatedAssignment {
     id: number;
-    assignee?: {
-        id: number;
-        email?: string;
-        fullName?: string;
-        username?: string;
-    };
+    assignees?: Assignee[];
     activity_template?: {
         id: number;
         title?: string;
@@ -28,19 +30,15 @@ export default {
                 result.id,
                 {
                     populate: {
-                        assignee: true,
+                        assignees: true,
                         activity_template: true,
                         mentor: true,
                     },
                 }
             ) as PopulatedAssignment;
 
-            if (!assignment?.assignee?.email) return;
-
-            const studentName =
-                assignment.assignee.fullName ||
-                assignment.assignee.username ||
-                'Student';
+            const assignees = assignment?.assignees;
+            if (!assignees || assignees.length === 0) return;
 
             const activityTitle =
                 assignment.activity_template?.title || 'New Activity';
@@ -62,13 +60,20 @@ export default {
             const frontendUrl =
                 process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
 
-            await strapi
-                .plugin('email')
-                .service('email')
-                .send({
-                    to: assignment.assignee.email,
-                    subject: `New Activity Assigned: ${activityTitle}`,
-                    html: `
+            // Send email to each assignee
+            const emailPromises = assignees
+                .filter((assignee) => assignee.email)
+                .map((assignee) => {
+                    const studentName =
+                        assignee.fullName || assignee.username || 'Student';
+
+                    return strapi
+                        .plugin('email')
+                        .service('email')
+                        .send({
+                            to: assignee.email,
+                            subject: `New Activity Assigned: ${activityTitle}`,
+                            html: `
 <!DOCTYPE html>
 <html>
 <body style="font-family: Arial; background:#f5f5f5; padding:20px">
@@ -100,8 +105,11 @@ export default {
   </div>
 </body>
 </html>
-          `,
+                            `,
+                        });
                 });
+
+            await Promise.all(emailPromises);
 
         } catch (error) {
             strapi.log.error('Email send failed:', error);

@@ -434,7 +434,7 @@ export interface ApiActivityAssignmentActivityAssignment
   extends Struct.CollectionTypeSchema {
   collectionName: 'activity_assignments';
   info: {
-    description: 'One activity assigned to ONE student';
+    description: 'One activity assigned to multiple students';
     displayName: 'Activity Assignment';
     pluralName: 'activity-assignments';
     singularName: 'activity-assignment';
@@ -449,8 +449,8 @@ export interface ApiActivityAssignmentActivityAssignment
     >;
     approved_at: Schema.Attribute.DateTime;
     assigned_at: Schema.Attribute.DateTime;
-    assignee: Schema.Attribute.Relation<
-      'manyToOne',
+    assignees: Schema.Attribute.Relation<
+      'oneToMany',
       'plugin::users-permissions.user'
     >;
     assignment_status: Schema.Attribute.Enumeration<
