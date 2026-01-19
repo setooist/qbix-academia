@@ -3,6 +3,7 @@
 import { usePathname, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { usePermissions } from '@/lib/hooks/use-permissions';
 import { localeConfig } from '@/config/locale-config';
 import {
     Activity,
@@ -10,7 +11,8 @@ import {
     BookOpen,
     User,
     LayoutDashboard,
-    CreditCard
+    CreditCard,
+    Calendar
 } from 'lucide-react';
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
@@ -18,6 +20,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     const params = useParams();
     const lang = params?.lang || 'en';
     const { user } = useAuth();
+    const { isActivityManager, isEventManager, isStudent } = usePermissions();
 
     // Helper to get localized href
     const getHref = (path: string) => {
@@ -28,18 +31,25 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     };
 
     const navItems = [
-        {
+        ...(isStudent() ? [{
             href: getHref('/account/activities'),
             label: 'My Activities',
             icon: Activity,
             description: 'View your assigned tasks'
-        },
-        // Only show Mentor Dashboard if user is a mentor
-        ...((user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') ? [{
-            href: getHref('/account/mentor'),
-            label: 'Mentor Dashboard',
+        }] : []),
+        // Only show Activity Management if user is an activity manager
+        ...(isActivityManager() ? [{
+            href: getHref('/account/activity-management'),
+            label: 'Activity Management',
             icon: GraduationCap,
             description: 'Review student submissions'
+        }] : []),
+        // Only show Event Management if user is an event manager
+        ...(isEventManager() ? [{
+            href: getHref('/account/events'),
+            label: 'Event Management',
+            icon: Calendar,
+            description: 'Manage events and registrations'
         }] : []),
         {
             href: getHref('/account/library'),
@@ -47,12 +57,12 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
             icon: BookOpen,
             description: 'Saved resources'
         },
-        {
+        ...(isStudent() ? [{
             href: getHref('/account/subscription'),
             label: 'Subscription',
             icon: CreditCard,
             description: 'Manage your plan'
-        },
+        }] : []),
         {
             href: getHref('/account/profile'),
             label: 'Profile',

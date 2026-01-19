@@ -65,7 +65,7 @@ export function NavigationClient({ navData, globalData, lang }: NavigationClient
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const { user, profile, signOut } = useAuth();
-    const { isStaff } = usePermissions();
+    const { isStaff, isEventManager, isActivityManager, isStudent } = usePermissions();
     const router = useRouter();
 
     // Handle Scroll Effect
@@ -250,16 +250,18 @@ export function NavigationClient({ navData, globalData, lang }: NavigationClient
                                             <DropdownMenuSeparator />
                                         </>
                                     )}
-                                    {(user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') && (
+                                    {isActivityManager() && (
+                                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg p-2.5 focus:bg-primary/10">
+                                            <Link href={getLocalizedHref('/account/activity-management', lang)} className="flex items-center gap-3">
+                                                <Users className="w-4 h-4 text-purple-600" />
+                                                <span className="font-medium">Activity Management</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    )}
+                                    {isEventManager() && (
                                         <>
                                             <DropdownMenuItem asChild className="cursor-pointer rounded-lg p-2.5 focus:bg-primary/10">
-                                                <Link href={getLocalizedHref('/account/mentor', lang)} className="flex items-center gap-3">
-                                                    <Users className="w-4 h-4 text-purple-600" />
-                                                    <span className="font-medium">Mentor Dashboard</span>
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem asChild className="cursor-pointer rounded-lg p-2.5 focus:bg-primary/10">
-                                                <Link href={getLocalizedHref('/admin/events', lang)} className="flex items-center gap-3">
+                                                <Link href={getLocalizedHref('/account/events', lang)} className="flex items-center gap-3">
                                                     <Calendar className="w-4 h-4 text-orange-600" />
                                                     <span className="font-medium">Event Management</span>
                                                 </Link>
@@ -267,17 +269,24 @@ export function NavigationClient({ navData, globalData, lang }: NavigationClient
                                             <DropdownMenuSeparator />
                                         </>
                                     )}
-                                    {accountNavItems.map((item) => {
-                                        const Icon = item.icon;
-                                        return (
-                                            <DropdownMenuItem key={item.href} asChild className="cursor-pointer rounded-lg p-2.5 focus:bg-primary/10">
-                                                <Link href={getLocalizedHref(item.href, lang)} className="flex items-center gap-3">
-                                                    <Icon className="w-4 h-4 text-gray-600" />
-                                                    <span>{item.label}</span>
-                                                </Link>
-                                            </DropdownMenuItem>
-                                        );
-                                    })}
+                                    {accountNavItems
+                                        .filter(item => {
+                                            if (item.label === 'My Activities') {
+                                                return isStudent();
+                                            }
+                                            return true;
+                                        })
+                                        .map((item) => {
+                                            const Icon = item.icon;
+                                            return (
+                                                <DropdownMenuItem key={item.href} asChild className="cursor-pointer rounded-lg p-2.5 focus:bg-primary/10">
+                                                    <Link href={getLocalizedHref(item.href, lang)} className="flex items-center gap-3">
+                                                        <Icon className="w-4 h-4 text-gray-600" />
+                                                        <span>{item.label}</span>
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                            );
+                                        })}
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer rounded-lg p-2.5 text-red-600 focus:bg-red-50 focus:text-red-700">
                                         <LogOut className="w-4 h-4 mr-3" />
@@ -403,44 +412,52 @@ export function NavigationClient({ navData, globalData, lang }: NavigationClient
                                     </Link>
                                 )}
 
-                                {(user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') && (
-                                    <>
-                                        <Link
-                                            href={getLocalizedHref('/account/mentor', lang)}
-                                            onClick={() => setMobileMenuOpen(false)}
-                                            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-purple-700 bg-purple-50 hover:bg-purple-100"
-                                        >
-                                            <Users className="w-5 h-5" />
-                                            <span className="font-medium">Mentor Dashboard</span>
-                                        </Link>
-                                        <Link
-                                            href={getLocalizedHref('/admin/events', lang)}
-                                            onClick={() => setMobileMenuOpen(false)}
-                                            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-orange-700 bg-orange-50 hover:bg-orange-100"
-                                        >
-                                            <Calendar className="w-5 h-5" />
-                                            <span className="font-medium">Event Management</span>
-                                        </Link>
-                                    </>
+                                {isActivityManager() && (
+                                    <Link
+                                        href={getLocalizedHref('/account/activity-management', lang)}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-purple-700 bg-purple-50 hover:bg-purple-100"
+                                    >
+                                        <Users className="w-5 h-5" />
+                                        <span className="font-medium">Activity Management</span>
+                                    </Link>
                                 )}
 
-                                {accountNavItems.map((item) => {
-                                    const Icon = item.icon;
-                                    return (
-                                        <Link
-                                            key={item.href}
-                                            href={getLocalizedHref(item.href, lang)}
-                                            onClick={() => setMobileMenuOpen(false)}
-                                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isActive(item.href)
-                                                ? 'text-primary bg-primary/10 border-l-4 border-primary'
-                                                : 'text-gray-700 hover:bg-gray-100 border-l-4 border-transparent'
-                                                }`}
-                                        >
-                                            <Icon className="w-5 h-5" />
-                                            <span>{item.label}</span>
-                                        </Link>
-                                    );
-                                })}
+                                {isEventManager() && (
+                                    <Link
+                                        href={getLocalizedHref('/admin/events', lang)}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-orange-700 bg-orange-50 hover:bg-orange-100"
+                                    >
+                                        <Calendar className="w-5 h-5" />
+                                        <span className="font-medium">Event Management</span>
+                                    </Link>
+                                )}
+
+                                {accountNavItems
+                                    .filter(item => {
+                                        if (item.label === 'My Activities') {
+                                            return isStudent();
+                                        }
+                                        return true;
+                                    })
+                                    .map((item) => {
+                                        const Icon = item.icon;
+                                        return (
+                                            <Link
+                                                key={item.href}
+                                                href={getLocalizedHref(item.href, lang)}
+                                                onClick={() => setMobileMenuOpen(false)}
+                                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isActive(item.href)
+                                                    ? 'text-primary bg-primary/10 border-l-4 border-primary'
+                                                    : 'text-gray-700 hover:bg-gray-100 border-l-4 border-transparent'
+                                                    }`}
+                                            >
+                                                <Icon className="w-5 h-5" />
+                                                <span>{item.label}</span>
+                                            </Link>
+                                        );
+                                    })}
 
                                 <button
                                     onClick={() => {

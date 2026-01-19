@@ -86,7 +86,7 @@ export interface Assignment {
 
 const GET_MY_ASSIGNMENTS = gql`
     query GetMyAssignments($userId: ID!) {
-        activityAssignments(filters: { assignee: { documentId: { eq: $userId } } }, sort: ["createdAt:desc"]) {
+        activityAssignments(filters: { assignees: { documentId: { eq: $userId } } }, sort: ["createdAt:desc"]) {
             documentId
             assignment_status
             due_date
@@ -124,7 +124,8 @@ const GET_MENTOR_ASSIGNMENTS = gql`
                     name
                 }
             }
-            assignee {
+            assignees {
+                documentId
                 username
                 email
                 fullName
@@ -135,7 +136,7 @@ const GET_MENTOR_ASSIGNMENTS = gql`
 
 const GET_ASSIGNMENT_BY_SLUG = gql`
     query GetAssignmentBySlug($slug: String!, $userId: ID!) {
-        activityAssignments(filters: { activity_template: { slug: { eq: $slug } }, assignee: { documentId: { eq: $userId } } }) {
+        activityAssignments(filters: { activity_template: { slug: { eq: $slug } }, assignees: { documentId: { eq: $userId } } }) {
             documentId
             assignment_status
             due_date
@@ -209,7 +210,8 @@ const GET_ASSIGNMENT_BY_ID = gql`
                 }
                 go_from_link
             }
-            assignee {
+            assignees {
+                documentId
                 username
                 email
             }
@@ -231,7 +233,7 @@ const mapAssignment = (data: any): Assignment => ({
         goFromLink: data.activity_template?.go_from_link,
         startDate: data.start_date,
     },
-    user: data.assignee,
+    user: data.assignees?.[0] || null, // Take first assignee for backward compat
     feedback: data.feedback_thread,
     submissionUploads: data.submissions?.flatMap((s: any) => s.uploaded_files) || []
 });
@@ -244,7 +246,6 @@ export async function getMyAssignments(userId: string) {
         });
         return data?.activityAssignments?.map(mapAssignment) || [];
     } catch (error) {
-        console.error("Error fetching my assignments:", error);
         return [];
     }
 }
@@ -257,7 +258,6 @@ export async function getMentorAssignments(mentorId: string) {
         });
         return data?.activityAssignments?.map(mapAssignment) || [];
     } catch (error) {
-        console.error("Error fetching mentor assignments:", error);
         return [];
     }
 }
@@ -271,7 +271,6 @@ export async function getAssignmentBySlug(slug: string, userId: string) {
         const assignment = data?.activityAssignments?.[0];
         return assignment ? mapAssignment(assignment) : null;
     } catch (error) {
-        console.error("Error fetching assignment by slug:", error);
         return null;
     }
 }
@@ -284,7 +283,6 @@ export async function getAssignmentById(documentId: string) {
         });
         return data?.activityAssignment ? mapAssignment(data.activityAssignment) : null;
     } catch (error) {
-        console.error("Error fetching assignment by ID:", error);
         return null;
     }
 }

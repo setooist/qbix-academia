@@ -21,6 +21,7 @@ export function usePermissions() {
   const { user, loading: authLoading } = useAuth();
   const [permissions, setPermissions] = useState<string[]>([]);
   const [role, setRole] = useState<string | null>(null);
+  const [allRoles, setAllRoles] = useState<string[]>([]);
   const [isStaff, setIsStaff] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -32,22 +33,43 @@ export function usePermissions() {
     if (!user) {
       setPermissions([]);
       setRole(null);
+      setAllRoles([]);
       setIsStaff(false);
       setLoading(false);
       return;
     }
 
-    // Get role from Strapi user object
-    // Strapi stores role in user.role.name or user.role.type
-    const userRole = user.role?.name || user.role?.type || null;
-    setRole(userRole);
+    // Get primary role from Strapi user object
+    const roles: string[] = [];
 
-    // Check if user is staff/admin based on Strapi role
+    // Primary role (manyToOne)
+    if (user.role) {
+      const roleName = user.role.name || user.role.type;
+      if (roleName) {
+        roles.push(roleName.toLowerCase());
+      }
+    }
+
+    // Additional roles (oneToMany)
+    if (user.additionalRoles && Array.isArray(user.additionalRoles)) {
+      user.additionalRoles.forEach((r: any) => {
+        const roleName = r?.name || r?.type;
+        if (roleName) {
+          roles.push(roleName.toLowerCase());
+        }
+      });
+    }
+
+    // Set primary role for display purposes
+    const primaryRole = roles[0] || null;
+    setRole(primaryRole);
+    setAllRoles(roles);
+
+    // Check if user is staff/admin based on any of their roles
     const adminRoles = ['admin', 'super_admin', 'superadmin', 'authenticated'];
-    const roleLower = userRole?.toLowerCase() || '';
-    const isAdminRole = adminRoles.includes(roleLower) ||
-      roleLower.includes('admin') ||
-      user.role?.type === 'admin';
+    const isAdminRole = roles.some(r =>
+      adminRoles.includes(r) || r.includes('admin')
+    );
     setIsStaff(isAdminRole);
 
     // Set basic permissions based on role
@@ -80,28 +102,62 @@ export function usePermissions() {
     return perms.every((p) => permissions.includes(p));
   }, [permissions]);
 
+  // Helper to check if user has any of the specified roles
+  const hasRole = useCallback((roleNames: string[]): boolean => {
+    return allRoles.some(r =>
+      roleNames.some(rn => r === rn || r.replace('_', ' ') === rn)
+    );
+  }, [allRoles]);
+
+  const isEventManager = useCallback((): boolean => {
+    if (allRoles.length === 0) return false;
+    return hasRole(['admin', 'super_admin', 'superadmin', 'event_manager', 'event manager']) ||
+      allRoles.some(r => r.includes('admin'));
+  }, [allRoles, hasRole]);
+
   const isAdmin = useCallback((): boolean => {
-    // Check multiple admin/manager role patterns for Strapi
-    if (!role) return false;
-    const roleLower = role.toLowerCase();
-    // Allow Admin, Mentor, and event manager roles
-    return roleLower === 'admin' ||
-      roleLower === 'super_admin' ||
-      roleLower === 'superadmin' ||
-      roleLower === 'mentor' ||
-      roleLower === 'event_manager' ||
-      roleLower.includes('admin') ||
-      roleLower.includes('mentor');
-  }, [role]);
+    if (allRoles.length === 0) return false;
+    return hasRole(['admin', 'super_admin', 'superadmin', 'mentor', 'event_manager']) ||
+      allRoles.some(r => r.includes('admin') || r.includes('mentor'));
+  }, [allRoles, hasRole]);
+
+  const isActivityManager = useCallback((): boolean => {
+    if (allRoles.length === 0) return false;
+    // Allow pure admins to access activity manager stuff too
+    if (allRoles.some(r => r.includes('admin'))) return true;
+    return hasRole(['activity_manager', 'activity manager']);
+  }, [allRoles, hasRole]);
+
+  const isStudent = useCallback((): boolean => {
+    // A student is explicitly someone who is NOT any of the staff roles
+    if (allRoles.length === 0) return true; // Default no role = student perspective
+
+    const staffRoles = [
+      'admin', 'super_admin', 'superadmin', 'mentor',
+      'event_manager', 'event manager',
+      'activity_manager', 'activity manager'
+    ];
+
+    const isStaffRole = allRoles.some(r =>
+      staffRoles.includes(r) || r.includes('admin')
+    );
+
+    return !isStaffRole;
+  }, [allRoles]);
 
   return {
     permissions,
     role,
+    allRoles,
     isStaff,
     loading,
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
+    hasRole,
     isAdmin,
+    isEventManager,
+    isActivityManager,
+    isStudent,
   };
 }

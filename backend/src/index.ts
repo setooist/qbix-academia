@@ -57,47 +57,89 @@ export default {
         const scrub = (item) => {
           if (!item) return item;
 
-          if (item.allowedRoles && Array.isArray(item.allowedRoles) && item.allowedRoles.length > 0) {
-            let hasAccess = false;
+          try {
+            // Bypass logic for admins/managers
+            // Collect roles from primary role + additionalRoles
+            let isManager = false;
+            if (user) {
+              const userRoles: any[] = [];
 
-            const isPubliclyAllowed = item.allowedRoles.some(r =>
-              (r.type && r.type === 'public') ||
-              (r.name && r.name.toLowerCase() === 'public')
-            );
+              // Primary role
+              if (user.role) {
+                userRoles.push(user.role);
+              }
+              // Additional roles
+              if (user.additionalRoles && Array.isArray(user.additionalRoles)) {
+                userRoles.push(...user.additionalRoles);
+              }
 
-            if (isPubliclyAllowed) {
-              hasAccess = true;
-            } else if (user && user.role) {
-              hasAccess = item.allowedRoles.some(r =>
-                (r.type && r.type === user.role.type) ||
-                (r.id === user.role.id)
-              );
+              for (const role of userRoles) {
+                const rType = role?.type?.toLowerCase();
+                const rName = role?.name?.toLowerCase();
+                if (rType === 'admin' || rType === 'super_admin' || rType === 'superadmin' ||
+                  rType === 'mentor' || rType === 'event_manager' || rType === 'activity_manager' ||
+                  (rName && (rName.includes('admin') || rName === 'mentor' || rName === 'event manager' || rName === 'activity manager'))) {
+                  isManager = true;
+                  break;
+                }
+              }
             }
 
-            if (!hasAccess) {
-              if (uid === 'api::blog.blog') {
-                item.content = null;
+            if (item.allowedRoles && Array.isArray(item.allowedRoles) && item.allowedRoles.length > 0) {
+              let hasAccess = false;
+
+              // Defensive check for potential null items in array or broken relations
+              const validRoles = item.allowedRoles.filter(r => r && (r.type || r.name));
+
+              if (isManager) {
+                hasAccess = true;
+              } else if (validRoles.length === 0) {
+                // If roles are present but none are valid/parsable, default to no access or allow?
+                // Assuming if roles are defined but broken, we should block access.
+                hasAccess = false;
+              } else {
+                const isPubliclyAllowed = validRoles.some(r =>
+                  (r.type && r.type === 'public') ||
+                  (r.name && r.name.toLowerCase() === 'public')
+                );
+
+                if (isPubliclyAllowed) {
+                  hasAccess = true;
+                } else if (user && user.role) {
+                  hasAccess = validRoles.some(r =>
+                    (r.type && user.role.type && r.type === user.role.type) ||
+                    (r.id && user.role.id && r.id === user.role.id)
+                  );
+                }
               }
-              if (uid === 'api::case-studie.case-studie') {
-                item.problem = null;
-                item.approach = null;
-                item.outcome = null;
-                item.testimonial = null;
-              }
-              if (uid === 'api::downloadable.downloadable') {
-                item.file = null;
-                item.description = null;
-              }
-              if (uid === 'api::recommendation.recommendation') {
-                item.recommendationNotes = null;
-                item.keyTakeaways = null;
-              }
-              if (uid === 'api::event.event') {
-                item.meetingLink = null;
-                item.resources = null;
-                item.registrationLink = null;
+
+              if (!hasAccess) {
+                if (uid === 'api::blog.blog') {
+                  item.content = null;
+                }
+                if (uid === 'api::case-studie.case-studie') {
+                  item.problem = null;
+                  item.approach = null;
+                  item.outcome = null;
+                  item.testimonial = null;
+                }
+                if (uid === 'api::downloadable.downloadable') {
+                  item.file = null;
+                  item.description = null;
+                }
+                if (uid === 'api::recommendation.recommendation') {
+                  item.recommendationNotes = null;
+                  item.keyTakeaways = null;
+                }
+                if (uid === 'api::event.event') {
+                  item.meetingLink = null;
+                  item.resources = null;
+                  item.registrationLink = null;
+                }
               }
             }
+          } catch (e) {
+            console.error("Error in sanitizeResult:", e);
           }
           return item;
         };
@@ -158,12 +200,10 @@ export default {
     }
 
     if (needsUpdate) {
-      console.log(`Setting default_role to: "${defaultRoleType}"`);
       await pluginStore.set({
         key: 'advanced',
         value: { ...settings, default_role: defaultRoleType }
       });
-      console.log('Successfully updated default_role setting');
     }
   },
 };

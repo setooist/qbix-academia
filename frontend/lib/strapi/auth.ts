@@ -115,7 +115,7 @@ export async function getCurrentUser(jwt?: string) {
     if (!jwt) return null;
 
     try {
-        const response = await fetch(`${STRAPI_URL}/api/users/me?populate[role]=*&populate[subscriptions][fields][0]=subscription_status&populate[subscriptions][fields][1]=end_date`, {
+        const response = await fetch(`${STRAPI_URL}/api/users/me?populate[role]=*&populate[additionalRoles]=*&populate[subscriptions][fields][0]=subscription_status&populate[subscriptions][fields][1]=end_date`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${jwt}`,

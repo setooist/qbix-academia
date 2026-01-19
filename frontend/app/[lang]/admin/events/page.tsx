@@ -22,7 +22,7 @@ import { getAdminEvents, AdminEvent } from '@/lib/api/admin/events';
 
 export default function EventManagementListPage() {
   const router = useRouter();
-  const { isAdmin, loading: permLoading } = usePermissions();
+  const { isEventManager, loading: permLoading } = usePermissions();
   const [events, setEvents] = useState<AdminEvent[]>([]); // Use AdminEvent interface
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +38,7 @@ export default function EventManagementListPage() {
   }, []);
 
   useEffect(() => {
-    if (!permLoading && !isAdmin()) {
+    if (!permLoading && !isEventManager()) {
       router.push('/');
       return;
     }
@@ -49,7 +49,7 @@ export default function EventManagementListPage() {
     } else {
       setLoading(false);
     }
-  }, [permLoading, isAdmin, router, fetchEvents]);
+  }, [permLoading, isEventManager, router, fetchEvents]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

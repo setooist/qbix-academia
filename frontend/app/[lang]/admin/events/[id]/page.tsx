@@ -41,7 +41,7 @@ export default function EventManagementPage() {
     const params = useParams();
     const router = useRouter();
     const eventId = params.id as string;
-    const { isAdmin, loading: permLoading } = usePermissions();
+    const { isEventManager, loading: permLoading } = usePermissions();
 
     // State
     const [event, setEvent] = useState<AdminEvent | null>(null); // Use AdminEvent
@@ -98,7 +98,7 @@ export default function EventManagementPage() {
 
     // Initial load
     useEffect(() => {
-        if (!permLoading && !isAdmin()) {
+        if (!permLoading && !isEventManager()) {
             router.push('/');
             return;
         }
@@ -107,7 +107,7 @@ export default function EventManagementPage() {
             fetchEventDetails();
             fetchRegistrations();
         }
-    }, [eventId, permLoading, isAdmin, router, fetchEventDetails, fetchRegistrations]);
+    }, [eventId, permLoading, isEventManager, router, fetchEventDetails, fetchRegistrations]);
 
     // Load analytics when switching to analytics tab
     useEffect(() => {
