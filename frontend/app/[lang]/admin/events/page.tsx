@@ -1,21 +1,77 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { usePermissions } from '@/lib/hooks/use-permissions';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Calendar,
+  Users,
+  MapPin,
+  ExternalLink,
+  Settings,
+  Clock
+} from 'lucide-react';
 
-export default function EventManagement() {
+import { getAdminEvents, AdminEvent } from '@/lib/api/admin/events';
+
+// ... (imports remain)
+
+export default function EventManagementListPage() {
   const router = useRouter();
-  const { hasPermission, loading } = usePermissions();
+  const { isEventManager, loading: permLoading } = usePermissions();
+  const [events, setEvents] = useState<AdminEvent[]>([]); // Use AdminEvent interface
+  const [loading, setLoading] = useState(true);
+
+  const fetchEvents = useCallback(async (token: string) => {
+    try {
+      const data = await getAdminEvents(token);
+      setEvents(data);
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (!loading && !hasPermission('events.read')) {
+    if (!permLoading && !isEventManager()) {
       router.push('/');
+      return;
     }
-  }, [hasPermission, loading, router]);
 
-  if (loading) {
+    const token = localStorage.getItem('strapi_jwt');
+    if (token) {
+      fetchEvents(token);
+    } else {
+      setLoading(false);
+    }
+  }, [permLoading, isEventManager, router, fetchEvents]);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const isPastEvent = (dateString: string) => {
+    return new Date(dateString) < new Date();
+  };
+
+  if (permLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -26,56 +82,193 @@ export default function EventManagement() {
     );
   }
 
+  // Separate upcoming and past events
+  const upcomingEvents = events.filter(e => !isPastEvent(e.startDateTime));
+  const pastEvents = events.filter(e => isPastEvent(e.startDateTime));
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 max-w-6xl">
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Event Management</h1>
-          <p className="text-gray-600 mt-2">Manage events and registrations</p>
+          <p className="text-gray-600 mt-2">
+            Manage registrations, waitlists, and attendance for your events
+          </p>
         </div>
 
-        <Card className="border-2">
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto mb-4">
-              <svg className="w-48 h-48 mx-auto" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="eventGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor: '#f97316', stopOpacity: 0.8}} />
-                    <stop offset="100%" style={{stopColor: '#3b82f6', stopOpacity: 0.8}} />
-                  </linearGradient>
-                </defs>
-                <rect x="50" y="50" width="100" height="110" rx="8" fill="url(#eventGrad)" opacity="0.2" />
-                <rect x="50" y="40" width="100" height="15" rx="4" fill="url(#eventGrad)" />
-                <circle cx="65" cy="47.5" r="3" fill="white" />
-                <circle cx="135" cy="47.5" r="3" fill="white" />
-                <line x1="60" y1="65" x2="140" y2="65" stroke="url(#eventGrad)" strokeWidth="1" opacity="0.3" />
-                <rect x="60" y="75" width="25" height="25" rx="4" fill="url(#eventGrad)" opacity="0.4" />
-                <rect x="90" y="75" width="25" height="25" rx="4" fill="url(#eventGrad)" opacity="0.4" />
-                <rect x="120" y="75" width="25" height="25" rx="4" fill="url(#eventGrad)" opacity="0.6" />
-                <rect x="60" y="105" width="25" height="25" rx="4" fill="url(#eventGrad)" opacity="0.4" />
-                <rect x="90" y="105" width="25" height="25" rx="4" fill="url(#eventGrad)" opacity="0.4" />
-              </svg>
-            </div>
-            <CardTitle className="text-2xl">Coming Soon</CardTitle>
-            <CardDescription className="text-base mt-2">Event management features will be available here</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-600 mb-4">
-              This section will allow you to create, edit, and manage events and registrations.
-            </p>
-            <div className="grid md:grid-cols-2 gap-4 mt-6 max-w-2xl mx-auto">
-              <div className="p-4 bg-gradient-to-br from-orange/5 to-primary/5 rounded-lg">
-                <p className="font-medium text-gray-900">Create Events</p>
-                <p className="text-sm text-gray-600 mt-1">Schedule and publish events</p>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <Card className="border-2">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <Calendar className="w-6 h-6 text-blue-600" />
               </div>
-              <div className="p-4 bg-gradient-to-br from-orange/5 to-primary/5 rounded-lg">
-                <p className="font-medium text-gray-900">Track Registrations</p>
-                <p className="text-sm text-gray-600 mt-1">Manage attendee lists</p>
+              <div>
+                <p className="text-2xl font-bold">{upcomingEvents.length}</p>
+                <p className="text-sm text-gray-500">Upcoming Events</p>
               </div>
+            </CardContent>
+          </Card>
+          <Card className="border-2">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 bg-green-50 rounded-lg">
+                <Users className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {events.filter(e => e.isRegistrationOpen).length}
+                </p>
+                <p className="text-sm text-gray-500">Registration Open</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-2">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <Clock className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{pastEvents.length}</p>
+                <p className="text-sm text-gray-500">Past Events</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Upcoming Events */}
+        {upcomingEvents.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-blue-600" />
+              Upcoming Events
+            </h2>
+            <div className="grid gap-4">
+              {upcomingEvents.map((event) => (
+                <EventCard key={event.id} event={event} formatDate={formatDate} formatTime={formatTime} />
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        )}
+
+        {/* Past Events */}
+        {pastEvents.length > 0 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-gray-500" />
+              Past Events
+            </h2>
+            <div className="grid gap-4">
+              {pastEvents.slice(0, 10).map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  formatDate={formatDate}
+                  formatTime={formatTime}
+                  isPast
+                />
+              ))}
+            </div>
+            {pastEvents.length > 10 && (
+              <p className="text-center text-gray-500 mt-4">
+                Showing 10 of {pastEvents.length} past events
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {events.length === 0 && (
+          <Card className="border-2">
+            <CardContent className="py-12 text-center">
+              <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900">No Events Yet</h3>
+              <p className="text-gray-500 mt-2">
+                Create events in the Strapi admin panel to manage them here.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
+  );
+}
+
+const statusColors: Record<string, string> = {
+  'Draft': 'bg-gray-100 text-gray-800',
+  'Published': 'bg-blue-100 text-blue-800',
+  'Registration Open': 'bg-green-100 text-green-800',
+  'Closed': 'bg-yellow-100 text-yellow-800',
+  'Past': 'bg-gray-100 text-gray-600'
+};
+
+interface EventCardProps {
+  event: AdminEvent;
+  formatDate: (date: string) => string;
+  formatTime: (date: string) => string;
+  isPast?: boolean;
+}
+
+function EventCard({ event, formatDate, formatTime, isPast = false }: EventCardProps) {
+  return (
+    <Card className={`border-2 hover:shadow-lg transition-all ${isPast ? 'opacity-75' : ''}`}>
+      <CardContent className="p-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <Badge
+                className={statusColors[event.eventStatus] || statusColors['Draft']}
+              >
+                {event.eventStatus}
+              </Badge>
+              <Badge variant="outline">{event.eventType}</Badge>
+              {event.hasWaitlist && (
+                <Badge variant="secondary">Waitlist Enabled</Badge>
+              )}
+            </div>
+
+            <h3 className="text-lg font-semibold text-gray-900">
+              {event.title}
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500">
+              <span className="flex items-center gap-1">
+                <Calendar className="w-4 h-4" />
+                {formatDate(event.startDateTime)}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                {formatTime(event.startDateTime)}
+              </span>
+              <span className="flex items-center gap-1">
+                <MapPin className="w-4 h-4" />
+                {event.locationType}
+              </span>
+              {event.capacity && (
+                <span className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  {event.capacity} capacity
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/events/${event.slug}`} target="_blank">
+              <Button variant="outline" size="sm">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                View Page
+              </Button>
+            </Link>
+            <Link href={`/en/admin/events/${event.documentId || event.id}`}>
+              <Button size="sm">
+                <Settings className="w-4 h-4 mr-2" />
+                Manage
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

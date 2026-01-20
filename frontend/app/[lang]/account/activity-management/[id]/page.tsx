@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { usePermissions } from '@/lib/hooks/use-permissions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +37,7 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
     const urlParams = useParams();
     const lang = urlParams?.lang || 'en';
     const { user, loading: authLoading } = useAuth();
+    const { isActivityManager, loading: permLoading } = usePermissions();
     const [assignment, setAssignment] = useState<Assignment | null>(null);
     const [loading, setLoading] = useState(true);
     const [documentId, setDocumentId] = useState<string | null>(null);
@@ -57,19 +59,17 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
     }, [params]);
 
     useEffect(() => {
-        if (!authLoading) {
+        if (!authLoading && !permLoading) {
             if (!user) {
                 router.push(`/${lang}/auth/login`);
             } else {
-                // Check if user has mentor role
-                const isMentor = user.role?.name === 'Mentor' || user.role?.type === 'mentor';
-
-                if (!isMentor) {
+                // Use consistent permission check
+                if (!isActivityManager()) {
                     router.push(`/${lang}/account/activities`);
                 }
             }
         }
-    }, [user, authLoading, router, lang]);
+    }, [user, authLoading, permLoading, isActivityManager, router, lang]);
 
     const fetchData = useCallback(async () => {
         if (documentId) {
@@ -97,7 +97,6 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
             setShowApproveDialog(false);
             await fetchData();
         } catch (error) {
-            console.error('Failed to approve:', error);
             alert('Failed to approve assignment. Please try again.');
         } finally {
             setActionLoading(false);
@@ -112,7 +111,6 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
             setShowRejectDialog(false);
             await fetchData();
         } catch (error) {
-            console.error('Failed to request changes:', error);
             alert('Failed to request changes. Please try again.');
         } finally {
             setActionLoading(false);
@@ -126,7 +124,6 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
             await gradeAssignment(assignment.documentId, parseFloat(grade));
             await fetchData();
         } catch (error) {
-            console.error('Failed to save grade:', error);
             alert('Failed to save grade. Please try again.');
         } finally {
             setActionLoading(false);
@@ -149,8 +146,6 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
             document.body.removeChild(link);
             window.URL.revokeObjectURL(blobUrl);
         } catch (error) {
-            console.error('Download error:', error);
-            // Fallback to opening in new tab if blob fetch fails
             window.open(url, '_blank');
         }
     };
@@ -204,7 +199,7 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                 <div className="text-center">
                     <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h2 className="text-xl font-semibold text-gray-900 mb-2">Assignment not found</h2>
-                    <Button onClick={() => router.push(`/${lang}/account/mentor`)}>
+                    <Button onClick={() => router.push(`/${lang}/account/activity-management`)}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Dashboard
                     </Button>
@@ -223,9 +218,9 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
             <div className="container mx-auto px-4 max-w-6xl space-y-8">
                 {/* Header */}
                 <div>
-                    <Button variant="ghost" className="mb-4 pl-0" onClick={() => router.push(`/${lang}/account/mentor`)}>
+                    <Button variant="ghost" className="mb-4 pl-0" onClick={() => router.push(`/${lang}/account/activity-management`)}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Mentor Dashboard
+                        Back to Activity Management
                     </Button>
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div>
@@ -338,17 +333,6 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                                                             </div>
                                                         </div>
                                                         <div className="flex gap-2">
-                                                            {/* <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => {
-                                                                    const fullUrl = getStrapiMedia(file.url);
-                                                                    if (fullUrl) handleView(fullUrl, file.name, file.mime);
-                                                                }}
-                                                            >
-                                                                <Eye className="w-4 h-4 mr-2" />
-                                                                View
-                                                            </Button> */}
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"

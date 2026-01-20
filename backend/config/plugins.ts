@@ -37,21 +37,14 @@ export default () => ({
             providerOptions: {
                 host: process.env.SMTP_HOST,
                 port: Number(process.env.SMTP_PORT) || 587,
-                secure: Number(process.env.SMTP_PORT) === 465,
-                requireTLS: Number(process.env.SMTP_PORT) === 587,
+                secure: false,
                 auth: {
                     user: process.env.SMTP_USERNAME,
                     pass: process.env.SMTP_PASSWORD,
                 },
                 tls: {
-                    rejectUnauthorized: isProd,
-                    minVersion: 'TLSv1.2',
+                    rejectUnauthorized: false,
                 },
-                // Production debugging
-                ...(isProd && {
-                    logger: true,
-                    debug: true,
-                }),
             },
             settings: {
                 defaultFrom: process.env.EMAIL_FROM,

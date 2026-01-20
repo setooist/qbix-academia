@@ -15,10 +15,21 @@ export const checkTierAccess = (allowedTiers: string[] | null | undefined, user:
     if (allowedTiers.includes('FREE')) return true;
     if (!user) return false;
 
-    // Mentor check
+    // Manager / Admin bypass check
     const userRoleName = user.role?.name?.toLowerCase();
     const userRoleType = user.role?.type?.toLowerCase();
-    if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
+
+    const isBypassRole =
+        userRoleName === 'mentor' || userRoleType === 'mentor' ||
+        userRoleName === 'admin' || userRoleType === 'admin' ||
+        userRoleName === 'super_admin' || userRoleType === 'super_admin' ||
+        userRoleName === 'event_manager' || userRoleType === 'event_manager' ||
+        userRoleName === 'event manager' ||
+        userRoleName === 'activity_manager' || userRoleType === 'activity_manager' ||
+        userRoleName === 'activity manager' ||
+        (userRoleName && userRoleName.includes('admin'));
+
+    if (isBypassRole) return true;
 
     if (allowedTiers.includes(user.tier || 'FREE')) return true;
 
@@ -51,8 +62,18 @@ export const checkRoleAccess = (allowedRoles: { type?: string; name?: string }[]
     const userRoleType = user.role?.type?.toLowerCase();
     const userRoleName = user.role?.name?.toLowerCase();
 
-    // Also allow Mentors via role check fallback
-    if (userRoleName === 'mentor' || userRoleType === 'mentor') return true;
+    // Manager / Admin bypass check
+    const isBypassRole =
+        userRoleName === 'mentor' || userRoleType === 'mentor' ||
+        userRoleName === 'admin' || userRoleType === 'admin' ||
+        userRoleName === 'super_admin' || userRoleType === 'super_admin' ||
+        userRoleName === 'event_manager' || userRoleType === 'event_manager' ||
+        userRoleName === 'event manager' ||
+        userRoleName === 'activity_manager' || userRoleType === 'activity_manager' ||
+        userRoleName === 'activity manager' ||
+        (userRoleName && userRoleName.includes('admin'));
+
+    if (isBypassRole) return true;
 
     return allowedRoles.some((r: any) =>
         (r.type && r.type.toLowerCase() === userRoleType) ||

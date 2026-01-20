@@ -11,10 +11,14 @@
     },
     "attributes": {
         "username": {
-            "type": "string"
+            "type": "string",
+            "unique": true,
+            "required": true
         },
         "email": {
-            "type": "email"
+            "type": "email",
+            "unique": true,
+            "required": true
         },
         "password": {
             "type": "password"
@@ -55,6 +59,11 @@
             "relation": "manyToOne",
             "target": "plugin::users-permissions.role",
             "inversedBy": "users"
+        },
+        "additionalRoles": {
+            "type": "relation",
+            "relation": "oneToMany",
+            "target": "plugin::users-permissions.role"
         },
         "tier": {
             "type": "enumeration",

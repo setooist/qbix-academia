@@ -1,0 +1,71 @@
+{
+    "kind": "collectionType",
+    "collectionName": "notification_templates",
+    "info": {
+        "singularName": "notification-template",
+        "pluralName": "notification-templates",
+        "displayName": "Notification Template",
+        "description": "Reusable notification message templates"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "template_key": {
+            "type": "string",
+            "unique": true,
+            "required": true
+        },
+        "name": {
+            "type": "string",
+            "required": true
+        },
+        "notification_type": {
+            "type": "enumeration",
+            "enum": [
+                "registration_confirmation",
+                "waitlist_addition",
+                "waitlist_promotion",
+                "reminder_72h",
+                "reminder_24h",
+                "reminder_4h",
+                "event_update",
+                "event_cancellation",
+                "post_event_feedback"
+            ],
+            "required": true
+        },
+        "channel": {
+            "type": "enumeration",
+            "enum": [
+                "email",
+                "whatsapp",
+                "sms"
+            ],
+            "default": "email"
+        },
+        "subject": {
+            "type": "string"
+        },
+        "html_body": {
+            "type": "richtext"
+        },
+        "text_body": {
+            "type": "text"
+        },
+        "variables": {
+            "type": "json",
+            "default": [
+                "{{userName}}",
+                "{{eventTitle}}",
+                "{{eventDate}}",
+                "{{eventLink}}"
+            ]
+        },
+        "is_active": {
+            "type": "boolean",
+            "default": true
+        }
+    }
+}
