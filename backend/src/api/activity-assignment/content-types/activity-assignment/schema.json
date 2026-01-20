@@ -5,7 +5,7 @@
         "singularName": "activity-assignment",
         "pluralName": "activity-assignments",
         "displayName": "Activity Assignment",
-        "description": "One activity assigned to ONE student"
+        "description": "One activity assigned to multiple students"
     },
     "options": {
         "draftAndPublish": false
@@ -18,9 +18,9 @@
             "target": "api::activity-template.activity-template",
             "inversedBy": "activity_assignments"
         },
-        "assignee": {
+        "assignees": {
             "type": "relation",
-            "relation": "manyToOne",
+            "relation": "oneToMany",
             "target": "plugin::users-permissions.user"
         },
         "mentor": {

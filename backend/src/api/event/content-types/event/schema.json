@@ -146,6 +146,32 @@
             "type": "component",
             "repeatable": true,
             "component": "shared.seo"
+        },
+        "registrations": {
+            "type": "relation",
+            "relation": "oneToMany",
+            "target": "api::event-registration.event-registration",
+            "mappedBy": "event"
+        },
+        "waitlistCapacity": {
+            "type": "integer",
+            "default": 50
+        },
+        "reminderSchedule": {
+            "type": "json",
+            "default": {
+                "72h": true,
+                "24h": true,
+                "4h": true
+            }
+        },
+        "autoPromoteFromWaitlist": {
+            "type": "boolean",
+            "default": true
+        },
+        "requiresApproval": {
+            "type": "boolean",
+            "default": false
         }
     }
 }

@@ -66,3 +66,50 @@ export async function fetchGraphQL(
     }
     return null;
 }
+
+/**
+ * Authenticated GraphQL fetch client for Client-Side usage (Admin, User Dashboard)
+ * Bypasses SSG caching and includes Authorization header
+ */
+export async function fetchAuthGraphQL(
+    query: string,
+    variables: Record<string, unknown> = {},
+    token: string
+): Promise<any> {
+    if (!token) {
+        console.warn('fetchAuthGraphQL called without token');
+        return null;
+    }
+
+    try {
+        const response = await fetch(`${STRAPI_URL}/graphql`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                query,
+                variables,
+            }),
+            cache: 'no-store', // Dynamic data, never cache
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error(`GraphQL request failed with status ${response.status}:`, errorBody);
+            throw new Error(`Server returned ${response.status}: ${errorBody}`);
+        }
+
+        const json = await response.json();
+        if (json.errors) {
+            console.error("GraphQL Errors:", JSON.stringify(json.errors, null, 2));
+            throw new Error(json.errors[0]?.message || 'GraphQL Error');
+        }
+        return json.data;
+
+    } catch (error: any) {
+        console.error("fetchAuthGraphQL failed:", error);
+        throw error;
+    }
+}
