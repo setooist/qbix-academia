@@ -21,7 +21,7 @@ import { AnalyticsDashboard } from './analytics-dashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCw, AlertCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface EventRegistrationDashboardProps {
     eventId: string;
