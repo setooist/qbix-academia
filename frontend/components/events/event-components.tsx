@@ -269,29 +269,18 @@ export function EventAgenda({ event, accessible }: { readonly event: Event; read
     );
 }
 
+import { EventRegistrationButton } from './event-registration-button';
+
 function RegistrationButton({ event }: { readonly event: Event }) {
-    if (!event.isRegistrationOpen) {
-        return (
-            <Button className="w-full text-lg py-6" disabled>
-                Registration Closed
-            </Button>
-        );
-    }
-
-    if (event.registrationLink) {
-        return (
-            <Button className="w-full text-lg py-6" asChild>
-                <a href={event.registrationLink} target="_blank" rel="noopener noreferrer">
-                    Register Now
-                </a>
-            </Button>
-        );
-    }
-
+    // Use the new API-based registration button with waitlist support
     return (
-        <div className="p-3 bg-yellow-50 text-yellow-800 rounded-md text-sm text-center">
-            Registration link available shortly.
-        </div>
+        <EventRegistrationButton
+            eventId={event.documentId}
+            isRegistrationOpen={event.isRegistrationOpen}
+            hasWaitlist={event.hasWaitlist}
+            capacity={event.capacity}
+            confirmedCount={0} // This would come from API in real-time
+        />
     );
 }
 

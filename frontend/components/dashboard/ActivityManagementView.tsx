@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { usePermissions } from '@/lib/hooks/use-permissions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,30 +20,29 @@ import {
     ArrowRight
 } from 'lucide-react';
 
-export function MentorDashboardView() {
+export function ActivityManagementView() {
     const router = useRouter();
     const params = useParams();
     const lang = params?.lang || 'en';
     const { user, loading: authLoading } = useAuth();
+    const { isActivityManager, loading: permLoading } = usePermissions();
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [loading, setLoading] = useState(true);
 
     const urlPrefix = localeConfig.multilanguage.enabled ? `/${lang}` : '';
 
     useEffect(() => {
-        if (!authLoading) {
+        if (!authLoading && !permLoading) {
             if (!user) {
                 router.push(`${urlPrefix}/auth/login`);
             } else {
-                // Check if user has mentor role
-                const isMentor = user.role?.name === 'Mentor' || user.role?.type === 'mentor';
-
-                if (!isMentor) {
-                    router.push(`${urlPrefix}/account/activities`);
+                // Use consistent permission check
+                if (!isActivityManager()) {
+                    router.push(`${urlPrefix}/account/profile`);
                 }
             }
         }
-    }, [user, authLoading, router, lang, urlPrefix]);
+    }, [user, authLoading, permLoading, isActivityManager, router, lang, urlPrefix]);
 
     useEffect(() => {
         async function fetchData() {
@@ -100,7 +100,7 @@ export function MentorDashboardView() {
             <div className="container mx-auto px-4 space-y-8">
                 {/* Header */}
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Mentor Dashboard</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">Activity Management</h1>
                     <p className="text-gray-600 mt-2">Review and manage student submissions</p>
                 </div>
 
@@ -197,7 +197,7 @@ export function MentorDashboardView() {
                                                         <TableCell className="text-right">
                                                             <Button
                                                                 size="sm"
-                                                                onClick={() => router.push(`${urlPrefix}/account/mentor/${assignment.documentId}`)}
+                                                                onClick={() => router.push(`${urlPrefix}/account/activity-management/${assignment.documentId}`)}
                                                             >
                                                                 <Eye className="w-4 h-4 mr-1" />
                                                                 Review
@@ -228,7 +228,7 @@ export function MentorDashboardView() {
                             <CardContent>
                                 <ActivityTable
                                     assignments={inProgress}
-                                    onView={(id) => router.push(`${urlPrefix}/account/mentor/${id}`)}
+                                    onView={(id) => router.push(`${urlPrefix}/account/activity-management/${id}`)}
                                 />
                             </CardContent>
                         </Card>
@@ -249,7 +249,7 @@ export function MentorDashboardView() {
                             <CardContent>
                                 <ActivityTable
                                     assignments={assigned}
-                                    onView={(id) => router.push(`${urlPrefix}/account/mentor/${id}`)}
+                                    onView={(id) => router.push(`${urlPrefix}/account/activity-management/${id}`)}
                                 />
                             </CardContent>
                         </Card>
@@ -270,7 +270,7 @@ export function MentorDashboardView() {
                             <CardContent>
                                 <ActivityTable
                                     assignments={approved}
-                                    onView={(id) => router.push(`${urlPrefix}/account/mentor/${id}`)}
+                                    onView={(id) => router.push(`${urlPrefix}/account/activity-management/${id}`)}
                                     showGrade
                                 />
                             </CardContent>

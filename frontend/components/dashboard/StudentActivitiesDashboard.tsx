@@ -9,22 +9,29 @@ import { Button } from '@/components/ui/button';
 import { getMyAssignments, Assignment } from '@/lib/api/assignments';
 import { Clock, ArrowRight } from 'lucide-react';
 import { localeConfig } from '@/config/locale-config';
+import { usePermissions } from '@/lib/hooks/use-permissions';
 
 export function StudentActivitiesDashboard() {
     const router = useRouter();
     const params = useParams();
     const lang = params?.lang || 'en';
     const { user, loading: authLoading } = useAuth();
+    const { isStudent, loading: permLoading } = usePermissions();
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [loading, setLoading] = useState(true);
 
     const urlPrefix = localeConfig.multilanguage.enabled ? `/${lang}` : '';
 
     useEffect(() => {
-        if (!authLoading && !user) {
-            router.push(`${urlPrefix}/auth/login`);
+        if (!authLoading && !permLoading) {
+            if (!user) {
+                router.push(`${urlPrefix}/auth/login`);
+            } else if (!isStudent()) {
+                // If user is staff (not student), redirect them to their respective dashboard or profile
+                router.push(`${urlPrefix}/account/profile`);
+            }
         }
-    }, [user, authLoading, router, lang, urlPrefix]);
+    }, [user, authLoading, permLoading, isStudent, router, lang, urlPrefix]);
 
     useEffect(() => {
         async function fetchAssignments() {

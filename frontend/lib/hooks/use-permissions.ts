@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
 
 export interface Permission {
@@ -19,90 +18,146 @@ export interface Role {
 }
 
 export function usePermissions() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [permissions, setPermissions] = useState<string[]>([]);
   const [role, setRole] = useState<string | null>(null);
+  const [allRoles, setAllRoles] = useState<string[]>([]);
   const [isStaff, setIsStaff] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setPermissions([]);
       setRole(null);
+      setAllRoles([]);
       setIsStaff(false);
       setLoading(false);
       return;
     }
 
-    loadUserPermissions();
-  }, [user]);
+    // Get primary role from Strapi user object
+    const roles: string[] = [];
 
-  async function loadUserPermissions() {
-    try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select(`
-          is_staff,
-          role_id,
-          member_roles!inner(
-            name,
-            level
-          )
-        `)
-        .eq('id', user?.id)
-        .maybeSingle();
-
-      if (profileError) throw profileError;
-
-      if (profile) {
-        setIsStaff(profile.is_staff || false);
-        setRole((profile.member_roles as any)?.name || null);
-
-        const { data: rolePermissions, error: permError } = await supabase
-          .from('role_permissions')
-          .select(`
-            permissions!inner(name)
-          `)
-          .eq('role_id', profile.role_id);
-
-        if (permError) throw permError;
-
-        const permissionNames = rolePermissions.map(
-          (rp: any) => rp.permissions.name
-        );
-        setPermissions(permissionNames);
+    // Primary role (manyToOne)
+    if (user.role) {
+      const roleName = user.role.name || user.role.type;
+      if (roleName) {
+        roles.push(roleName.toLowerCase());
       }
-    } catch (error) {
-      console.error('Error loading permissions:', error);
-    } finally {
-      setLoading(false);
     }
-  }
 
-  function hasPermission(permission: string): boolean {
+    // Additional roles (oneToMany)
+    if (user.additionalRoles && Array.isArray(user.additionalRoles)) {
+      user.additionalRoles.forEach((r: any) => {
+        const roleName = r?.name || r?.type;
+        if (roleName) {
+          roles.push(roleName.toLowerCase());
+        }
+      });
+    }
+
+    // Set primary role for display purposes
+    const primaryRole = roles[0] || null;
+    setRole(primaryRole);
+    setAllRoles(roles);
+
+    // Check if user is staff/admin based on any of their roles
+    const adminRoles = ['admin', 'super_admin', 'superadmin', 'authenticated'];
+    const isAdminRole = roles.some(r =>
+      adminRoles.includes(r) || r.includes('admin')
+    );
+    setIsStaff(isAdminRole);
+
+    // Set basic permissions based on role
+    if (isAdminRole) {
+      setPermissions([
+        'events.read',
+        'events.write',
+        'events.delete',
+        'users.read',
+        'users.write',
+        'content.read',
+        'content.write'
+      ]);
+    } else {
+      setPermissions(['events.read', 'content.read']);
+    }
+
+    setLoading(false);
+  }, [user, authLoading]);
+
+  const hasPermission = useCallback((permission: string): boolean => {
     return permissions.includes(permission);
-  }
+  }, [permissions]);
 
-  function hasAnyPermission(perms: string[]): boolean {
+  const hasAnyPermission = useCallback((perms: string[]): boolean => {
     return perms.some((p) => permissions.includes(p));
-  }
+  }, [permissions]);
 
-  function hasAllPermissions(perms: string[]): boolean {
+  const hasAllPermissions = useCallback((perms: string[]): boolean => {
     return perms.every((p) => permissions.includes(p));
-  }
+  }, [permissions]);
 
-  function isAdmin(): boolean {
-    return role === 'Admin';
-  }
+  // Helper to check if user has any of the specified roles
+  const hasRole = useCallback((roleNames: string[]): boolean => {
+    return allRoles.some(r =>
+      roleNames.some(rn => r === rn || r.replace('_', ' ') === rn)
+    );
+  }, [allRoles]);
+
+  const isEventManager = useCallback((): boolean => {
+    if (allRoles.length === 0) return false;
+    return hasRole(['admin', 'super_admin', 'superadmin', 'event_manager', 'event manager']) ||
+      allRoles.some(r => r.includes('admin'));
+  }, [allRoles, hasRole]);
+
+  const isAdmin = useCallback((): boolean => {
+    if (allRoles.length === 0) return false;
+    return hasRole(['admin', 'super_admin', 'superadmin', 'mentor', 'event_manager']) ||
+      allRoles.some(r => r.includes('admin') || r.includes('mentor'));
+  }, [allRoles, hasRole]);
+
+  const isActivityManager = useCallback((): boolean => {
+    if (allRoles.length === 0) return false;
+    // Allow pure admins to access activity manager stuff too
+    if (allRoles.some(r => r.includes('admin'))) return true;
+    return hasRole(['activity_manager', 'activity manager']);
+  }, [allRoles, hasRole]);
+
+  const isStudent = useCallback((): boolean => {
+    // A student is explicitly someone who is NOT any of the staff roles
+    if (allRoles.length === 0) return true; // Default no role = student perspective
+
+    const staffRoles = [
+      'admin', 'super_admin', 'superadmin', 'mentor',
+      'event_manager', 'event manager',
+      'activity_manager', 'activity manager'
+    ];
+
+    const isStaffRole = allRoles.some(r =>
+      staffRoles.includes(r) || r.includes('admin')
+    );
+
+    return !isStaffRole;
+  }, [allRoles]);
 
   return {
     permissions,
     role,
+    allRoles,
     isStaff,
     loading,
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
+    hasRole,
     isAdmin,
+    isEventManager,
+    isActivityManager,
+    isStudent,
   };
 }

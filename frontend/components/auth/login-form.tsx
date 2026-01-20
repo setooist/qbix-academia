@@ -56,15 +56,13 @@ export function LoginForm() {
       if (redirectUrl) {
         router.push(redirectUrl);
       } else if (user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') {
-        router.push(`${urlPrefix}/account/mentor`);
+        router.push(`${urlPrefix}/account/activity-management`);
       } else {
         router.push(`${urlPrefix}/account/activities`);
       }
 
       router.refresh();
     } catch (error: any) {
-      console.error('Login Error:', error);
-
       let errorMessage = error?.message || error?.error?.message || 'Failed to login. Please check your credentials.';
       let errorTitle = 'Login Failed';
 

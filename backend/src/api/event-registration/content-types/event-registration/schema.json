@@ -1,0 +1,68 @@
+{
+    "kind": "collectionType",
+    "collectionName": "event_registrations",
+    "info": {
+        "singularName": "event-registration",
+        "pluralName": "event-registrations",
+        "displayName": "Event Registration",
+        "description": "Tracks user registrations for events with waitlist support"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "event": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::event.event",
+            "inversedBy": "registrations"
+        },
+        "user": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user"
+        },
+        "registration_status": {
+            "type": "enumeration",
+            "enum": [
+                "confirmed",
+                "waitlisted",
+                "cancelled",
+                "attended"
+            ],
+            "default": "confirmed"
+        },
+        "waitlist_position": {
+            "type": "integer"
+        },
+        "registered_at": {
+            "type": "datetime"
+        },
+        "confirmed_at": {
+            "type": "datetime"
+        },
+        "cancelled_at": {
+            "type": "datetime"
+        },
+        "attended_at": {
+            "type": "datetime"
+        },
+        "promoted_from_waitlist_at": {
+            "type": "datetime"
+        },
+        "cancellation_reason": {
+            "type": "text"
+        },
+        "notification_preferences": {
+            "type": "json",
+            "default": {
+                "email": true,
+                "whatsapp": false
+            }
+        },
+        "metadata": {
+            "type": "json"
+        }
+    }
+}

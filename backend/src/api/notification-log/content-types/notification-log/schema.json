@@ -1,0 +1,87 @@
+{
+    "kind": "collectionType",
+    "collectionName": "notification_logs",
+    "info": {
+        "singularName": "notification-log",
+        "pluralName": "notification-logs",
+        "displayName": "Notification Log",
+        "description": "Audit log for all notifications sent"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "notification_type": {
+            "type": "enumeration",
+            "enum": [
+                "registration_confirmation",
+                "waitlist_addition",
+                "waitlist_promotion",
+                "reminder_72h",
+                "reminder_24h",
+                "reminder_4h",
+                "event_update",
+                "event_cancellation",
+                "post_event_feedback"
+            ],
+            "required": true
+        },
+        "channel": {
+            "type": "enumeration",
+            "enum": [
+                "email",
+                "whatsapp",
+                "sms"
+            ],
+            "default": "email"
+        },
+        "recipient_email": {
+            "type": "email"
+        },
+        "recipient_phone": {
+            "type": "string"
+        },
+        "user": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user"
+        },
+        "event": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::event.event"
+        },
+        "event_registration": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::event-registration.event-registration"
+        },
+        "status": {
+            "type": "enumeration",
+            "enum": [
+                "pending",
+                "sent",
+                "delivered",
+                "failed",
+                "bounced"
+            ],
+            "default": "pending"
+        },
+        "sent_at": {
+            "type": "datetime"
+        },
+        "delivered_at": {
+            "type": "datetime"
+        },
+        "error_message": {
+            "type": "text"
+        },
+        "template_key": {
+            "type": "string"
+        },
+        "template_data": {
+            "type": "json"
+        }
+    }
+}
