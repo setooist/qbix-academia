@@ -1,0 +1,80 @@
+{
+    "kind": "collectionType",
+    "collectionName": "student_profiles",
+    "info": {
+        "singularName": "student-profile",
+        "pluralName": "student-profiles",
+        "displayName": "Student Profile",
+        "description": "Profile information for students including academics and course applications"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "fullName": {
+            "type": "string"
+        },
+        "dob": {
+            "type": "date"
+        },
+        "gender": {
+            "type": "enumeration",
+            "enum": [
+                "male",
+                "female",
+                "other"
+            ]
+        },
+        "address": {
+            "type": "text"
+        },
+        "email": {
+            "type": "email"
+        },
+        "mobile": {
+            "type": "string"
+        },
+        "academics": {
+            "type": "json"
+        },
+        "firstChoice": {
+            "type": "json"
+        },
+        "secondChoice": {
+            "type": "json"
+        },
+        "entranceExams": {
+            "type": "json"
+        },
+        "declarationConfirmed": {
+            "type": "boolean",
+            "default": false
+        },
+        "declarationSigned": {
+            "type": "string"
+        },
+        "declarationDate": {
+            "type": "date"
+        },
+        "user": {
+            "type": "relation",
+            "relation": "oneToOne",
+            "target": "plugin::users-permissions.user",
+            "inversedBy": "studentProfile"
+        },
+        "subscriptionActive": {
+            "type": "boolean",
+            "default": false
+        },
+        "subscriptionValidTill": {
+            "type": "datetime"
+        },
+        "subscription": {
+            "type": "relation",
+            "relation": "oneToOne",
+            "target": "api::subscription.subscription",
+            "inversedBy": "studentProfile"
+        }
+    }
+}

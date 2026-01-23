@@ -79,6 +79,7 @@ export async function signIn(email: string, password: string) {
           fullName
           phone
           bio
+          resetPasswordOnNextLogin
         }
       }
     }
@@ -115,7 +116,7 @@ export async function getCurrentUser(jwt?: string) {
     if (!jwt) return null;
 
     try {
-        const response = await fetch(`${STRAPI_URL}/api/users/me?populate[role]=*&populate[additionalRoles]=*&populate[subscriptions][fields][0]=subscription_status&populate[subscriptions][fields][1]=end_date`, {
+        const response = await fetch(`${STRAPI_URL}/api/users/me?populate[role]=*&populate[additionalRoles]=*&populate[studentProfile][populate][subscription][fields][0]=subscription_status&populate[studentProfile][populate][subscription][fields][1]=end_date&populate[studentProfile][fields][0]=subscriptionActive&populate[studentProfile][fields][1]=subscriptionValidTill`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${jwt}`,

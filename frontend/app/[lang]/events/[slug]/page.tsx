@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getEventBySlug, getEvents } from '@/lib/api/events';
+import { getEventBySlug, getAllEventSlugs } from '@/lib/api/events';
 import { EventView } from '@/components/events/event-view';
 import { Metadata } from 'next';
 import { getStrapiMedia } from '@/lib/strapi/client';
@@ -12,7 +12,7 @@ export async function generateStaticParams() {
     const params: { lang: string; slug: string }[] = [];
 
     for (const lang of i18nConfig.locales) {
-        const events = await getEvents(lang);
+        const events = await getAllEventSlugs(lang);
         events.forEach((event: { slug: string }) => {
             params.push({ lang, slug: event.slug });
         });

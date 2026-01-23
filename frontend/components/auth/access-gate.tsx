@@ -34,14 +34,16 @@ export const checkTierAccess = (allowedTiers: string[] | null | undefined, user:
     if (allowedTiers.includes(user.tier || 'FREE')) return true;
 
     if (allowedTiers.includes('SUBSCRIPTION')) {
+        // Check subscriptionActive on user (legacy) or studentProfile
         if (user.subscriptionActive === true) return true;
 
-        // Safe access to subscriptions
-        const subscriptions = user.subscriptions;
-        if (Array.isArray(subscriptions)) {
-            const activeSubscription = subscriptions.some((sub: any) => sub.subscription_status === 'active');
-            if (activeSubscription) return true;
-        }
+        // Check via studentProfile (new location)
+        const studentProfile = user.studentProfile;
+        if (studentProfile?.subscriptionActive === true) return true;
+
+        // Check subscription relation on studentProfile
+        const subscription = studentProfile?.subscription;
+        if (subscription?.subscription_status === 'active') return true;
     }
 
     return false;
