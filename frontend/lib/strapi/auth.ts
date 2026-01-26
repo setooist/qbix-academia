@@ -79,7 +79,6 @@ export async function signIn(email: string, password: string) {
           fullName
           phone
           bio
-          resetPasswordOnNextLogin
         }
       }
     }

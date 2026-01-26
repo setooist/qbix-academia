@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Calendar, User, Bookmark, Share2, Lock } from 'lucide-react';
+import { Clock, Calendar, User, Lock } from 'lucide-react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { CaseStudy } from '@/lib/api/case-studies';
@@ -11,6 +11,8 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import Link from 'next/link';
 import { StrapiBlocksRenderer } from '@/lib/utils/strapi-blocks-renderer';
 import { checkAccess } from '@/components/auth/access-gate';
+import { SaveButton } from '@/components/shared/save-button';
+import { ShareButton } from '@/components/shared/share-button';
 
 interface CaseStudyViewProps {
     readonly caseStudy: CaseStudy;
@@ -109,14 +111,15 @@ export function CaseStudyView({ caseStudy }: CaseStudyViewProps) {
                     </div>
 
                     <div className="flex gap-3">
-                        <Button variant="outline" size="sm">
-                            <Bookmark className="w-4 h-4 mr-2" />
-                            Save
-                        </Button>
-                        <Button variant="outline" size="sm">
-                            <Share2 className="w-4 h-4 mr-2" />
-                            Share
-                        </Button>
+                        <SaveButton
+                            contentType="case-study"
+                            contentId={caseStudy.documentId}
+                            title={caseStudy.title}
+                            slug={caseStudy.slug}
+                            excerpt={caseStudy.excerpt}
+                            coverImageUrl={caseStudy.coverImage?.[0]?.url ? getStrapiMedia(caseStudy.coverImage[0].url) || undefined : undefined}
+                        />
+                        <ShareButton title={caseStudy.title} />
                     </div>
                 </div>
 
