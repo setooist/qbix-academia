@@ -160,9 +160,9 @@
         "reminderSchedule": {
             "type": "json",
             "default": {
-                "72h": true,
-                "24h": true,
-                "4h": true
+                "hours_72": true,
+                "hours_24": true,
+                "hours_4": true
             }
         },
         "autoPromoteFromWaitlist": {

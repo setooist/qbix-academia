@@ -20,6 +20,8 @@ import {
     ArrowRight
 } from 'lucide-react';
 
+import { AssignActivityDialog } from './AssignActivityDialog';
+
 export function ActivityManagementView() {
     const router = useRouter();
     const params = useParams();
@@ -28,6 +30,7 @@ export function ActivityManagementView() {
     const { isActivityManager, loading: permLoading } = usePermissions();
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const urlPrefix = localeConfig.multilanguage.enabled ? `/${lang}` : '';
 
@@ -62,7 +65,7 @@ export function ActivityManagementView() {
         if (user) {
             fetchData();
         }
-    }, [user]);
+    }, [user, refreshTrigger]);
 
     if (loading || authLoading) {
         return (
@@ -99,9 +102,12 @@ export function ActivityManagementView() {
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 py-8">
             <div className="container mx-auto px-4 space-y-8">
                 {/* Header */}
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Activity Management</h1>
-                    <p className="text-gray-600 mt-2">Review and manage student submissions</p>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Activity Management</h1>
+                        <p className="text-gray-600 mt-2">Review and manage student submissions</p>
+                    </div>
+                    <AssignActivityDialog onSuccess={() => setRefreshTrigger(t => t + 1)} />
                 </div>
 
                 {/* Stats Grid */}

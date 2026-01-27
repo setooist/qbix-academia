@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, User, Bookmark, Share2, Lock, Download, FileText } from 'lucide-react';
+import { Calendar, User, Lock, Download, FileText } from 'lucide-react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { Downloadable } from '@/lib/api/downloadables';
@@ -11,6 +11,8 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import Link from 'next/link';
 import { StrapiBlocksRenderer } from '@/lib/utils/strapi-blocks-renderer';
 import { checkAccess } from '@/components/auth/access-gate';
+import { SaveButton } from '@/components/shared/save-button';
+import { ShareButton } from '@/components/shared/share-button';
 
 interface DownloadableViewProps {
     readonly downloadable: Downloadable;
@@ -126,14 +128,15 @@ export function DownloadableView({ downloadable }: DownloadableViewProps) {
                                 </Button>
                             );
                         })()}
-                        <Button variant="outline" size="sm">
-                            <Bookmark className="w-4 h-4 mr-2" />
-                            Save
-                        </Button>
-                        <Button variant="outline" size="sm">
-                            <Share2 className="w-4 h-4 mr-2" />
-                            Share
-                        </Button>
+                        <SaveButton
+                            contentType="downloadable"
+                            contentId={downloadable.documentId}
+                            title={downloadable.title}
+                            slug={downloadable.slug}
+                            excerpt={downloadable.excerpt}
+                            coverImageUrl={downloadable.coverImage?.[0]?.url ? getStrapiMedia(downloadable.coverImage[0].url) || undefined : undefined}
+                        />
+                        <ShareButton title={downloadable.title} />
                     </div>
                 </div>
 

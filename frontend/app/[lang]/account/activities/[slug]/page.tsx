@@ -11,6 +11,7 @@ import { getAssignmentBySlug, Assignment } from '@/lib/api/assignments';
 import { startAssignment, updateAssignmentStatus } from '@/lib/api/assignment-mutations';
 import { FileUpload } from '@/components/activities/file-upload';
 import { FeedbackThread } from '@/components/activities/feedback-thread';
+import { getStrapiMedia } from '@/lib/strapi/client';
 import {
     Calendar,
     Download,
@@ -259,7 +260,7 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                                         assignment.activity.downloadables.map((file, i) => (
                                             <a
                                                 key={i}
-                                                href={file.url}
+                                                href={getStrapiMedia(file.url) || '#'}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors group border"
@@ -366,7 +367,7 @@ export default function StudentActivityDetail({ params }: { params: Promise<{ sl
                                                     <span className="text-sm font-medium">{file.name}</span>
                                                 </div>
                                                 <Button variant="outline" size="sm" asChild>
-                                                    <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                                    <a href={getStrapiMedia(file.url) || '#'} target="_blank" rel="noopener noreferrer">
                                                         View
                                                     </a>
                                                 </Button>

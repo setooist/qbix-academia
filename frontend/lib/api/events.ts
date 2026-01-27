@@ -230,6 +230,21 @@ export async function getEvents(locale: string = 'en') {
     return items.map(mapEvent);
 }
 
+const GET_ALL_EVENT_SLUGS = `
+    query GetAllEventSlugs($locale: I18NLocaleCode) {
+        events(locale: $locale, pagination: { pageSize: 1000 }) {
+            documentId
+            slug
+        }
+    }
+`;
+
+export async function getAllEventSlugs(locale: string = 'en') {
+    const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
+    const data = await fetchGraphQL(GET_ALL_EVENT_SLUGS, { locale: activeLocale });
+    return data?.events || [];
+}
+
 export async function getEventBySlug(slug: string, locale: string = 'en') {
     const activeLocale = localeConfig.multilanguage.enabled ? locale : 'en';
     const data = await fetchGraphQL(GET_EVENT_BY_SLUG, { slug, locale: activeLocale });

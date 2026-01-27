@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Calendar, User, Bookmark, Share2, Lock } from 'lucide-react';
+import { Clock, Calendar, User, Lock } from 'lucide-react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { BlogPost } from '@/lib/api/blogs';
@@ -11,6 +11,8 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import Link from 'next/link';
 import { StrapiBlocksRenderer } from '@/lib/utils/strapi-blocks-renderer';
 import { checkAccess } from '@/components/auth/access-gate';
+import { SaveButton } from '@/components/shared/save-button';
+import { ShareButton } from '@/components/shared/share-button';
 
 interface BlogPostViewProps {
     readonly blog: BlogPost;
@@ -107,14 +109,15 @@ export function BlogPostView({ blog }: BlogPostViewProps) {
                     </div>
 
                     <div className="flex gap-3">
-                        <Button variant="outline" size="sm">
-                            <Bookmark className="w-4 h-4 mr-2" />
-                            Save
-                        </Button>
-                        <Button variant="outline" size="sm">
-                            <Share2 className="w-4 h-4 mr-2" />
-                            Share
-                        </Button>
+                        <SaveButton
+                            contentType="blog"
+                            contentId={blog.documentId}
+                            title={blog.title}
+                            slug={blog.slug}
+                            excerpt={blog.excerpt}
+                            coverImageUrl={blog.coverImage?.[0]?.url ? getStrapiMedia(blog.coverImage[0].url) || undefined : undefined}
+                        />
+                        <ShareButton title={blog.title} />
                     </div>
                 </div>
 

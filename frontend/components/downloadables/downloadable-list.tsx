@@ -14,7 +14,7 @@ import { ContentCard } from '@/components/ui/content-card';
 import { getStrapiMedia } from '@/lib/strapi/client';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, FileText, Lock, ArrowRight, Crown } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Downloadable } from '@/lib/api/downloadables';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { checkAccess } from '@/components/auth/access-gate';
@@ -26,6 +26,7 @@ interface DownloadableListProps {
 export function DownloadableList({ downloadables }: DownloadableListProps) {
     const { user } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
@@ -133,7 +134,7 @@ export function DownloadableList({ downloadables }: DownloadableListProps) {
                         <Button variant="outline" onClick={() => setShowLoginModal(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={() => router.push('/auth/login')}>
+                        <Button onClick={() => router.push(`/auth/login?redirect=${pathname}`)}>
                             Login
                         </Button>
                     </DialogFooter>

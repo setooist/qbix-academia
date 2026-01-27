@@ -392,3 +392,59 @@ export async function getActivitiesForStudent(studentId: string) {
     const data = await response.json();
     return data.data || [];
 }
+
+/**
+ * Create a new assignment (Activity Manager)
+ */
+export async function createAssignment(data: {
+    activity_template: string;
+    assignees: string[];
+    mentor: string;
+    due_date?: string;
+    assignment_status?: string;
+}) {
+    const token = getAuthToken();
+    if (!token) throw new Error('Not authenticated');
+
+    const response = await fetch(`${STRAPI_URL}/api/activity-assignments`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+            data: {
+                ...data,
+                assignment_status: data.assignment_status || 'not_started',
+            },
+        }),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'Failed to assign activity');
+    }
+
+    return await response.json();
+}
+
+/**
+ * Fetch activity templates
+ */
+export async function getActivityTemplates() {
+    const token = getAuthToken();
+    if (!token) throw new Error('Not authenticated');
+
+    const response = await fetch(`${STRAPI_URL}/api/activity-templates`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch activity templates');
+    }
+
+    const data = await response.json();
+    return data.data || [];
+}
