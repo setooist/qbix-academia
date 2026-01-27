@@ -9,6 +9,7 @@ import { CaseStudy } from '@/lib/api/case-studies';
 import { getStrapiMedia } from '@/lib/strapi/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { StrapiBlocksRenderer } from '@/lib/utils/strapi-blocks-renderer';
 import { checkAccess } from '@/components/auth/access-gate';
 import { SaveButton } from '@/components/shared/save-button';
@@ -62,6 +63,7 @@ function CaseStudyContent({ content }: { readonly content: CaseStudy['content'] 
 
 export function CaseStudyView({ caseStudy }: CaseStudyViewProps) {
     const { user } = useAuth();
+    const pathname = usePathname();
 
     const hasAccess = () => {
         if (!caseStudy) return false;
@@ -146,7 +148,7 @@ export function CaseStudyView({ caseStudy }: CaseStudyViewProps) {
                                 </p>
                                 <div className="flex gap-4">
                                     <Button asChild variant="outline" size="lg">
-                                        <Link href="/auth/login">Log In</Link>
+                                        <Link href={`/auth/login?redirect=${pathname}`}>Log In</Link>
                                     </Button>
                                 </div>
                             </div>

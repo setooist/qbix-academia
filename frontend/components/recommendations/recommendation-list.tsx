@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { BookOpen, Lock, ExternalLink, Crown } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { Recommendation } from '@/lib/api/recommendations';
 import { getStrapiMedia } from '@/lib/strapi/client';
@@ -28,6 +28,7 @@ interface RecommendationListProps {
 export function RecommendationList({ recommendations }: RecommendationListProps) {
     const { user } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
@@ -153,7 +154,7 @@ export function RecommendationList({ recommendations }: RecommendationListProps)
                         <Button variant="outline" onClick={() => setShowLoginModal(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={() => router.push('/auth/login')}>
+                        <Button onClick={() => router.push(`/auth/login?redirect=${pathname}`)}>
                             Login
                         </Button>
                     </DialogFooter>

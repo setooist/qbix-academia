@@ -28,6 +28,15 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface EventRegistrationButtonProps {
     eventId: string;
@@ -79,6 +88,9 @@ export function EventRegistrationButton({
     className = ''
 }: EventRegistrationButtonProps) {
     const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
+    const pathname = usePathname();
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const [registration, setRegistration] = useState<Registration | null>(null);
     const [loading, setLoading] = useState(false);
     const [checkingStatus, setCheckingStatus] = useState(true);
@@ -136,12 +148,34 @@ export function EventRegistrationButton({
     if (!user && !authLoading) {
         return (
             <div className={`space-y-2 ${className}`}>
-                <Button disabled className="w-full">
+                <Button
+                    className="w-full"
+                    onClick={() => setShowLoginModal(true)}
+                >
                     Login to Register
                 </Button>
                 <p className="text-xs text-gray-500 text-center">
                     You need to be logged in to register for events
                 </p>
+
+                <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Login Required</DialogTitle>
+                            <DialogDescription>
+                                Please log in to register for this event.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="flex gap-2 sm:gap-0">
+                            <Button variant="outline" onClick={() => setShowLoginModal(false)}>
+                                Cancel
+                            </Button>
+                            <Button onClick={() => router.push(`/auth/login?redirect=${pathname}`)}>
+                                Login
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         );
     }

@@ -14,7 +14,7 @@ import { ContentCard } from '@/components/ui/content-card';
 import { getStrapiMedia } from '@/lib/strapi/client';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, Lock, ArrowRight, Crown } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { BlogPost } from '@/lib/api/blogs';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { checkAccess } from '@/components/auth/access-gate';
@@ -26,6 +26,7 @@ interface BlogListProps {
 export function BlogList({ blogs }: Readonly<BlogListProps>) {
     const { user } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
@@ -125,7 +126,7 @@ export function BlogList({ blogs }: Readonly<BlogListProps>) {
                         <Button variant="outline" onClick={() => setShowLoginModal(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={() => router.push('/auth/login')}>
+                        <Button onClick={() => router.push(`/auth/login?redirect=${pathname}`)}>
                             Login
                         </Button>
                     </DialogFooter>

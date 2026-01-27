@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Bookmark, BookmarkCheck, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -43,6 +43,7 @@ export function SaveButton({
     const { toast } = useToast();
     const router = useRouter();
     const params = useParams();
+    const pathname = usePathname();
     const lang = params?.lang || 'en';
 
     const [isSaved, setIsSaved] = useState(false);
@@ -85,7 +86,7 @@ export function SaveButton({
                 description: 'Please log in to save items to your library.',
                 variant: 'default'
             });
-            router.push(getLocalizedHref('/auth/login'));
+            router.push(`${getLocalizedHref('/auth/login')}?redirect=${pathname}`);
             return;
         }
 

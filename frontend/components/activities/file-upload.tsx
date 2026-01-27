@@ -168,7 +168,13 @@ export function FileUpload({
                     type="file"
                     multiple
                     accept={acceptedTypes.join(',')}
-                    onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                    onChange={(e) => {
+                        if (e.target.files) {
+                            handleFiles(e.target.files);
+                        }
+                        // Reset input to allow re-selecting the same file
+                        e.target.value = '';
+                    }}
                     className="hidden"
                     disabled={disabled}
                 />
