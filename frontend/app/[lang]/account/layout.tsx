@@ -76,15 +76,15 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
             {/* Account Navigation */}
-            <div className={`bg-white border-b sticky top-20 z-40 shadow-sm transition-all duration-300`}>
+            <div className={`bg-white border-b sticky top-16 z-40 shadow-sm transition-all duration-300`}>
                 <div className="container mx-auto px-4">
-                    <div className="flex items-center justify-between py-3">
+                    <div className="hidden md:flex items-center justify-between py-3">
                         <div className="flex items-center gap-2">
                             <LayoutDashboard className="w-5 h-5 text-primary" />
                             <span className="font-semibold text-gray-900"> {user?.fullName}</span>
                         </div>
                     </div>
-                    <nav className="flex gap-1 overflow-x-auto pb-px">
+                    <nav className="flex gap-1 overflow-x-auto pb-px no-scrollbar">
                         {navItems.map((item) => {
                             const Icon = item.icon;
                             const active = isActive(item.href);
