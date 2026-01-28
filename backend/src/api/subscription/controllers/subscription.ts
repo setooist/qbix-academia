@@ -40,23 +40,37 @@ export default factories.createCoreController('api::subscription.subscription' a
         // Create the subscription first
         const response = await super.create(ctx);
 
-        // If subscription was created successfully and has an active status, update user tier
+        // If subscription was created successfully and has an active status, update studentProfile
         try {
-            const userId = ctx.request.body?.data?.user;
+            const studentProfileId = ctx.request.body?.data?.studentProfile;
             const subscriptionStatus = ctx.request.body?.data?.subscription_status;
 
-            if (userId && subscriptionStatus === 'active') {
-                // Update user's tier to SUBSCRIPTION
-                await strapi.db.query('plugin::users-permissions.user').update({
-                    where: { id: userId },
+            if (studentProfileId && subscriptionStatus === 'active') {
+                // Update studentProfile's subscription status
+                await strapi.db.query('api::student-profile.student-profile').update({
+                    where: { id: studentProfileId },
                     data: {
-                        tier: 'SUBSCRIPTION',
                         subscriptionActive: true,
                     },
                 });
+
+                // Also get the user from studentProfile and update their tier
+                const profile = await strapi.db.query('api::student-profile.student-profile').findOne({
+                    where: { id: studentProfileId },
+                    populate: ['user'],
+                });
+
+                if (profile?.user?.id) {
+                    await strapi.db.query('plugin::users-permissions.user').update({
+                        where: { id: profile.user.id },
+                        data: {
+                            tier: 'SUBSCRIPTION',
+                        },
+                    });
+                }
             }
         } catch (error) {
-            console.error('Failed to update user tier after subscription creation:', error);
+            console.error('Failed to update studentProfile after subscription creation:', error);
         }
 
         return response;

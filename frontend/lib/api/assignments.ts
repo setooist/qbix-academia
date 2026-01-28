@@ -224,19 +224,29 @@ const GET_ASSIGNMENT_BY_ID = gql`
 `;
 
 // Helper to map response to Assignment interface
-const mapAssignment = (data: any): Assignment => ({
-    ...data,
-    status: data.assignment_status || 'not_started',
-    dueDate: data.due_date,
-    activity: {
-        ...data.activity_template,
-        goFromLink: data.activity_template?.go_from_link,
-        startDate: data.start_date,
-    },
-    user: data.assignees?.[0] || null, // Take first assignee for backward compat
-    feedback: data.feedback_thread,
-    submissionUploads: data.submissions?.flatMap((s: any) => s.uploaded_files) || []
-});
+const mapAssignment = (data: any): Assignment => {
+    // Flatten all uploaded files from all submissions
+    const allFiles = data.submissions?.flatMap((s: any) => s.uploaded_files || []) || [];
+
+    // Deduplicate files by URL to prevent duplicates from showing
+    const uniqueFiles = allFiles.filter((file: any, index: number, self: any[]) =>
+        file && file.url && self.findIndex((f: any) => f?.url === file.url) === index
+    );
+
+    return {
+        ...data,
+        status: data.assignment_status || 'not_started',
+        dueDate: data.due_date,
+        activity: {
+            ...data.activity_template,
+            goFromLink: data.activity_template?.go_from_link,
+            startDate: data.start_date,
+        },
+        user: data.assignees?.[0] || null, // Take first assignee for backward compat
+        feedback: data.feedback_thread,
+        submissionUploads: uniqueFiles,
+    };
+};
 
 export async function getMyAssignments(userId: string) {
     try {

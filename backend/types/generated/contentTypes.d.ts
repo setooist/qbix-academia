@@ -1092,6 +1092,57 @@ export interface ApiDownloadableDownloadable
   };
 }
 
+export interface ApiEventRegistrationEventRegistration
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'event_registrations';
+  info: {
+    description: 'Tracks user registrations for events with waitlist support';
+    displayName: 'Event Registration';
+    pluralName: 'event-registrations';
+    singularName: 'event-registration';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    attended_at: Schema.Attribute.DateTime;
+    cancellation_reason: Schema.Attribute.Text;
+    cancelled_at: Schema.Attribute.DateTime;
+    confirmed_at: Schema.Attribute.DateTime;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    event: Schema.Attribute.Relation<'manyToOne', 'api::event.event'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::event-registration.event-registration'
+    > &
+      Schema.Attribute.Private;
+    metadata: Schema.Attribute.JSON;
+    notification_preferences: Schema.Attribute.JSON &
+      Schema.Attribute.DefaultTo<{
+        email: true;
+        whatsapp: false;
+      }>;
+    promoted_from_waitlist_at: Schema.Attribute.DateTime;
+    publishedAt: Schema.Attribute.DateTime;
+    registered_at: Schema.Attribute.DateTime;
+    registration_status: Schema.Attribute.Enumeration<
+      ['confirmed', 'waitlisted', 'cancelled', 'attended']
+    > &
+      Schema.Attribute.DefaultTo<'confirmed'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    waitlist_position: Schema.Attribute.Integer;
+  };
+}
+
 export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   collectionName: 'events';
   info: {
@@ -1115,6 +1166,8 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
       'plugin::users-permissions.role'
     >;
     allowedTiers: Schema.Attribute.JSON;
+    autoPromoteFromWaitlist: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<true>;
     capacity: Schema.Attribute.Integer;
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
     coverImage: Schema.Attribute.Media<'images'>;
@@ -1146,6 +1199,18 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
     partners: Schema.Attribute.Component<'event.partner', true>;
     publishedAt: Schema.Attribute.DateTime;
     registrationLink: Schema.Attribute.String;
+    registrations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::event-registration.event-registration'
+    >;
+    reminderSchedule: Schema.Attribute.JSON &
+      Schema.Attribute.DefaultTo<{
+        hours_24: true;
+        hours_4: true;
+        hours_72: true;
+      }>;
+    requiresApproval: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     resources: Schema.Attribute.Component<'event.resource', true>;
     seo: Schema.Attribute.Component<'shared.seo', true>;
     slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
@@ -1158,6 +1223,7 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    waitlistCapacity: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<50>;
   };
 }
 
@@ -1332,6 +1398,128 @@ export interface ApiNavigationNavigation extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiNotificationLogNotificationLog
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'notification_logs';
+  info: {
+    description: 'Audit log for all notifications sent';
+    displayName: 'Notification Log';
+    pluralName: 'notification-logs';
+    singularName: 'notification-log';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    channel: Schema.Attribute.Enumeration<['email', 'whatsapp', 'sms']> &
+      Schema.Attribute.DefaultTo<'email'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    delivered_at: Schema.Attribute.DateTime;
+    error_message: Schema.Attribute.Text;
+    event: Schema.Attribute.Relation<'manyToOne', 'api::event.event'>;
+    event_registration: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::event-registration.event-registration'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::notification-log.notification-log'
+    > &
+      Schema.Attribute.Private;
+    notification_type: Schema.Attribute.Enumeration<
+      [
+        'registration_confirmation',
+        'waitlist_addition',
+        'waitlist_promotion',
+        'reminder_72h',
+        'reminder_24h',
+        'reminder_4h',
+        'event_update',
+        'event_cancellation',
+        'post_event_feedback',
+      ]
+    > &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    recipient_email: Schema.Attribute.Email;
+    recipient_phone: Schema.Attribute.String;
+    sent_at: Schema.Attribute.DateTime;
+    status: Schema.Attribute.Enumeration<
+      ['pending', 'sent', 'delivered', 'failed', 'bounced']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
+    template_data: Schema.Attribute.JSON;
+    template_key: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
+export interface ApiNotificationTemplateNotificationTemplate
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'notification_templates';
+  info: {
+    description: 'Reusable notification message templates';
+    displayName: 'Notification Template';
+    pluralName: 'notification-templates';
+    singularName: 'notification-template';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    channel: Schema.Attribute.Enumeration<['email', 'whatsapp', 'sms']> &
+      Schema.Attribute.DefaultTo<'email'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    html_body: Schema.Attribute.RichText;
+    is_active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::notification-template.notification-template'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    notification_type: Schema.Attribute.Enumeration<
+      [
+        'registration_confirmation',
+        'waitlist_addition',
+        'waitlist_promotion',
+        'reminder_72h',
+        'reminder_24h',
+        'reminder_4h',
+        'event_update',
+        'event_cancellation',
+        'post_event_feedback',
+      ]
+    > &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    subject: Schema.Attribute.String;
+    template_key: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    text_body: Schema.Attribute.Text;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    variables: Schema.Attribute.JSON &
+      Schema.Attribute.DefaultTo<
+        ['{{userName}}', '{{eventTitle}}', '{{eventDate}}', '{{eventLink}}']
+      >;
+  };
+}
+
 export interface ApiPagePage extends Struct.CollectionTypeSchema {
   collectionName: 'pages';
   info: {
@@ -1455,6 +1643,101 @@ export interface ApiRecommendationRecommendation
   };
 }
 
+export interface ApiSavedItemSavedItem extends Struct.CollectionTypeSchema {
+  collectionName: 'saved_items';
+  info: {
+    description: 'User saved content items for My Library feature';
+    displayName: 'Saved Item';
+    pluralName: 'saved-items';
+    singularName: 'saved-item';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    contentId: Schema.Attribute.String & Schema.Attribute.Required;
+    contentType: Schema.Attribute.Enumeration<
+      ['blog', 'case-study', 'downloadable', 'recommendation']
+    > &
+      Schema.Attribute.Required;
+    coverImageUrl: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    excerpt: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::saved-item.saved-item'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.String & Schema.Attribute.Required;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
+export interface ApiStudentProfileStudentProfile
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'student_profiles';
+  info: {
+    description: 'Profile information for students including academics and course applications';
+    displayName: 'Student Profile';
+    pluralName: 'student-profiles';
+    singularName: 'student-profile';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    academics: Schema.Attribute.JSON;
+    address: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    declarationConfirmed: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    declarationDate: Schema.Attribute.Date;
+    declarationSigned: Schema.Attribute.String;
+    dob: Schema.Attribute.Date;
+    email: Schema.Attribute.Email;
+    entranceExams: Schema.Attribute.JSON;
+    firstChoice: Schema.Attribute.JSON;
+    fullName: Schema.Attribute.String;
+    gender: Schema.Attribute.Enumeration<['male', 'female', 'other']>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::student-profile.student-profile'
+    > &
+      Schema.Attribute.Private;
+    mobile: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    secondChoice: Schema.Attribute.JSON;
+    subscription: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::subscription.subscription'
+    >;
+    subscriptionActive: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    subscriptionValidTill: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiSubmissionSubmission extends Struct.CollectionTypeSchema {
   collectionName: 'submissions';
   info: {
@@ -1525,6 +1808,10 @@ export interface ApiSubscriptionSubscription
     publishedAt: Schema.Attribute.DateTime;
     start_date: Schema.Attribute.DateTime;
     stripeSubscriptionId: Schema.Attribute.String;
+    studentProfile: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::student-profile.student-profile'
+    >;
     subscription_status: Schema.Attribute.Enumeration<
       ['active', 'canceled', 'past_due', 'trialing']
     > &
@@ -1532,10 +1819,6 @@ export interface ApiSubscriptionSubscription
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    user: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
   };
 }
 
@@ -2076,13 +2359,19 @@ export interface PluginUsersPermissionsUser
     timestamps: true;
   };
   attributes: {
+    additionalRoles: Schema.Attribute.Relation<
+      'oneToMany',
+      'plugin::users-permissions.role'
+    >;
     bio: Schema.Attribute.Text;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    email: Schema.Attribute.Email;
+    email: Schema.Attribute.Email &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
     fullName: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -2098,23 +2387,24 @@ export interface PluginUsersPermissionsUser
     phone: Schema.Attribute.String;
     provider: Schema.Attribute.String & Schema.Attribute.DefaultTo<'local'>;
     publishedAt: Schema.Attribute.DateTime;
+    resetPasswordOnNextLogin: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     role: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.role'
     >;
-    subscriptionActive: Schema.Attribute.Boolean &
-      Schema.Attribute.DefaultTo<false>;
-    subscriptions: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::subscription.subscription'
+    studentProfile: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::student-profile.student-profile'
     >;
-    subscriptionValidTill: Schema.Attribute.DateTime;
     tier: Schema.Attribute.Enumeration<['FREE', 'QBIX', 'SUBSCRIPTION']> &
       Schema.Attribute.DefaultTo<'FREE'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    username: Schema.Attribute.String;
+    username: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
   };
 }
 
@@ -2137,12 +2427,17 @@ declare module '@strapi/strapi' {
       'api::category.category': ApiCategoryCategory;
       'api::design-system.design-system': ApiDesignSystemDesignSystem;
       'api::downloadable.downloadable': ApiDownloadableDownloadable;
+      'api::event-registration.event-registration': ApiEventRegistrationEventRegistration;
       'api::event.event': ApiEventEvent;
       'api::footer.footer': ApiFooterFooter;
       'api::global.global': ApiGlobalGlobal;
       'api::navigation.navigation': ApiNavigationNavigation;
+      'api::notification-log.notification-log': ApiNotificationLogNotificationLog;
+      'api::notification-template.notification-template': ApiNotificationTemplateNotificationTemplate;
       'api::page.page': ApiPagePage;
       'api::recommendation.recommendation': ApiRecommendationRecommendation;
+      'api::saved-item.saved-item': ApiSavedItemSavedItem;
+      'api::student-profile.student-profile': ApiStudentProfileStudentProfile;
       'api::submission.submission': ApiSubmissionSubmission;
       'api::subscription.subscription': ApiSubscriptionSubscription;
       'api::tag.tag': ApiTagTag;

@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Recommendation } from '@/lib/api/recommendations';
 import { getStrapiMedia } from '@/lib/strapi/client';
 import { StrapiBlocksRenderer } from '@/lib/utils/strapi-blocks-renderer';
-import { BookOpen, Bookmark, Crown, ExternalLink, Lock, Share2, Star, User } from 'lucide-react';
+import { BookOpen, Crown, ExternalLink, Lock, Star, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
+import { SaveButton } from '@/components/shared/save-button';
+import { ShareButton } from '@/components/shared/share-button';
 
 interface BaseRecommendationProps {
     readonly recommendation: Recommendation;
@@ -145,12 +147,16 @@ export function RecommendationActions({ recommendation, accessible, user }: Reco
             ) : (
                 <Button disabled variant="secondary">No Link Available</Button>
             )}
-            <Button variant="outline" size="lg">
-                <Bookmark className="w-4 h-4 mr-2" /> Save
-            </Button>
-            <Button variant="outline" size="icon">
-                <Share2 className="w-4 h-4" />
-            </Button>
+            <SaveButton
+                contentType="recommendation"
+                contentId={recommendation.documentId}
+                title={recommendation.title}
+                slug={recommendation.slug}
+                excerpt={recommendation.subtitle || undefined}
+                coverImageUrl={recommendation.coverImage?.url ? getStrapiMedia(recommendation.coverImage.url) || undefined : undefined}
+                size="lg"
+            />
+            <ShareButton title={recommendation.title} size="icon" showText={false} />
         </div>
     );
 }

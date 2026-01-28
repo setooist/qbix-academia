@@ -55,6 +55,12 @@ export function LoginForm() {
 
       if (redirectUrl) {
         router.push(redirectUrl);
+      } else if (user?.resetPasswordOnNextLogin) {
+        toast({
+          title: 'Password Change Required',
+          description: 'Please change your password to continue.',
+        });
+        router.push(`${urlPrefix}/auth/change-password`);
       } else if (user?.role?.name === 'Mentor' || user?.role?.type === 'mentor') {
         router.push(`${urlPrefix}/account/activity-management`);
       } else {

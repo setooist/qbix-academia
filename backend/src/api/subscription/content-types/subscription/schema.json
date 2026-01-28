@@ -25,17 +25,17 @@
             ],
             "default": "active"
         },
-        "user": {
-            "type": "relation",
-            "relation": "manyToOne",
-            "target": "plugin::users-permissions.user",
-            "inversedBy": "subscriptions"
-        },
         "start_date": {
             "type": "datetime"
         },
         "end_date": {
             "type": "datetime"
+        },
+        "studentProfile": {
+            "type": "relation",
+            "relation": "oneToOne",
+            "target": "api::student-profile.student-profile",
+            "mappedBy": "subscription"
         }
     }
 }

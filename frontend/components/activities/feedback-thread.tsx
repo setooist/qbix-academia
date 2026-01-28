@@ -10,7 +10,7 @@ import { addAssignmentFeedback } from '@/lib/api/assignment-mutations';
 interface FeedbackMessage {
     id: string;
     author: string;
-    authorRole: 'mentor' | 'student' | 'admin';
+    authorRole: 'mentor' | 'student' | 'admin' | 'activity_manager';
     message: string;
     timestamp: string;
 }
@@ -18,7 +18,7 @@ interface FeedbackMessage {
 interface FeedbackThreadProps {
     assignmentId: string;
     feedbackThread: FeedbackMessage[] | null;
-    currentUserRole: 'mentor' | 'student' | 'admin';
+    currentUserRole: 'mentor' | 'student' | 'admin' | 'activity_manager';
     currentUserName: string;
     onFeedbackAdded?: () => void;
     disabled?: boolean;
@@ -64,6 +64,8 @@ export function FeedbackThread({
                 return <GraduationCap className="w-4 h-4" />;
             case 'admin':
                 return <Shield className="w-4 h-4" />;
+            case 'activity_manager':
+                return <GraduationCap className="w-4 h-4" />;
             default:
                 return <User className="w-4 h-4" />;
         }
@@ -75,6 +77,8 @@ export function FeedbackThread({
                 return 'bg-purple-100 text-purple-800 border-purple-200';
             case 'admin':
                 return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'activity_manager':
+                return 'bg-indigo-100 text-indigo-800 border-indigo-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
         }
@@ -101,9 +105,9 @@ export function FeedbackThread({
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-medium text-sm">{msg.author}</span>
+                                        <span className="font-medium text-sm">{msg.author === 'Mentor' ? 'Activity Manager' : msg.author}</span>
                                         <span className={`text-xs px-2 py-0.5 rounded-full ${getRoleColor(msg.authorRole)}`}>
-                                            {msg.authorRole}
+                                            {(msg.authorRole === 'activity_manager' || msg.authorRole === 'mentor') ? 'Activity Manager' : msg.authorRole}
                                         </span>
                                         <span className="text-xs text-gray-400">
                                             {new Date(msg.timestamp).toLocaleString()}
