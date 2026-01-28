@@ -252,7 +252,7 @@ export function AssignActivityDialog({ onSuccess }: AssignActivityDialogProps) {
                                                     onClick={(e) => removeStudent(id, e)}
                                                     aria-label={`Remove ${student?.fullName || 'student'}`}
                                                 >
-                                                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                                    <X className="h-3 w-3 text-gray-500 hover:text-gray-900" />
                                                 </button>
                                             </Badge>
                                         );
