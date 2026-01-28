@@ -74,18 +74,15 @@
             ],
             "default": "FREE"
         },
-        "subscriptionActive": {
+        "studentProfile": {
+            "type": "relation",
+            "relation": "oneToOne",
+            "target": "api::student-profile.student-profile",
+            "mappedBy": "user"
+        },
+        "resetPasswordOnNextLogin": {
             "type": "boolean",
             "default": false
-        },
-        "subscriptionValidTill": {
-            "type": "datetime"
-        },
-        "subscriptions": {
-            "type": "relation",
-            "relation": "oneToMany",
-            "target": "api::subscription.subscription",
-            "mappedBy": "user"
         }
     }
 }

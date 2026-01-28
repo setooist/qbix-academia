@@ -1,0 +1,48 @@
+{
+    "kind": "collectionType",
+    "collectionName": "saved_items",
+    "info": {
+        "singularName": "saved-item",
+        "pluralName": "saved-items",
+        "displayName": "Saved Item",
+        "description": "User saved content items for My Library feature"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "attributes": {
+        "user": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user"
+        },
+        "contentType": {
+            "type": "enumeration",
+            "enum": [
+                "blog",
+                "case-study",
+                "downloadable",
+                "recommendation"
+            ],
+            "required": true
+        },
+        "contentId": {
+            "type": "string",
+            "required": true
+        },
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "slug": {
+            "type": "string",
+            "required": true
+        },
+        "excerpt": {
+            "type": "text"
+        },
+        "coverImageUrl": {
+            "type": "string"
+        }
+    }
+}

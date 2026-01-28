@@ -62,6 +62,35 @@ export async function uploadAssignmentSubmission(assignmentDocumentId: string, f
     const uploadedFiles = await uploadResponse.json();
     const fileIds = uploadedFiles.map((f: any) => f.id);
 
+    // 1.5 Delete existing submissions (Replace mode)
+    // Fetch current assignment to get existing submissions
+    try {
+        const checkResponse = await fetch(`${STRAPI_URL}/api/activity-assignments/${assignmentDocumentId}?populate=submissions`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+
+        if (checkResponse.ok) {
+            const checkData = await checkResponse.json();
+            // Handle Strapi 5 vs 4 structure
+            const assignment = checkData.data?.attributes || checkData.data;
+            const submissions = assignment?.submissions?.data || assignment?.submissions || [];
+
+            // Delete each existing submission
+            for (const sub of submissions) {
+                const subId = sub.documentId || sub.id; // Try documentId first for Strapi 5
+                if (subId) {
+                    await fetch(`${STRAPI_URL}/api/submissions/${subId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                    });
+                }
+            }
+        }
+    } catch (err) {
+        console.error("Failed to clear old submissions:", err);
+        // Continue anyway - don't block upload
+    }
+
     // 2. Create Submission
     const submissionResponse = await fetch(`${STRAPI_URL}/api/submissions`, {
         method: 'POST',
@@ -108,7 +137,7 @@ export async function addAssignmentFeedback(
     assignmentDocumentId: string,
     feedback: {
         author: string;
-        authorRole: 'mentor' | 'student' | 'admin';
+        authorRole: 'mentor' | 'student' | 'admin' | 'activity_manager';
         message: string;
         timestamp: string;
     }

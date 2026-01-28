@@ -76,7 +76,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
             {/* Account Navigation */}
-            <div className="bg-white border-b sticky top-0 z-40">
+            <div className={`bg-white border-b sticky top-20 z-40 shadow-sm transition-all duration-300`}>
                 <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between py-3">
                         <div className="flex items-center gap-2">

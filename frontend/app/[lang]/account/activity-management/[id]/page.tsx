@@ -338,6 +338,17 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                                                                 size="sm"
                                                                 onClick={() => {
                                                                     const fullUrl = getStrapiMedia(file.url);
+                                                                    if (fullUrl) handleView(fullUrl, file.name, file.mime);
+                                                                }}
+                                                            >
+                                                                <Eye className="w-4 h-4 mr-2" />
+                                                                View
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    const fullUrl = getStrapiMedia(file.url);
                                                                     if (fullUrl) handleDownload(fullUrl, file.name);
                                                                 }}
                                                             >
@@ -473,8 +484,8 @@ export default function MentorReviewPage({ params }: { params: Promise<{ id: str
                                 <FeedbackThread
                                     assignmentId={assignment.documentId}
                                     feedbackThread={assignment.feedback}
-                                    currentUserRole="mentor"
-                                    currentUserName={user?.username || user?.email || 'Mentor'}
+                                    currentUserRole="activity_manager"
+                                    currentUserName={user?.username || user?.email || 'Activity Manager'}
                                     onFeedbackAdded={fetchData}
                                 />
                             </CardContent>
