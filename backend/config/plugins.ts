@@ -1,15 +1,23 @@
 export default ({ env }) => {
     // ============================================
-    // CRITICAL: Add logging INSIDE the function to check Runtime Env
+    // DIAGNOSTIC LOGGING
     // ============================================
+    const lifecycle = process.env.npm_lifecycle_event || 'unknown';
+    const isBuild = lifecycle.includes('build');
+
     console.log('');
     console.log('═══════════════════════════════════════════════════════');
-    console.log('🔍 PLUGIN CONFIG LOADING - RUNTIME CHECK');
+    console.log(`🔍 PLUGIN CONFIG LOADING - ${isBuild ? '🔨 BUILD PHASE' : '🚀 RUNTIME PHASE'}`);
     console.log('═══════════════════════════════════════════════════════');
     console.log('📅 Timestamp:', new Date().toISOString());
     console.log('🌍 NODE_ENV:', process.env.NODE_ENV);
-    console.log('📂 Current Working Directory:', process.cwd());
-    console.log('');
+    console.log('🔄 Lifecycle Event:', lifecycle);
+
+    if (isBuild) {
+        console.log('⚠️  NOTE: In Strapi Cloud, secrets (SMTP_*) are NOT available during the BUILD phase.');
+        console.log('⚠️  This is SECURITY behavior. Ignore "UNDEFINED" logs below if this is a build.');
+        console.log('⚠️  Please check the "RUNTIME LOGS" tab after the deployment finishes.');
+    }
 
     const smtpHost = env('SMTP_HOST');
     const smtpPort = env('SMTP_PORT');
@@ -18,14 +26,11 @@ export default ({ env }) => {
     const emailFrom = env('EMAIL_FROM');
     const emailReplyTo = env('EMAIL_REPLY_TO');
 
-    console.log('--- EMAIL ENVIRONMENT VARIABLES (via env()) ---');
-    console.log('SMTP_HOST:', smtpHost || '❌ UNDEFINED');
-    console.log('SMTP_PORT:', smtpPort || '❌ UNDEFINED');
-    console.log('SMTP_USERNAME:', smtpUsername || '❌ UNDEFINED');
-    console.log('SMTP_PASSWORD:', smtpPassword ? '✅ SET (length: ' + smtpPassword.length + ')' : '❌ NOT SET');
-    console.log('EMAIL_FROM:', emailFrom || '❌ UNDEFINED');
-    console.log('EMAIL_REPLY_TO:', emailReplyTo || '❌ UNDEFINED');
-    console.log('');
+    console.log('--- EMAIL CONFIG CHECK ---');
+    console.log(`SMTP_HOST: ${smtpHost || '❌ UNDEFINED'}`);
+    console.log(`SMTP_PORT raw: ${smtpPort || '❌ UNDEFINED'}`);
+    console.log(`SMTP_USERNAME: ${smtpUsername || '❌ UNDEFINED'}`);
+    console.log(`SMTP_PASSWORD: ${smtpPassword ? '✅ SET' : '❌ UNDEFINED'}`);
 
     const emailConfig = {
         provider: 'nodemailer',
@@ -51,21 +56,22 @@ export default ({ env }) => {
         },
     };
 
-    // Log the final email configuration
-    console.log('🔧 FINAL EMAIL CONFIG OBJECT:');
-    console.log(JSON.stringify({
-        provider: emailConfig.provider,
-        providerOptions: {
-            host: emailConfig.providerOptions.host,
-            port: emailConfig.providerOptions.port,
-            secure: emailConfig.providerOptions.secure,
-            auth: {
-                user: emailConfig.providerOptions.auth.user,
-                pass: emailConfig.providerOptions.auth.pass ? '***HIDDEN***' : undefined
-            }
-        },
-        settings: emailConfig.settings
-    }, null, 2));
+    if (!isBuild) {
+        console.log('🔧 FINAL EMAIL CONFIG OBJECT (Runtime):');
+        console.log(JSON.stringify({
+            provider: emailConfig.provider,
+            providerOptions: {
+                host: emailConfig.providerOptions.host,
+                port: emailConfig.providerOptions.port,
+                secure: emailConfig.providerOptions.secure,
+                auth: {
+                    user: emailConfig.providerOptions.auth.user,
+                    pass: emailConfig.providerOptions.auth.pass ? '***HIDDEN***' : undefined
+                }
+            },
+            settings: emailConfig.settings
+        }, null, 2));
+    }
     console.log('═══════════════════════════════════════════════════════');
     console.log('');
 
