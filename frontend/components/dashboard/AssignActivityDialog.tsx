@@ -18,12 +18,27 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Plus, Check, ChevronsUpDown, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getUsers, getActivityTemplates, createAssignment } from '@/lib/api/activity-mutations';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { cn } from '@/lib/utils';
 
 interface AssignActivityDialogProps {
     onSuccess?: () => void;
@@ -31,6 +46,7 @@ interface AssignActivityDialogProps {
 
 export function AssignActivityDialog({ onSuccess }: AssignActivityDialogProps) {
     const [open, setOpen] = useState(false);
+    const [openCombobox, setOpenCombobox] = useState(false);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [users, setUsers] = useState<any[]>([]);
@@ -38,9 +54,13 @@ export function AssignActivityDialog({ onSuccess }: AssignActivityDialogProps) {
     const { toast } = useToast();
     const { user: currentUser } = useAuth(); // Current user is the mentor
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        templateId: string;
+        studentIds: string[];
+        dueDate: string;
+    }>({
         templateId: '',
-        studentId: '',
+        studentIds: [],
         dueDate: '',
     });
 
@@ -72,7 +92,7 @@ export function AssignActivityDialog({ onSuccess }: AssignActivityDialogProps) {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (!formData.templateId || !formData.studentId || !formData.dueDate) {
+        if (!formData.templateId || formData.studentIds.length === 0 || !formData.dueDate) {
             toast({
                 variant: 'destructive',
                 title: 'Validation Error',
@@ -85,7 +105,7 @@ export function AssignActivityDialog({ onSuccess }: AssignActivityDialogProps) {
             setSubmitting(true);
             await createAssignment({
                 activity_template: formData.templateId,
-                assignees: [formData.studentId],
+                assignees: formData.studentIds,
                 mentor: currentUser?.documentId || currentUser?.id,
                 due_date: formData.dueDate,
                 assignment_status: 'not_started'
@@ -96,7 +116,7 @@ export function AssignActivityDialog({ onSuccess }: AssignActivityDialogProps) {
                 description: 'Activity assigned successfully',
             });
             setOpen(false);
-            setFormData({ templateId: '', studentId: '', dueDate: '' });
+            setFormData({ templateId: '', studentIds: [], dueDate: '' });
             if (onSuccess) onSuccess();
         } catch (error: any) {
             toast({
@@ -109,10 +129,26 @@ export function AssignActivityDialog({ onSuccess }: AssignActivityDialogProps) {
         }
     }
 
+    const toggleStudent = (studentId: string) => {
+        setFormData(prev => {
+            const exists = prev.studentIds.includes(studentId);
+            if (exists) {
+                return { ...prev, studentIds: prev.studentIds.filter(id => id !== studentId) };
+            } else {
+                return { ...prev, studentIds: [...prev.studentIds, studentId] };
+            }
+        });
+    };
+
+    const removeStudent = (studentId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        toggleStudent(studentId);
+    };
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>
+                <Button className="w-full md:w-auto">
                     <Plus className="w-4 h-4 mr-2" />
                     Assign Activity
                 </Button>
@@ -121,7 +157,7 @@ export function AssignActivityDialog({ onSuccess }: AssignActivityDialogProps) {
                 <DialogHeader>
                     <DialogTitle>Assign New Activity</DialogTitle>
                     <DialogDescription>
-                        Assign an activity template to a student.
+                        Assign an activity template to one or more students.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -151,22 +187,78 @@ export function AssignActivityDialog({ onSuccess }: AssignActivityDialogProps) {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="student">Student</Label>
-                            <Select
-                                value={formData.studentId}
-                                onValueChange={(value) => setFormData({ ...formData, studentId: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select student" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {users.map((u) => (
-                                        <SelectItem key={u.documentId || u.id} value={u.documentId || u.id?.toString()}>
-                                            {u.fullName || u.username} ({u.email})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Label>Students</Label>
+                            <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={openCombobox}
+                                        className="w-full justify-between"
+                                    >
+                                        <span className="truncate">
+                                            {formData.studentIds.length > 0
+                                                ? `${formData.studentIds.length} student${formData.studentIds.length === 1 ? '' : 's'} selected`
+                                                : "Select students..."}
+                                        </span>
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[450px] p-0" align="start">
+                                    <Command>
+                                        <CommandInput placeholder="Search students..." />
+                                        <CommandList>
+                                            <CommandEmpty>No student found.</CommandEmpty>
+                                            <CommandGroup>
+                                                {users.map((user) => {
+                                                    const userId = user.documentId || user.id?.toString();
+                                                    const isSelected = formData.studentIds.includes(userId);
+                                                    return (
+                                                        <CommandItem
+                                                            key={userId}
+                                                            value={user.fullName || user.username || userId}
+                                                            onSelect={() => toggleStudent(userId)}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 h-4 w-4",
+                                                                    isSelected ? "opacity-100" : "opacity-0"
+                                                                )}
+                                                            />
+                                                            <div className="flex flex-col">
+                                                                <span>{user.fullName || user.username}</span>
+                                                                <span className="text-xs text-muted-foreground">{user.email}</span>
+                                                            </div>
+                                                        </CommandItem>
+                                                    );
+                                                })}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+
+                            {/* Selected students display */}
+                            {formData.studentIds.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2 p-3 border rounded-md bg-muted/20">
+                                    {formData.studentIds.map((id) => {
+                                        const student = users.find(u => (u.documentId || u.id?.toString()) === id);
+                                        return (
+                                            <Badge key={id} variant="secondary" className="pl-2 pr-1 py-1 flex items-center gap-1">
+                                                <span>{student?.fullName || student?.username || id}</span>
+                                                <button
+                                                    type="button"
+                                                    className="ml-1 rounded-full p-0.5 hover:bg-black/10 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                                    onClick={(e) => removeStudent(id, e)}
+                                                    aria-label={`Remove ${student?.fullName || 'student'}`}
+                                                >
+                                                    <X className="h-3 w-3 text-gray-500 hover:text-gray-900" />
+                                                </button>
+                                            </Badge>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
                         <div className="space-y-2">

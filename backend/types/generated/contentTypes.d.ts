@@ -1402,7 +1402,7 @@ export interface ApiNotificationLogNotificationLog
   extends Struct.CollectionTypeSchema {
   collectionName: 'notification_logs';
   info: {
-    description: 'Audit log for all notifications sent';
+    description: 'Debug log for email failures';
     displayName: 'Notification Log';
     pluralName: 'notification-logs';
     singularName: 'notification-log';
@@ -1411,18 +1411,11 @@ export interface ApiNotificationLogNotificationLog
     draftAndPublish: false;
   };
   attributes: {
-    channel: Schema.Attribute.Enumeration<['email', 'whatsapp', 'sms']> &
-      Schema.Attribute.DefaultTo<'email'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    delivered_at: Schema.Attribute.DateTime;
+    error_code: Schema.Attribute.String;
     error_message: Schema.Attribute.Text;
-    event: Schema.Attribute.Relation<'manyToOne', 'api::event.event'>;
-    event_registration: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::event-registration.event-registration'
-    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1431,35 +1424,23 @@ export interface ApiNotificationLogNotificationLog
       Schema.Attribute.Private;
     notification_type: Schema.Attribute.Enumeration<
       [
-        'registration_confirmation',
-        'waitlist_addition',
-        'waitlist_promotion',
-        'reminder_72h',
-        'reminder_24h',
-        'reminder_4h',
-        'event_update',
-        'event_cancellation',
-        'post_event_feedback',
+        'activity_assigned',
+        'changes_requested',
+        'activity_approved',
+        'test_email',
       ]
     > &
       Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
     recipient_email: Schema.Attribute.Email;
-    recipient_phone: Schema.Attribute.String;
-    sent_at: Schema.Attribute.DateTime;
-    status: Schema.Attribute.Enumeration<
-      ['pending', 'sent', 'delivered', 'failed', 'bounced']
-    > &
+    smtp_response: Schema.Attribute.JSON;
+    status: Schema.Attribute.Enumeration<['pending', 'success', 'failed']> &
       Schema.Attribute.DefaultTo<'pending'>;
-    template_data: Schema.Attribute.JSON;
-    template_key: Schema.Attribute.String;
+    success_message: Schema.Attribute.Text;
+    timestamp: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    user: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
   };
 }
 
