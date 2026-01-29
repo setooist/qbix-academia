@@ -172,8 +172,8 @@ export default {
                 notification_type: type,
                 channel: channel,
                 status: 'failed',
-                error_message: error.message || 'Unknown error',
-                template_data: data
+                error_message: `${error.message}${error.response?.data ? ' - Details: ' + JSON.stringify(error.response.data) : ''}`,
+                template_data: { ...data, errorDetails: error.response?.data }
             });
 
             throw error;
