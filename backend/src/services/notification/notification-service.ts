@@ -129,6 +129,14 @@ export default {
 
             // Send notification
             if (channel === 'email') {
+                const emailConfig = strapi.plugin('email').config('settings') as { defaultFrom?: string };
+                strapi.log.info(`[Notification] 📧 SENDING EMAIL to: '${user.email}' | From: '${emailConfig?.defaultFrom}'`);
+
+                if (!user.email) {
+                    strapi.log.error(`[Notification] ❌ ABORTING: User email is missing for User ID: ${user.id}`);
+                    throw new Error('Cannot send email: User email is missing');
+                }
+
                 await this.sendEmail(
                     user.email,
                     template ? this.renderTemplate(template.subject, templateData) : this.getDefaultSubject(type, templateData),
