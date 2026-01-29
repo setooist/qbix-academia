@@ -177,6 +177,7 @@ async function sendAssignmentNotification(event) {
                 const subject = `New Activity Assigned: ${activityTitle}`;
 
                 try {
+                    console.log(`[LifeCycle] 🚀 Attempting to send assignment email to: ${assignee.email}`);
                     const response = await strapi
                         .plugin('email')
                         .service('email')
@@ -225,7 +226,10 @@ async function sendAssignmentNotification(event) {
                         smtpResponse: response
                     });
 
+                    console.log(`[LifeCycle] ✅ Assignment email sent successfully to: ${assignee.email}`);
+
                 } catch (error) {
+                    console.error(`[LifeCycle] ❌ Failed to send assignment email to ${assignee.email}:`, error);
                     await logNotification({
                         type: 'activity_assigned',
                         channel: 'email',
@@ -329,6 +333,7 @@ async function sendChangesRequestedNotification(event) {
                 const subject = `⚠️ Changes Requested: ${activityTitle}`;
 
                 try {
+                    console.log(`[LifeCycle] 🚀 Attempting to send changes requested email to: ${assignee.email}`);
                     const response = await strapi
                         .plugin('email')
                         .service('email')
@@ -378,7 +383,10 @@ async function sendChangesRequestedNotification(event) {
                         smtpResponse: response
                     });
 
+                    console.log(`[LifeCycle] ✅ Changes requested email sent successfully to: ${assignee.email}`);
+
                 } catch (error) {
+                    console.error(`[LifeCycle] ❌ Failed to send changes requested email to ${assignee.email}:`, error);
                     await logNotification({
                         type: 'changes_requested',
                         channel: 'email',
@@ -477,6 +485,7 @@ async function sendApprovedNotification(event) {
                 const subject = `✅ Approved: ${activityTitle}`;
 
                 try {
+                    console.log(`[LifeCycle] 🚀 Attempting to send approved email to: ${assignee.email}`);
                     const response = await strapi
                         .plugin('email')
                         .service('email')
@@ -527,7 +536,10 @@ async function sendApprovedNotification(event) {
                         smtpResponse: response
                     });
 
+                    console.log(`[LifeCycle] ✅ Approved email sent successfully to: ${assignee.email}`);
+
                 } catch (error) {
+                    console.error(`[LifeCycle] ❌ Failed to send approved email to ${assignee.email}:`, error);
                     await logNotification({
                         type: 'activity_approved',
                         channel: 'email',
