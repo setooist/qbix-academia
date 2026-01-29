@@ -171,17 +171,19 @@ async function sendAssignmentNotification(event) {
         // 1. Send EMAIL to each assignee
         const emailPromises = assignees
             .filter((assignee) => assignee.email)
-            .map((assignee) => {
+            .map(async (assignee) => {
                 const studentName =
                     assignee.fullName || assignee.username || 'Student';
+                const subject = `New Activity Assigned: ${activityTitle}`;
 
-                return strapi
-                    .plugin('email')
-                    .service('email')
-                    .send({
-                        to: assignee.email,
-                        subject: `New Activity Assigned: ${activityTitle}`,
-                        html: `
+                try {
+                    const response = await strapi
+                        .plugin('email')
+                        .service('email')
+                        .send({
+                            to: assignee.email,
+                            subject: subject,
+                            html: `
 <!DOCTYPE html>
 <html>
 <body style="font-family: Arial; background:#f5f5f5; padding:20px">
@@ -211,13 +213,36 @@ async function sendAssignmentNotification(event) {
 </body>
 </html>
                         `,
+                        });
+
+                    await logNotification({
+                        type: 'activity_assigned',
+                        channel: 'email',
+                        recipientEmail: assignee.email,
+                        subject: subject,
+                        status: 'sent',
+                        assignmentId: result.id,
+                        smtpResponse: response
                     });
+
+                } catch (error) {
+                    await logNotification({
+                        type: 'activity_assigned',
+                        channel: 'email',
+                        recipientEmail: assignee.email,
+                        subject: subject,
+                        status: 'failed',
+                        error: error,
+                        assignmentId: result.id
+                    });
+                    throw error;
+                }
             });
 
         // 2. Send WHATSAPP to each assignee using Meta's API
         const whatsappPromises = assignees
             .filter((assignee) => assignee.phone)
-            .map((assignee) => {
+            .map(async (assignee) => {
                 const studentName = assignee.fullName || assignee.username || 'Student';
 
                 if (!assignee.phone) {
@@ -225,16 +250,40 @@ async function sendAssignmentNotification(event) {
                     return Promise.resolve(false);
                 }
 
-                return sendWhatsAppTemplate(
-                    assignee.phone,
-                    'activity_notification',
-                    [
-                        { type: 'text', text: studentName },      // {{1}}
-                        { type: 'text', text: activityTitle },    // {{2}}
-                        { type: 'text', text: dueDate },          // {{3}}
-                        { type: 'text', text: mentorName }        // {{4}}
-                    ]
-                );
+                try {
+                    const success = await sendWhatsAppTemplate(
+                        assignee.phone,
+                        'activity_notification',
+                        [
+                            { type: 'text', text: studentName },      // {{1}}
+                            { type: 'text', text: activityTitle },    // {{2}}
+                            { type: 'text', text: dueDate },          // {{3}}
+                            { type: 'text', text: mentorName }        // {{4}}
+                        ]
+                    );
+
+                    await logNotification({
+                        type: 'activity_assigned',
+                        channel: 'whatsapp',
+                        recipientPhone: assignee.phone,
+                        status: success ? 'sent' : 'failed',
+                        subject: 'activity_notification',
+                        assignmentId: result.id
+                    });
+
+                    return success;
+                } catch (error) {
+                    await logNotification({
+                        type: 'activity_assigned',
+                        channel: 'whatsapp',
+                        recipientPhone: assignee.phone,
+                        status: 'failed',
+                        subject: 'activity_notification',
+                        error: error,
+                        assignmentId: result.id
+                    });
+                    return false;
+                }
             });
 
         await Promise.all([...emailPromises, ...whatsappPromises]);
@@ -275,16 +324,18 @@ async function sendChangesRequestedNotification(event) {
 
         const emailPromises = assignees
             .filter((assignee) => assignee.email)
-            .map((assignee) => {
+            .map(async (assignee) => {
                 const studentName = assignee.fullName || assignee.username || 'Student';
+                const subject = `⚠️ Changes Requested: ${activityTitle}`;
 
-                return strapi
-                    .plugin('email')
-                    .service('email')
-                    .send({
-                        to: assignee.email,
-                        subject: `⚠️ Changes Requested: ${activityTitle}`,
-                        html: `
+                try {
+                    const response = await strapi
+                        .plugin('email')
+                        .service('email')
+                        .send({
+                            to: assignee.email,
+                            subject: subject,
+                            html: `
 <!DOCTYPE html>
 <html>
 <body style="font-family: Arial; background:#f5f5f5; padding:20px">
@@ -315,23 +366,70 @@ async function sendChangesRequestedNotification(event) {
 </body>
 </html>
                         `,
+                        });
+
+                    await logNotification({
+                        type: 'changes_requested',
+                        channel: 'email',
+                        recipientEmail: assignee.email,
+                        subject: subject,
+                        status: 'sent',
+                        assignmentId: result.id,
+                        smtpResponse: response
                     });
+
+                } catch (error) {
+                    await logNotification({
+                        type: 'changes_requested',
+                        channel: 'email',
+                        recipientEmail: assignee.email,
+                        subject: subject,
+                        status: 'failed',
+                        error: error,
+                        assignmentId: result.id
+                    });
+                    throw error;
+                }
             });
 
         const whatsappPromises = assignees
             .filter((assignee) => assignee.phone)
-            .map((assignee) => {
+            .map(async (assignee) => {
                 const studentName = assignee.fullName || assignee.username || 'Student';
 
-                return sendWhatsAppTemplate(
-                    assignee.phone!,
-                    'changes_requested',
-                    [
-                        { type: 'text', text: studentName },      // {{1}}
-                        { type: 'text', text: activityTitle },    // {{2}}
-                        { type: 'text', text: mentorName }        // {{3}}
-                    ]
-                );
+                try {
+                    const success = await sendWhatsAppTemplate(
+                        assignee.phone!,
+                        'changes_requested',
+                        [
+                            { type: 'text', text: studentName },      // {{1}}
+                            { type: 'text', text: activityTitle },    // {{2}}
+                            { type: 'text', text: mentorName }        // {{3}}
+                        ]
+                    );
+
+                    await logNotification({
+                        type: 'changes_requested',
+                        channel: 'whatsapp',
+                        recipientPhone: assignee.phone!,
+                        status: success ? 'sent' : 'failed',
+                        subject: 'changes_requested',
+                        assignmentId: result.id
+                    });
+
+                    return success;
+                } catch (error) {
+                    await logNotification({
+                        type: 'changes_requested',
+                        channel: 'whatsapp',
+                        recipientPhone: assignee.phone!,
+                        status: 'failed',
+                        subject: 'changes_requested',
+                        error: error,
+                        assignmentId: result.id
+                    });
+                    return false;
+                }
             });
 
         await Promise.all([...emailPromises, ...whatsappPromises]);
@@ -374,16 +472,18 @@ async function sendApprovedNotification(event) {
 
         const emailPromises = assignees
             .filter((assignee) => assignee.email)
-            .map((assignee) => {
+            .map(async (assignee) => {
                 const studentName = assignee.fullName || assignee.username || 'Student';
+                const subject = `✅ Approved: ${activityTitle}`;
 
-                return strapi
-                    .plugin('email')
-                    .service('email')
-                    .send({
-                        to: assignee.email,
-                        subject: `✅ Approved: ${activityTitle}`,
-                        html: `
+                try {
+                    const response = await strapi
+                        .plugin('email')
+                        .service('email')
+                        .send({
+                            to: assignee.email,
+                            subject: subject,
+                            html: `
 <!DOCTYPE html>
 <html>
 <body style="font-family: Arial; background:#f5f5f5; padding:20px">
@@ -415,25 +515,72 @@ async function sendApprovedNotification(event) {
 </body>
 </html>
                         `,
+                        });
+
+                    await logNotification({
+                        type: 'activity_approved',
+                        channel: 'email',
+                        recipientEmail: assignee.email,
+                        subject: subject,
+                        status: 'sent',
+                        assignmentId: result.id,
+                        smtpResponse: response
                     });
+
+                } catch (error) {
+                    await logNotification({
+                        type: 'activity_approved',
+                        channel: 'email',
+                        recipientEmail: assignee.email,
+                        subject: subject,
+                        status: 'failed',
+                        error: error,
+                        assignmentId: result.id
+                    });
+                    throw error;
+                }
             });
 
         const whatsappPromises = assignees
             .filter((assignee) => assignee.phone)
-            .map((assignee) => {
+            .map(async (assignee) => {
                 const studentName = assignee.fullName || assignee.username || 'Student';
                 const gradeText = grade.toString();
 
-                return sendWhatsAppTemplate(
-                    assignee.phone!,
-                    'activity_approved',
-                    [
-                        { type: 'text', text: studentName },      // {{1}}
-                        { type: 'text', text: activityTitle },    // {{2}}
-                        { type: 'text', text: gradeText },        // {{3}}
-                        { type: 'text', text: mentorName }        // {{4}}
-                    ]
-                );
+                try {
+                    const success = await sendWhatsAppTemplate(
+                        assignee.phone!,
+                        'activity_approved',
+                        [
+                            { type: 'text', text: studentName },      // {{1}}
+                            { type: 'text', text: activityTitle },    // {{2}}
+                            { type: 'text', text: gradeText },        // {{3}}
+                            { type: 'text', text: mentorName }        // {{4}}
+                        ]
+                    );
+
+                    await logNotification({
+                        type: 'activity_approved',
+                        channel: 'whatsapp',
+                        recipientPhone: assignee.phone!,
+                        status: success ? 'sent' : 'failed',
+                        subject: 'activity_approved',
+                        assignmentId: result.id
+                    });
+
+                    return success;
+                } catch (error) {
+                    await logNotification({
+                        type: 'activity_approved',
+                        channel: 'whatsapp',
+                        recipientPhone: assignee.phone!,
+                        status: 'failed',
+                        subject: 'activity_approved',
+                        error: error,
+                        assignmentId: result.id
+                    });
+                    return false;
+                }
             });
 
         await Promise.all([...emailPromises, ...whatsappPromises]);
@@ -441,5 +588,38 @@ async function sendApprovedNotification(event) {
 
     } catch (error) {
         strapi.log.error('Approved notification failed:', error);
+    }
+}
+
+async function logNotification(data: {
+    type: string;
+    channel: 'email' | 'whatsapp';
+    recipientEmail?: string;
+    recipientPhone?: string;
+    subject?: string;
+    status: 'sent' | 'failed';
+    error?: any;
+    assignmentId?: number;
+    smtpResponse?: any;
+}) {
+    // Only log emails as per the new simplified schema for debugging email failures
+    if (data.channel !== 'email') return;
+
+    try {
+        await strapi.entityService.create('api::notification-log.notification-log', {
+            data: {
+                notification_type: data.type as any,
+                recipient_email: data.recipientEmail,
+                status: data.status === 'sent' ? 'success' : 'failed',
+                error_message: data.error ? (data.error.message || JSON.stringify(data.error)) : null,
+                error_code: data.error?.code || null,
+                smtp_response: data.smtpResponse || {},
+                success_message: data.status === 'sent' ? (data.smtpResponse?.response || 'Email sent successfully') : null,
+                timestamp: new Date(),
+                publishedAt: new Date(),
+            }
+        });
+    } catch (err) {
+        strapi.log.error('Failed to create notification log:', err);
     }
 }

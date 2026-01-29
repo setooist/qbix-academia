@@ -5,7 +5,7 @@
         "singularName": "notification-log",
         "pluralName": "notification-logs",
         "displayName": "Notification Log",
-        "description": "Audit log for all notifications sent"
+        "description": "Debug log for email failures"
     },
     "options": {
         "draftAndPublish": false
@@ -15,73 +15,39 @@
         "notification_type": {
             "type": "enumeration",
             "enum": [
-                "registration_confirmation",
-                "waitlist_addition",
-                "waitlist_promotion",
-                "reminder_72h",
-                "reminder_24h",
-                "reminder_4h",
-                "event_update",
-                "event_cancellation",
-                "post_event_feedback"
+                "activity_assigned",
+                "changes_requested",
+                "activity_approved",
+                "test_email"
             ],
             "required": true
         },
-        "channel": {
-            "type": "enumeration",
-            "enum": [
-                "email",
-                "whatsapp",
-                "sms"
-            ],
-            "default": "email"
-        },
         "recipient_email": {
             "type": "email"
-        },
-        "recipient_phone": {
-            "type": "string"
-        },
-        "user": {
-            "type": "relation",
-            "relation": "manyToOne",
-            "target": "plugin::users-permissions.user"
-        },
-        "event": {
-            "type": "relation",
-            "relation": "manyToOne",
-            "target": "api::event.event"
-        },
-        "event_registration": {
-            "type": "relation",
-            "relation": "manyToOne",
-            "target": "api::event-registration.event-registration"
         },
         "status": {
             "type": "enumeration",
             "enum": [
                 "pending",
-                "sent",
-                "delivered",
-                "failed",
-                "bounced"
+                "success",
+                "failed"
             ],
             "default": "pending"
-        },
-        "sent_at": {
-            "type": "datetime"
-        },
-        "delivered_at": {
-            "type": "datetime"
         },
         "error_message": {
             "type": "text"
         },
-        "template_key": {
+        "error_code": {
             "type": "string"
         },
-        "template_data": {
+        "smtp_response": {
             "type": "json"
+        },
+        "success_message": {
+            "type": "text"
+        },
+        "timestamp": {
+            "type": "datetime"
         }
     }
 }

@@ -102,12 +102,14 @@ export function ActivityManagementView() {
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 py-8">
             <div className="container mx-auto px-4 space-y-8">
                 {/* Header */}
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Activity Management</h1>
-                        <p className="text-gray-600 mt-2">Review and manage student submissions</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Activity Management</h1>
+                        <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Review and manage student submissions</p>
                     </div>
-                    <AssignActivityDialog onSuccess={() => setRefreshTrigger(t => t + 1)} />
+                    <div className="w-full md:w-auto">
+                        <AssignActivityDialog onSuccess={() => setRefreshTrigger(t => t + 1)} />
+                    </div>
                 </div>
 
                 {/* Stats Grid */}
@@ -117,13 +119,13 @@ export function ActivityManagementView() {
                         return (
                             <Card key={stat.label} className="border-2">
                                 <CardContent className="pt-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                                         <div>
-                                            <p className="text-3xl font-bold">{stat.value}</p>
-                                            <p className="text-sm text-gray-600">{stat.label}</p>
+                                            <p className="text-2xl md:text-3xl font-bold">{stat.value}</p>
+                                            <p className="text-xs md:text-sm text-gray-600">{stat.label}</p>
                                         </div>
-                                        <div className={`p-3 rounded-lg ${stat.color}`}>
-                                            <Icon className="w-6 h-6" />
+                                        <div className={`p-2 md:p-3 rounded-lg w-fit ${stat.color}`}>
+                                            <Icon className="w-5 h-5 md:w-6 md:h-6" />
                                         </div>
                                     </div>
                                 </CardContent>
@@ -134,11 +136,11 @@ export function ActivityManagementView() {
 
                 {/* Main Content */}
                 <Tabs defaultValue="review" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="review" className="relative">
-                            Pending Review
+                    <TabsList className="grid w-full grid-cols-2 h-auto md:grid-cols-4 gap-2 md:gap-0 p-1">
+                        <TabsTrigger value="review" className="relative data-[state=active]:shadow-sm">
+                            <span className="truncate">Pending Review</span>
                             {pendingReview.length > 0 && (
-                                <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-500 text-white rounded-full">
+                                <span className="ml-2 px-1.5 py-0.5 text-[10px] bg-yellow-500 text-white rounded-full">
                                     {pendingReview.length}
                                 </span>
                             )}
